@@ -197,6 +197,28 @@ static dllfunc_t texturecompressionfuncs[] =
 { NULL					, NULL }
 };
 
+static dllfunc_t fbofuncs[] =
+{
+{ "glIsRenderbuffer"                      , ( void ** ) &pglIsRenderbuffer },
+{ "glBindRenderbuffer"                    , ( void ** ) &pglBindRenderbuffer },
+{ "glDeleteRenderbuffers"                 , ( void ** ) &pglDeleteRenderbuffers },
+{ "glGenRenderbuffers"                    , ( void ** ) &pglGenRenderbuffers },
+{ "glRenderbufferStorage"                 , ( void ** ) &pglRenderbufferStorage },
+{ "glGetRenderbufferParameteriv"          , ( void ** ) &pglGetRenderbufferParameteriv },
+{ "glIsFramebuffer"                       , ( void ** ) &pglIsFramebuffer },
+{ "glBindFramebuffer"                     , ( void ** ) &pglBindFramebuffer },
+{ "glDeleteFramebuffers"                  , ( void ** ) &pglDeleteFramebuffers },
+{ "glGenFramebuffers"                     , ( void ** ) &pglGenFramebuffers },
+{ "glCheckFramebufferStatus"              , ( void ** ) &pglCheckFramebufferStatus },
+{ "glFramebufferTexture1D"                , ( void ** ) &pglFramebufferTexture1D },
+{ "glFramebufferTexture2D"                , ( void ** ) &pglFramebufferTexture2D },
+{ "glFramebufferTexture3D"                , ( void ** ) &pglFramebufferTexture3D },
+{ "glFramebufferRenderbuffer"             , ( void ** ) &pglFramebufferRenderbuffer },
+{ "glGetFramebufferAttachmentParameteriv" , ( void ** ) &pglGetFramebufferAttachmentParameteriv },
+{ "glGenerateMipmap"                      , ( void ** ) &pglGenerateMipmap },
+{ NULL, NULL}
+};
+
 static void GL_SetupAttributes( void );
 
 int R_MaxVideoModes( void )
@@ -1040,6 +1062,9 @@ void GL_InitExtensionsBigGL()
 	GL_CheckExtension( "GL_ARB_shading_language_100", NULL, "gl_glslprogram", GL_SHADER_GLSL100_EXT );
 	// rectangle textures support
 	GL_CheckExtension( "GL_ARB_texture_rectangle", NULL, "gl_texture_rectangle", GL_TEXTURE_2D_RECT_EXT );
+
+	// FBO support
+	GL_CheckExtension( "GL_ARB_framebuffer_object", fbofuncs, "gl_framebuffers", GL_FRAMEBUFFER_OBJECT );
 
 	// this won't work without extended context
 	if( glw_state.extended )

@@ -839,3 +839,117 @@ void R_ShowTree( void )
 
 	Con_NPrintf( 0, "max recursion %d\n", tr.max_recursion );
 }
+
+/*
+==========================================================================
+
+     FRAMEBUFFER SUPPORT
+
+==========================================================================
+*/
+
+int R_AllocFrameBuffer( int viewport[4] )
+{
+	int i = tr.num_framebuffers;
+
+	if( i >= MAX_FRAMEBUFFERS )
+	{
+		Con_Reportf( S_ERROR "R_AllocateFrameBuffer: FBO limit exceeded!\n" );
+		return -1; // disable
+	}
+
+	gl_fbo_t *fbo = &tr.frame_buffers[i];
+	tr.num_framebuffers++;
+
+	if( fbo->init )
+	{
+		Con_Reportf( S_ERROR "R_AllocFrameBuffer: buffer %i already initialized\n", i );
+		return i;
+	}
+
+	// create a depth-buffer
+	pglGenRenderbuffers( 1, &fbo->renderbuffer );
+	pglBindRenderbuffer( GL_RENDERBUFFER_EXT, fbo->renderbuffer );
+	pglRenderbufferStorage( GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT24, viewport[2], viewport[3] );
+	pglBindRenderbuffer( GL_RENDERBUFFER_EXT, 0 );
+
+	// create frame-buffer
+	pglGenFramebuffers( 1, &fbo->framebuffer );
+	pglBindFramebuffer( GL_FRAMEBUFFER_EXT, fbo->framebuffer );
+	pglFramebufferRenderbuffer( GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, fbo->renderbuffer );
+	pglDrawBuffer( GL_COLOR_ATTACHMENT0_EXT );
+	pglReadBuffer( GL_COLOR_ATTACHMENT0_EXT );
+	pglBindFramebuffer( GL_FRAMEBUFFER_EXT, 0 );
+	fbo->init = true;
+
+	return i;
+}
+
+void R_FreeFrameBuffer( int buffer )
+{
+	if( buffer < 0 || buffer >= MAX_FRAMEBUFFERS )
+	{
+		Con_Reportf( S_ERROR "R_FreeFrameBuffer: invalid buffer enum %i\n", buffer );
+		return;
+	}
+
+	gl_fbo_t *fbo = &tr.frame_buffers[buffer];
+
+	pglDeleteRenderbuffers( 1, &fbo->renderbuffer );
+	pglDeleteFramebuffers( 1, &fbo->framebuffer );
+	memset( fbo, 0, sizeof( *fbo ) );
+}
+
+void GL_BindFrameBuffer( int buffer, int texture )
+{
+	gl_fbo_t *fbo = NULL;
+
+	if( buffer >= 0 && buffer < MAX_FRAMEBUFFERS )
+		fbo = &tr.frame_buffers[buffer];
+
+	if( !fbo )
+	{
+		pglBindFramebuffer( GL_FRAMEBUFFER_EXT, 0 );
+		glState.frameBuffer = buffer;
+		return;
+	}
+
+	// at this point FBO index is always positive
+	if( ( unsigned int ) glState.frameBuffer != fbo->framebuffer )
+	{
+		pglBindFramebuffer( GL_FRAMEBUFFER_EXT, fbo->framebuffer );
+		glState.frameBuffer = fbo->framebuffer;
+	}
+
+	if( fbo->texture != texture )
+	{
+		// change texture attachment
+		GLuint texnum = R_GetTexture( texture )->texnum;
+		pglFramebufferTexture2D( GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, texnum, 0 );
+		fbo->texture = texture;
+	}
+}
+
+/*
+==============
+GL_BindFBO
+==============
+*/
+void GL_BindFBO( GLint buffer )
+{
+	if( !GL_Support( GL_FRAMEBUFFER_OBJECT ) )
+		return;
+
+	if( glState.frameBuffer == buffer )
+		return;
+
+	if( buffer < 0 )
+	{
+		pglBindFramebuffer( GL_FRAMEBUFFER_EXT, 0 );
+		glState.frameBuffer = buffer;
+		return;
+	}
+
+	pglBindFramebuffer( GL_FRAMEBUFFER_EXT, buffer );
+	glState.frameBuffer = buffer;
+}

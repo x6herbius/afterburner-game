@@ -35,6 +35,7 @@ extern byte	*r_temppool;
 #define SUBDIVIDE_SIZE	64
 #define MAX_DECAL_SURFS	4096
 #define MAX_DRAW_STACK	2		// normal view and menu view
+#define MAX_FRAMEBUFFERS 64
 
 #define SHADEDOT_QUANT 	16		// precalculated dot products for quantized angles
 #define SHADE_LAMBERT	1.495f
@@ -164,6 +165,14 @@ typedef struct
 	uint		num_beam_entities;
 } draw_list_t;
 
+typedef struct gl_fbo_s
+{
+	GLboolean		init;
+	GLuint		framebuffer;
+	GLuint		renderbuffer;
+	int		texture;
+} gl_fbo_t;
+
 typedef struct
 {
 	int		defaultTexture;   	// use for bad textures
@@ -215,6 +224,10 @@ typedef struct
 
 	// cull info
 	vec3_t		modelorg;		// relative to viewpoint
+
+	// framebuffers
+	gl_fbo_t		frame_buffers[MAX_FRAMEBUFFERS];
+	int		num_framebuffers;
 } ref_globals_t;
 
 typedef struct
@@ -273,6 +286,10 @@ void GL_TextureTarget( uint target );
 void GL_Cull( GLenum cull );
 void R_ShowTextures( void );
 void R_ShowTree( void );
+int R_AllocFrameBuffer( int viewport[4] );
+void GL_BindFrameBuffer( int buffer, int texture );
+void R_FreeFrameBuffer( int buffer );
+void GL_BindFBO( GLint buffer );
 
 //
 // gl_cull.c
@@ -522,6 +539,7 @@ enum
 	GL_ARB_SEAMLESS_CUBEMAP,
 	GL_EXT_GPU_SHADER4,		// shaders only
 	GL_DEPTH_TEXTURE,
+	GL_FRAMEBUFFER_OBJECT, // FBO support
 	GL_DEBUG_OUTPUT,
 	GL_EXTCOUNT,		// must be last
 };
@@ -602,6 +620,7 @@ typedef struct
 	GLint		texCoordArrayMode[MAX_TEXTURE_UNITS];	// 0 - disabled, 1 - enabled, 2 - cubemap
 
 	int		faceCull;
+	int		frameBuffer;
 
 	qboolean		stencilEnabled;
 	qboolean		in2DMode;
