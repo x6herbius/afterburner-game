@@ -2792,6 +2792,11 @@ void Host_ClientFrame( void )
 
 	// update the screen
 	SCR_UpdateScreen ();
+	
+	if( VR_Active( ) )
+	{
+		VR_UpdateScreen( );
+	}
 
 	// update audio
 	SND_UpdateSound ();

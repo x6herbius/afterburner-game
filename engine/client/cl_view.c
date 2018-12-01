@@ -326,6 +326,8 @@ void V_RenderView( void )
 	{
 		clgame.dllFuncs.pfnCalcRefdef( &rp );
 		V_GetRefParams( &rp, &rvp );
+		if( VR_IsRendering( ) )
+			VR_CalcRefDef( &rvp );
 		V_RefApplyOverview( &rvp );
 
 		if( viewnum == 0 && FBitSet( rvp.flags, RF_ONLY_CLIENTDRAW ))

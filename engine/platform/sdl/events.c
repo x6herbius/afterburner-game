@@ -392,7 +392,7 @@ static void SDLash_EventFilter( SDL_Event *event )
 				Cvar_SetValue( "_window_ypos", (float)event->window.data1 );
 			}
 			break;
-		case SDL_WINDOWEVENT_MINIMIZED:
+		/*case SDL_WINDOWEVENT_MINIMIZED:
 			host.status = HOST_SLEEP;
 			VID_RestoreScreenResolution( );
 			break;
@@ -432,7 +432,7 @@ static void SDLash_EventFilter( SDL_Event *event )
 			host.force_draw_version = true;
 			host.force_draw_version_time = host.realtime + 2;
 			VID_RestoreScreenResolution();
-			break;
+			break;*/
 		case SDL_WINDOWEVENT_RESIZED:
 		case SDL_WINDOWEVENT_MAXIMIZED:
 		{

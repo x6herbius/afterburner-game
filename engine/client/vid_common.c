@@ -566,6 +566,8 @@ qboolean R_Init( void )
 
 	GL_SetDefaultState();
 
+	VR_Init( );
+
 	// create the window and set up the context
 	if( !R_Init_Video( ))
 	{
@@ -587,6 +589,8 @@ qboolean R_Init( void )
 	R_ClearDecals();
 	R_ClearScene();
 
+	VR_RenderInit();
+
 	// initialize screen
 	SCR_Init();
 
@@ -606,6 +610,8 @@ void R_Shutdown( void )
 	if( !glw_state.initialized )
 		return;
 
+	VR_RenderShutdown( );
+
 	// release SpriteTextures
 	for( i = 1, mod = clgame.sprites; i < MAX_CLIENT_SPRITES; i++, mod++ )
 	{
@@ -621,6 +627,8 @@ void R_Shutdown( void )
 
 	// shut down OS specific OpenGL stuff like contexts, etc.
 	R_Free_Video();
+
+	VR_Shutdown( );
 }
 
 /*

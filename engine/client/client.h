@@ -1117,6 +1117,18 @@ void SCR_RunCinematic( void );
 void SCR_StopCinematic( void );
 void CL_PlayVideo_f( void );
 
+//
+// vr_main.cpp
+//
+qboolean VR_Active( void );
+qboolean VR_IsRendering( void );
+void VR_CalcRefDef( ref_viewpass_t *rvp );
+void VR_UpdateScreen( void );
+void VR_RenderInit( void );
+void VR_RenderShutdown( void );
+void VR_Init( void );
+void VR_Shutdown( void );
+
 extern rgba_t g_color_table[8];
 
 #endif//CLIENT_H
