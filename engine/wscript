@@ -11,6 +11,10 @@ def options(opt):
 	opt.add_option(
 	    '--enable-bsp2', action = 'store_true', dest = 'SUPPORT_BSP2_FORMAT', default = False,
 		help = 'build engine with BSP2 map support(recommended for Quake, breaks compability!)')
+	
+	opt.add_option(
+		'--openvr', action = 'store', dest = 'OVR_PATH', default = None,
+		help = 'build engine with OpenVR support')
 
 def configure(conf):
 	# check for dedicated server build
@@ -45,6 +49,33 @@ def configure(conf):
 			else:
 				conf.fatal('SDL2 not availiable! If you want to build dedicated server, specify --dedicated')
 		conf.env.append_unique('DEFINES', 'XASH_SDL')
+		
+		if(conf.options.OVR_PATH):
+			conf.env.append_unique('DEFINES', 'XASH_OVR')
+			conf.start_msg('Configuring OpenVR SDK by provided path')
+			conf.env.HAVE_OVR = 1
+			conf.env.INCLUDES_OVR = [
+				os.path.abspath(os.path.join(conf.options.OVR_PATH, 'headers'))
+			]
+			libpath = 'lib/'
+			if(conf.env.DEST_OS == 'win32'): libpath += 'win'
+			elif(conf.env.DEST_OS == 'darwin'): libpath += 'osx'
+			else: libpath += conf.env.DEST_OS
+			
+			# just in case
+			if(conf.env.DEST_CPU != 'x86' and conf.env.DEST_CPU != 'x86_64'):
+				libpath += conf.env.DEST_CPU
+			elif(conf.options.ALLOW64):
+				libpath += '64'
+			else: libpath += '32'
+			
+			conf.env.LIBPATH_OVR = [os.path.abspath(os.path.join(conf.options.OVR_PATH, libpath))]
+			conf.env.LIB_OVR = ['openvr_api']
+			conf.end_msg('yes: {0}, {1}, {2}'.format(conf.env.LIB_OVR, conf.env.LIBPATH_OVR, conf.env.INCLUDES_OVR))
+		else:
+			conf.start_msg('Configuring OpenVR SDK by provided path')
+			conf.end_msg('not found')
+			Logs.warn('WARNING: OpenVR not found! Engine will be built without Virtual Reality support')
 
 	if(conf.options.SUPPORT_BSP2_FORMAT):
 		conf.env.append_unique('DEFINES', 'SUPPORT_BSP2_FORMAT')
@@ -92,6 +123,11 @@ def build(bld):
 			'client/vgui/*.c',
 			'client/avi/*.c',
 			'platform/sdl/*.c'])
+		if(bld.env.HAVE_OVR): 
+			libs.append('OVR')
+			source += bld.path.ant_glob([
+				'client/vr/*.cpp'
+			])
 	else:
 		if(bld.env.DEST_OS == 'linux'):
 			libs.append('RT')
