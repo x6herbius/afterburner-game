@@ -1121,13 +1121,15 @@ void CL_PlayVideo_f( void );
 // vr_main.cpp
 //
 qboolean VR_Active( void );
-qboolean VR_IsRendering( void );
+int VR_IsRendering( void ); // 0 -- not rendering, 1 -- left eye, 2 -- right
 void VR_CalcRefDef( ref_viewpass_t *rvp );
 void VR_UpdateScreen( void );
 void VR_RenderInit( void );
 void VR_RenderShutdown( void );
 void VR_Init( void );
 void VR_Shutdown( void );
+void VR_SetupModelviewMatrix( matrix4x4 m );
+void VR_SetupProjectionMatrix( matrix4x4 m );
 
 extern rgba_t g_color_table[8];
 

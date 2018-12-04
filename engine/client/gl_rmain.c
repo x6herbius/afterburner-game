@@ -316,7 +316,7 @@ static void R_Clear( int bitMask )
 R_GetFarClip
 ===============
 */
-static float R_GetFarClip( void )
+float R_GetFarClip( void )
 {
 	if( cl.worldmodel && RI.drawWorld )
 		return clgame.movevars.zmax * 1.73f;
@@ -509,20 +509,28 @@ R_SetupGL
 */
 void R_SetupGL( qboolean set_gl_state )
 {
-	R_SetupModelviewMatrix( RI.worldviewMatrix );
-	R_SetupProjectionMatrix( RI.projectionMatrix );
+	if( VR_IsRendering( ) )
+	{
+		VR_SetupProjectionMatrix( RI.projectionMatrix );
+	}
+	else
+	{
+		R_SetupProjectionMatrix( RI.projectionMatrix );
+	}
 
+	R_SetupModelviewMatrix( RI.worldviewMatrix );
+	
 	Matrix4x4_Concat( RI.worldviewProjectionMatrix, RI.projectionMatrix, RI.worldviewMatrix );
 
 	if( !set_gl_state ) return;
 
-	if( RP_NORMALPASS( ))
+	if( RP_NORMALPASS() && !VR_IsRendering() )
 	{
 		int	x, x2, y, y2;
 
 		// set up viewport (main, playersetup)
 		x = floor( RI.viewport[0] * glState.width / glState.width );
-		x2 = ceil(( RI.viewport[0] + RI.viewport[2] ) * glState.width / glState.width );
+		x2 = ceil( ( RI.viewport[0] + RI.viewport[2] ) * glState.width / glState.width );
 		y = floor( glState.height - RI.viewport[1] * glState.height / glState.height );
 		y2 = ceil( glState.height - ( RI.viewport[1] + RI.viewport[3] ) * glState.height / glState.height );
 
