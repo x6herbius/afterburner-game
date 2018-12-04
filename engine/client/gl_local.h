@@ -286,7 +286,7 @@ void GL_TextureTarget( uint target );
 void GL_Cull( GLenum cull );
 void R_ShowTextures( void );
 void R_ShowTree( void );
-int R_AllocFrameBuffer( int viewport[4] );
+int R_AllocFrameBuffer( int width, int height );
 void GL_BindFrameBuffer( int buffer, int texture );
 void R_FreeFrameBuffer( int buffer );
 void GL_BindFBO( GLint buffer );
@@ -382,6 +382,7 @@ void R_FindViewLeaf( void );
 void R_PushScene( void );
 void R_PopScene( void );
 void R_DrawFog( void );
+float R_GetFarClip( void );
 
 //
 // gl_rmath.c

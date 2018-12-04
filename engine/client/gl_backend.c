@@ -848,7 +848,7 @@ void R_ShowTree( void )
 ==========================================================================
 */
 
-int R_AllocFrameBuffer( int viewport[4] )
+int R_AllocFrameBuffer( int width, int height )
 {
 	int i = tr.num_framebuffers;
 
@@ -870,7 +870,7 @@ int R_AllocFrameBuffer( int viewport[4] )
 	// create a depth-buffer
 	pglGenRenderbuffers( 1, &fbo->renderbuffer );
 	pglBindRenderbuffer( GL_RENDERBUFFER_EXT, fbo->renderbuffer );
-	pglRenderbufferStorage( GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT24, viewport[2], viewport[3] );
+	pglRenderbufferStorage( GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT24, width, height );
 	pglBindRenderbuffer( GL_RENDERBUFFER_EXT, 0 );
 
 	// create frame-buffer
