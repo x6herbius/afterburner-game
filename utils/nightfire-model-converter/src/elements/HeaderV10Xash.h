@@ -12,7 +12,7 @@ namespace NFMDL
 	struct FormatTraits<HeaderV10Xash>
 	{
 		static constexpr size_t MAX_NAME_LENGTH = 64;
-		static constexpr HeaderIdentifier TARGET_IDENTIFIER = MDL_IDENTIFIER;
+		static constexpr HeaderIdentifier TARGET_IDENTIFIER(MDL_IDENTIFIER);
 		static constexpr uint32_t TARGET_VERSION = 10;
 	};
 
@@ -41,7 +41,7 @@ namespace NFMDL
 		uint32_t skinReferenceCount;
 		uint32_t skinFamilyCount;
 		uint32_t skinOffset;
-		CountOffsetPair bodyParts;
+		CountOffsetPair bodyGroups;
 		CountOffsetPair attachments;
 		uint32_t studiohdr2Offset;
 		uint32_t soundsOffset;

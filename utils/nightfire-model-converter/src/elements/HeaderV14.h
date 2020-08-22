@@ -3,20 +3,10 @@
 #include <cstdint>
 #include <cstddef>
 #include "Types.h"
+#include "HeaderV14FormatTraits.h"
 
 namespace NFMDL
 {
-	struct HeaderV14;
-
-	template<>
-	struct FormatTraits<HeaderV14>
-	{
-		static constexpr size_t MAX_NAME_LENGTH = 64;
-		static constexpr size_t MAX_MODELS = 48;
-		static constexpr HeaderIdentifier TARGET_IDENTIFIER = MDL_IDENTIFIER;
-		static constexpr uint32_t TARGET_VERSION = 14;
-	};
-
 #pragma pack(push, 1)
 	struct HeaderV14
 	{
@@ -42,7 +32,7 @@ namespace NFMDL
 		uint32_t skinReferenceCount;
 		uint32_t skinFamilyCount;
 		uint32_t skinOffset;
-		CountOffsetPair bodyParts;
+		CountOffsetPair bodyGroups;
 		CountOffsetPair attachments;
 		CountOffsetPair soundGroups;
 		uint32_t soundOffset;
@@ -57,8 +47,8 @@ namespace NFMDL
 		uint32_t vertexOffset;
 		uint32_t normalOffset;
 		uint32_t textureCoOrdOffset;
-		uint32_t unknownOffset;
 		uint32_t blendingScaleOffset;
+		uint32_t boneBlendOffset;
 		uint32_t boneFixUpOffset;
 		uint32_t modelOffset[FormatTraits<HeaderV14>::MAX_MODELS];
 	};

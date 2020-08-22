@@ -2,6 +2,11 @@
 
 import sys
 
+# NOTE: The NOCLIMB environment variable must be set before running Waf
+# on this script, or the outer build scripts will interfere.
+
+top = '.'
+
 class BasePlatformConfig:
 	def __init__(self):
 		self.defines = []

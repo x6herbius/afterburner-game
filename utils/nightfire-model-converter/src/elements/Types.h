@@ -48,14 +48,6 @@ namespace NFMDL
 			ident{other.ident[0], other.ident[1], other.ident[2], other.ident[3]}
 		{
 		}
-
-		inline constexpr HeaderIdentifier& operator =(const HeaderIdentifier& other)
-		{
-			ident[0] = other.ident[0];
-			ident[1] = other.ident[1];
-			ident[2] = other.ident[2];
-			ident[3] = other.ident[3];
-		}
 	};
 
 	struct Vec3F
