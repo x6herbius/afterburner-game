@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include "Types.h"
+#include "ElementTraits.h"
 
 namespace NFMDL
 {
@@ -29,12 +30,12 @@ namespace NFMDL
 		uint32_t blendCount;
 
 		// Relative to start of sequence group data
-		uint32_t animIndex;
+		uint32_t animationDataOffset;
 
 		uint32_t blendMotionFlags[2];
 		float blendStart[2];
 		float blendEnd[2];
-		int32_t blendparent;
+		int32_t blendParent;
 		int32_t	sequenceGroupIndex;
 
 		int32_t transitionNodeEntry;
@@ -44,4 +45,10 @@ namespace NFMDL
 		int32_t unknown[4];
 	};
 #pragma pack(pop)
+
+	template<>
+	struct ElementTraits<SequenceV14>
+	{
+		static constexpr const char* ELEMENT_NAME = "SequenceV14";
+	};
 }

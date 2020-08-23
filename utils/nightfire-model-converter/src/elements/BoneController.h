@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include "ElementTraits.h"
 
 namespace NFMDL
 {
@@ -23,4 +24,10 @@ namespace NFMDL
 		int32_t controllerIndex;
 	};
 #pragma pack(pop)
+
+	template<>
+	struct ElementTraits<BoneController>
+	{
+		static constexpr const char* ELEMENT_NAME = "BoneController";
+	};
 }

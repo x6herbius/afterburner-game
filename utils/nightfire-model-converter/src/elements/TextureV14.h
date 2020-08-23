@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include "ElementTraits.h"
 
 namespace NFMDL
 {
@@ -13,4 +14,10 @@ namespace NFMDL
 		uint32_t unknown;
 	};
 #pragma pack(pop)
+
+	template<>
+	struct ElementTraits<TextureV14>
+	{
+		static constexpr const char* ELEMENT_NAME = "TextureV14";
+	};
 }

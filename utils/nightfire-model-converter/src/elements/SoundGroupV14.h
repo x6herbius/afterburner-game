@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include "ElementTraits.h"
 
 namespace NFMDL
 {
@@ -11,4 +12,10 @@ namespace NFMDL
 		uint32_t offset;
 	};
 #pragma pack(pop)
+
+	template<>
+	struct ElementTraits<SoundGroupV14>
+	{
+		static constexpr const char* ELEMENT_NAME = "SoundGroupV14";
+	};
 }

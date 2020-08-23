@@ -4,6 +4,7 @@
 #include <type_traits>
 #include <cstring>
 #include <cassert>
+#include <cstddef>
 
 namespace NFMDL
 {
@@ -22,6 +23,16 @@ namespace NFMDL
 		{
 			m_Elements.resize(elementCount);
 			memset(m_Elements.data(), 0, m_Elements.size() * sizeof(ValueType));
+		}
+
+		inline void CopyDataFrom(const ValueType* source, size_t numItems)
+		{
+			assert(numItems <= m_Elements.size());
+
+			if ( numItems > 0 )
+			{
+				memcpy(m_Elements.data(), source, numItems * sizeof(ValueType));
+			}
 		}
 
 		inline void Clear()
@@ -44,6 +55,17 @@ namespace NFMDL
 		inline size_t Count() const
 		{
 			return m_Elements.size();
+		}
+
+		template<typename FUNC>
+		inline void ForEach(const FUNC& callback) const
+		{
+			const size_t count = m_Elements.size();
+
+			for ( uint32_t index = 0; index < count; ++index )
+			{
+				callback(index, m_Elements[index]);
+			}
 		}
 
 	private:

@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include "Types.h"
+#include "ElementTraits.h"
 
 namespace NFMDL
 {
@@ -13,4 +14,10 @@ namespace NFMDL
 		BoundingBox bbox;
 	};
 #pragma pack(pop)
+
+	template<>
+	struct ElementTraits<HitBox>
+	{
+		static constexpr const char* ELEMENT_NAME = "HitBox";
+	};
 }

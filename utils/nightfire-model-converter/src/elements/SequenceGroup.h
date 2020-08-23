@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include "ElementTraits.h"
 
 namespace NFMDL
 {
@@ -19,4 +20,10 @@ namespace NFMDL
 		int32_t data;
 	};
 #pragma pack(pop)
+
+	template<>
+	struct ElementTraits<SequenceGroup>
+	{
+		static constexpr const char* ELEMENT_NAME = "SequenceGroup";
+	};
 }

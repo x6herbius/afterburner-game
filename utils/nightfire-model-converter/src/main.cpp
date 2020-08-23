@@ -8,12 +8,35 @@
 #include "appmodel/NightfireModelFile.h"
 #include "appmodel/NightfireModelFileReader.h"
 #include "elements/DumpElements.h"
+#include "Utils.h"
+#include "DumpMDLFileItems.h"
 
 static constexpr const char* const ARG_HELP = "help";
 
 static constexpr const char* const ARG_INPUT = "input";
 static constexpr const char* const ARG_OUTPUT = "output";
-static constexpr const char* const ARG_DUMP = "dump";
+
+static constexpr const char* const ARG_DUMP_HEADER = "dump-header";
+static constexpr const char* const ARG_DUMP_BONES = "dump-bones";
+
+struct DumpOption
+{
+	const char* argName;
+	bool AppOptions::* appOption;
+
+	inline const std::string FullArgName() const
+	{
+		return std::string("dump-") + argName;
+	}
+};
+
+static const DumpOption DumpOptionsList[] =
+{
+	{ "header", &AppOptions::dumpHeader },
+	{ "bones", &AppOptions::dumpBones },
+	{ "bone-controllers", &AppOptions::dumpBoneControllers },
+	{ "sequences", &AppOptions::dumpSequences },
+};
 
 bool ParseCommandLineOptions(int argc, const char** argv, AppOptions& options)
 {
@@ -23,8 +46,20 @@ bool ParseCommandLineOptions(int argc, const char** argv, AppOptions& options)
 		(ARG_HELP, "Print help")
 		(ARG_INPUT, "Input file", cxxopts::value<std::string>())
 		(ARG_OUTPUT, "Output file", cxxopts::value<std::string>())
-		(ARG_DUMP, "Dump information about MDL file elements to stdout")
 	;
+
+	cxxopts::OptionAdder dumpOptionsAdder = launchOptions.add_options("Element dumping");
+
+	for ( uint32_t index = 0; index < ArraySize(DumpOptionsList); ++index )
+	{
+		const DumpOption& dumpOpt = DumpOptionsList[index];
+
+		std::string itemName(dumpOpt.argName);
+		ReplaceAllSubstrings(itemName, "-", " ");
+
+		dumpOptionsAdder(dumpOpt.FullArgName(),
+						 std::string("Dump information about MDL file ") + dumpOpt.argName + std::string(" to stdout"));
+	}
 
 	// Booooo, cxxopts developers...
 	char** badMutableArguments = const_cast<char**>(argv);
@@ -33,15 +68,25 @@ bool ParseCommandLineOptions(int argc, const char** argv, AppOptions& options)
 	{
 		cxxopts::ParseResult result = launchOptions.parse(argc, badMutableArguments);
 
-		if ( result.count(ARG_HELP) || result.count(ARG_INPUT) < 1 || result.count(ARG_OUTPUT) < 1 )
+		if ( result.count(ARG_HELP) || result.count(ARG_INPUT) < 1 )
 		{
 			std::cerr << launchOptions.help() << std::endl;
 			return false;
 		}
 
 		options.inputFile = result[ARG_INPUT].as<std::string>();
-		options.outputFile = result[ARG_OUTPUT].as<std::string>();
-		options.dumpElementInfo = result[ARG_DUMP].as<bool>();
+
+		if ( result.count(ARG_OUTPUT) > 0 )
+		{
+			options.outputFile = result[ARG_OUTPUT].as<std::string>();
+		}
+
+		for ( uint32_t index = 0; index < ArraySize(DumpOptionsList); ++index )
+		{
+			const DumpOption& dumpOpt = DumpOptionsList[index];
+
+			options.*(dumpOpt.appOption) = result[dumpOpt.FullArgName()].as<bool>();
+		}
 	}
 	catch ( const cxxopts::OptionException& ex )
 	{
@@ -52,18 +97,9 @@ bool ParseCommandLineOptions(int argc, const char** argv, AppOptions& options)
 	return true;
 }
 
-static void DumpInfo(const std::string& filePath, const NFMDL::NightfireModelFile& modelFile)
-{
-	std::stringstream stream;
-	stream << modelFile.Header;
-
-	std::cout << "Dump of " << filePath << ":" << std::endl;
-	std::cout << stream.str() << std::endl;
-}
-
 static bool ConvertFile(const AppOptions& options)
 {
-	std::cout << "Converting " << options.inputFile << " to " << options.outputFile << std::endl;
+	std::cout << "Reading " << options.inputFile << std::endl;
 
 	std::shared_ptr<NFMDL::NightfireModelFile> modelFile = std::make_shared<NFMDL::NightfireModelFile>();
 	NFMDL::NightfireModelFileReader reader(modelFile);
@@ -78,11 +114,9 @@ static bool ConvertFile(const AppOptions& options)
 		return false;
 	}
 
-	if ( options.dumpElementInfo )
-	{
-		DumpInfo(options.inputFile, *modelFile);
-	}
+	std::cout << "Read successfully." << std::endl;
 
+	DumpMDLFileItems(options, *modelFile);
 	return true;
 }
 

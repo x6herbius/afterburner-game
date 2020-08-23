@@ -49,6 +49,15 @@ namespace NFMDL
 	void NightfireModelFileReader::ReadEntireFile()
 	{
 		ReadHeader();
+
+		ReadElementArray(m_ModelFile->Header.bones, m_ModelFile->Bones);
+		ReadElementArray(m_ModelFile->Header.boneControllers, m_ModelFile->BoneControllers);
+		ReadElementArray(m_ModelFile->Header.hitBoxes, m_ModelFile->HitBoxes);
+		ReadElementArray(m_ModelFile->Header.sequences, m_ModelFile->Sequences);
+		ReadElementArray(m_ModelFile->Header.sequenceGroups, m_ModelFile->SequenceGroups);
+		ReadElementArray(m_ModelFile->Header.textures, m_ModelFile->Textures);
+		ReadElementArray(m_ModelFile->Header.attachments, m_ModelFile->Attachments);
+		ReadElementArray(m_ModelFile->Header.soundGroups, m_ModelFile->SoundGroups);
 	}
 
 	void NightfireModelFileReader::ReadHeader()

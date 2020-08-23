@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include "Types.h"
+#include "ElementTraits.h"
 
 namespace NFMDL
 {
@@ -21,4 +22,10 @@ namespace NFMDL
 		Vec3F scaleRotation;
 	};
 #pragma pack(pop)
+
+	template<>
+	struct ElementTraits<Bone>
+	{
+		static constexpr const char* ELEMENT_NAME = "Bone";
+	};
 }

@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include "Types.h"
+#include "ElementTraits.h"
 
 namespace NFMDL
 {
@@ -17,4 +18,10 @@ namespace NFMDL
 		Vec3F vectors[3];
 	};
 #pragma pack(pop)
+
+	template<>
+	struct ElementTraits<Attachment>
+	{
+		static constexpr const char* ELEMENT_NAME = "Attachment";
+	};
 }
