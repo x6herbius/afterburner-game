@@ -8,6 +8,7 @@
 #include "utils/ElementArray.h"
 #include "utils/ElementMap.h"
 
+#include "elements/HeaderV14.h"
 #include "elements/Bone.h"
 #include "elements/BoneController.h"
 #include "elements/HitBox.h"
@@ -102,6 +103,8 @@ namespace NFMDL
 		using BlendedAnimationValueList = std::vector<decltype(AnimationValue::value)>;
 		using BlendedAnimationCollection = std::unordered_map<AnimationCollectionKey, BlendedAnimationValueList, AnimationCollectionKey::Hash>;
 		using SkinCollection = std::unordered_map<SkinCollectionKey, int16_t, SkinCollectionKey::Hash>;
+
+		HeaderV14 Header;
 
 		ElementArray<Bone> Bones;
 		ElementArray<BoneController> BoneControllers;

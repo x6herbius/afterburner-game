@@ -14,7 +14,7 @@ namespace NFMDL
 		static constexpr size_t MAX_NAME_LENGTH = 64;
 		static constexpr size_t MAX_MODELS = 48;
 		static constexpr size_t MAX_NAMES_PER_SOUND = 10;
-		static constexpr HeaderIdentifier TARGET_IDENTIFIER{MDL_IDENTIFIER};
+		static constexpr const char* const TARGET_IDENTIFIER = MDL_IDENTIFIER_NIGHTFIRE;
 		static constexpr uint32_t TARGET_VERSION = 14;
 	};
 }

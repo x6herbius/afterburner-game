@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include "ElementTraits.h"
 
 namespace NFMDL
 {
@@ -10,4 +11,10 @@ namespace NFMDL
 		uint16_t offset[6];
 	};
 #pragma pack(pop)
+
+	template<>
+	struct ElementTraits<Animation>
+	{
+		static constexpr const char* ELEMENT_NAME = "Animation";
+	};
 }

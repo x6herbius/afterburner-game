@@ -86,7 +86,7 @@ CONFIGS = \
 	MatchableConfig(
 		"DebugConfig",
 		buildType="debug",
-		defines=["DEBUG"]
+		defines=["DEBUG", "_DEBUG"]
 	),
 
 	MatchableConfig(
@@ -96,11 +96,25 @@ CONFIGS = \
 	),
 
 	MatchableConfig(
+		"GCCConfig",
+		compiler="gcc",
+		cxxflags=["-g", "-fvisibility=hidden", "-fdiagnostics-color=always", "-Werror", "-Wno-format-truncation"],
+		linkflags=["-Wl,--no-undefined"]
+	),
+
+	MatchableConfig(
 		"MSVCConfigDebug",
 		compiler="msvc",
 		buildType="debug",
 		cxxflags=["/MDd", "/ZI", "/FS"],
 		linkflags=["/DEBUG:FASTLINK"]
+	),
+
+	MatchableConfig(
+		"GCCConfigDebug",
+		compiler="gcc",
+		buildType="debug",
+		cxxflags=["-Og"]
 	),
 
 	MatchableConfig(
@@ -139,6 +153,8 @@ def configure(ctx):
 			ctx.msg("Using config:", item.description(), color="BLUE")
 			config.union(item)
 
+	ctx.msg("CXXFLAGS:", config.cxxflags, color="GREEN")
+	ctx.msg("LINKFLAGS:", config.linkflags, color="GREEN")
 	config.export(ctx)
 
 def build(bld):

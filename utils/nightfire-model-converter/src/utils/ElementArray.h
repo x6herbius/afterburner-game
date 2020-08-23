@@ -41,6 +41,11 @@ namespace NFMDL
 			return m_Elements[index];
 		}
 
+		inline size_t Count() const
+		{
+			return m_Elements.size();
+		}
+
 	private:
 		std::vector<ValueType> m_Elements;
 	};

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
 
 namespace NFMDL
 {
@@ -39,14 +40,48 @@ namespace NFMDL
 	{
 		int8_t ident[4];
 
-		inline constexpr HeaderIdentifier(int8_t a, int8_t b, int8_t c, int8_t d) :
+		inline HeaderIdentifier() :
+			ident{0, 0, 0, 0}
+		{
+		}
+
+		inline HeaderIdentifier(int8_t a, int8_t b, int8_t c, int8_t d) :
 			ident{a, b, c, d}
 		{
 		}
 
-		inline constexpr HeaderIdentifier(const HeaderIdentifier& other) :
+		inline HeaderIdentifier(const HeaderIdentifier& other) :
 			ident{other.ident[0], other.ident[1], other.ident[2], other.ident[3]}
 		{
+		}
+
+		inline explicit HeaderIdentifier(const char* string)
+		{
+			for ( uint32_t index = 0; index < 4; ++index )
+			{
+				if ( string && *string )
+				{
+					ident[index] = *string;
+					++string;
+				}
+				else
+				{
+					ident[index] = 0;
+				}
+			}
+		}
+
+		inline bool operator ==(const HeaderIdentifier& other) const
+		{
+			return ident[0] == other.ident[0] &&
+				   ident[1] == other.ident[1] &&
+				   ident[2] == other.ident[2] &&
+				   ident[3] == other.ident[3];
+		}
+
+		inline bool operator != (const HeaderIdentifier& other) const
+		{
+			return !(*this == other);
 		}
 	};
 
@@ -67,8 +102,8 @@ namespace NFMDL
 
 	struct CountOffsetPair
 	{
-		uint32_t offset;
 		uint32_t count;
+		uint32_t offset;
 	};
 
 	struct BoundingBox
@@ -83,5 +118,6 @@ namespace NFMDL
 	{
 	};
 
-	static constexpr HeaderIdentifier MDL_IDENTIFIER('I', 'D', 'S', 'T');
+	static constexpr const char* const MDL_IDENTIFIER_HALFLIFE = "IDST";
+	static constexpr const char* const MDL_IDENTIFIER_NIGHTFIRE = "MDLZ";
 }

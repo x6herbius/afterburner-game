@@ -4,6 +4,7 @@
 #include <cstddef>
 #include "Types.h"
 #include "HeaderV14FormatTraits.h"
+#include "ElementTraits.h"
 
 namespace NFMDL
 {
@@ -31,14 +32,14 @@ namespace NFMDL
 		uint32_t textureDataOffset;
 		uint32_t skinReferenceCount;
 		uint32_t skinFamilyCount;
-		uint32_t skinOffset;
+		uint32_t skinDataOffset;
 		CountOffsetPair bodyGroups;
 		CountOffsetPair attachments;
 		CountOffsetPair soundGroups;
-		uint32_t soundOffset;
+		uint32_t soundsOffset;
 		uint32_t transitionCount;
-		uint32_t transitionFlagOffset;
-		uint32_t transitionOffset;
+		uint32_t transitionFlagsOffset;
+		uint32_t transitionsOffset;
 		uint32_t lodFlags;
 		uint32_t modelCount;
 		uint32_t vertexCount;
@@ -53,4 +54,10 @@ namespace NFMDL
 		uint32_t modelOffset[FormatTraits<HeaderV14>::MAX_MODELS];
 	};
 #pragma pack(pop)
+
+	template<>
+	struct ElementTraits<HeaderV14>
+	{
+		static constexpr const char* ELEMENT_NAME = "HeaderV14";
+	};
 }

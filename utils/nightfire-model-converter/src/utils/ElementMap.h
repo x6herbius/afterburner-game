@@ -47,6 +47,11 @@ namespace NFMDL
 			return m_Elements.emplace(std::forward<Args>(args)...).first;
 		}
 
+		inline size_t Count() const
+		{
+			return m_Elements.size();
+		}
+
 	private:
 		std::map<IndexType, ValueType> m_Elements;
 	};
