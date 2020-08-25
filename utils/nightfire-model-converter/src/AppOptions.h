@@ -6,6 +6,7 @@ struct AppOptions
 {
 	std::string inputFile;
 	std::string outputFile;
+	bool readHeaderOnly = false;
 
 	bool dumpHeader = false;
 	bool dumpBones = false;

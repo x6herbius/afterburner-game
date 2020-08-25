@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include "Types.h"
+#include "ElementTraits.h"
 
 namespace NFMDL
 {
@@ -12,4 +13,10 @@ namespace NFMDL
 		float scale;
 	};
 #pragma pack(pop)
+
+	template<>
+	struct ElementTraits<NormalV14>
+	{
+		static constexpr const char* ELEMENT_NAME = "NormalV14";
+	};
 }

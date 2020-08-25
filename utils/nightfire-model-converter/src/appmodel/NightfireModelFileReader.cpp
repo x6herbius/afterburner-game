@@ -2,14 +2,24 @@
 #include <iterator>
 
 #include "NightfireModelFileReader.h"
-
 #include "elements/HeaderV14.h"
+#include "Utils.h"
 
 namespace NFMDL
 {
 	NightfireModelFileReader::NightfireModelFileReader(const std::shared_ptr<NightfireModelFile>& modelFile) :
 		m_ModelFile(modelFile)
 	{
+	}
+
+	bool NightfireModelFileReader::ReadHeaderOnly() const
+	{
+		return m_ReadHeaderOnly;
+	}
+
+	void NightfireModelFileReader::SetReadHeaderOnly(bool headerOnly)
+	{
+		m_ReadHeaderOnly = headerOnly;
 	}
 
 	void NightfireModelFileReader::ReadFromFile(const std::string& filePath)
@@ -48,16 +58,52 @@ namespace NFMDL
 
 	void NightfireModelFileReader::ReadEntireFile()
 	{
+		*m_ModelFile = NightfireModelFile();
+
 		ReadHeader();
 
-		ReadElementArray(m_ModelFile->Header.bones, m_ModelFile->Bones);
-		ReadElementArray(m_ModelFile->Header.boneControllers, m_ModelFile->BoneControllers);
-		ReadElementArray(m_ModelFile->Header.hitBoxes, m_ModelFile->HitBoxes);
-		ReadElementArray(m_ModelFile->Header.sequences, m_ModelFile->Sequences);
-		ReadElementArray(m_ModelFile->Header.sequenceGroups, m_ModelFile->SequenceGroups);
-		ReadElementArray(m_ModelFile->Header.textures, m_ModelFile->Textures);
-		ReadElementArray(m_ModelFile->Header.attachments, m_ModelFile->Attachments);
-		ReadElementArray(m_ModelFile->Header.soundGroups, m_ModelFile->SoundGroups);
+		if ( m_ReadHeaderOnly )
+		{
+			return;
+		}
+
+		NFMDL::NightfireModelFile& file = *m_ModelFile;
+		const NFMDL::HeaderV14& header = file.Header;
+
+		ReadElementArray(header.boneControllers, file.BoneControllers);
+		ReadElementArray(header.hitBoxes, file.HitBoxes);
+		ReadElementArray(header.sequences, file.Sequences);
+		ReadElementArray(header.sequenceGroups, file.SequenceGroups);
+		ReadElementArray(header.textures, file.Textures);
+		ReadElementArray(header.attachments, file.Attachments);
+		ReadElementArray(header.soundGroups, file.SoundGroups);
+		// TODO: Levels of detail
+		// TODO: Animations
+		// TODO: Body groups
+
+		// Triangle data
+		ReadElementArray(header.triangleMapOffset, header.triangleCount, file.TriangleMaps);
+
+		// Vertex data
+		ReadElementArray(header.vertexOffset, header.vertexCount, file.Vertices);
+		ReadElementArray(header.normalOffset, header.vertexCount, file.Normals);
+		ReadElementArray(header.textureCoOrdOffset, header.vertexCount, file.TextureCoOrdinates);
+		ReadElementArray(header.boneBlendScaleOffset, header.vertexCount, file.BoneBlendScales);
+		ReadElementArray(header.boneBlendOffset, header.vertexCount, file.BoneBlends);
+
+		// Bone data
+		ReadElementArray(header.bones, file.Bones);
+		ReadElementArray(header.boneFixUpOffset, header.bones.count, file.BoneFixUps);
+
+		// Model data
+		ReadModels();
+		// TODO: Model infos
+		// TODO: Meshes
+
+		// Sequence data
+		// TODO: Events
+		// TODO: Pivots
+		// TODO: Blended animation data
 	}
 
 	void NightfireModelFileReader::ReadHeader()
@@ -77,5 +123,38 @@ namespace NFMDL
 									 std::to_string(FormatTraits<HeaderV14>::TARGET_VERSION) +
 									 ".");
 		}
+	}
+
+	void NightfireModelFileReader::ReadModels()
+	{
+		size_t modelCount = 0;
+
+		for ( uint32_t index = 0; index < ArraySize(m_ModelFile->Header.modelOffset); ++index )
+		{
+			if ( m_ModelFile->Header.modelOffset[index] < 1 )
+			{
+				modelCount = index;
+				break;
+			}
+		}
+
+		m_ModelFile->Models.AllocateAndZero(modelCount);
+
+		for ( uint32_t index = 0; index < modelCount; ++index )
+		{
+			m_ModelFile->Models[index] = *GetElement<ModelV14>(m_ModelFile->Header.modelOffset[index]);
+		}
+	}
+
+	void NightfireModelFileReader::ReadLevelsOfDetail()
+	{
+		if ( m_ModelFile->Header.lodFlags == LOD_None )
+		{
+			return;
+		}
+
+		const size_t lodCount = LevelOfDetailFlagsToCount(m_ModelFile->Header.lodFlags);
+
+		// TODO: Continue
 	}
 }

@@ -33,6 +33,21 @@ static const char* const SequenceFlagNames[1] =
 	"Sequence_Looping"
 };
 
+static const char* const LODFlagNames[] =
+{
+	"LOD_TimesOne",
+	"LOD_TimesTwo",
+	"LOD_TimesFive",
+	"<unknown>",
+	"<unknown>",
+	"<unknown>",
+	"<unknown>",
+	"<unknown>",
+	"LOD_PlusOne",
+	"LOD_PlusTwo",
+	"LOD_PlusFour",
+};
+
 template<size_t N>
 static inline std::string FlagNames(uint32_t flags, const char* const(& flagNames)[N])
 {
@@ -122,7 +137,7 @@ std::ostream& operator <<(std::ostream& stream, const HeaderV14& header)
 		<< "    Transitions: " << header.transitionCount << "\n"
 		<< "    Transition flags offset: " << header.transitionFlagsOffset << "\n"
 		<< "    Transitions offset: " << header.transitionsOffset << "\n"
-		<< "    LOD flags: " << AS_HEX(header.lodFlags) << "\n"
+		<< "    LOD flags: " << FlagNames(header.lodFlags, LODFlagNames) << "\n"
 		<< "    Model count: " << header.modelCount << "\n"
 		<< "    Vertex count: " << header.vertexCount << "\n"
 		<< "    Triangle count: " << header.triangleCount << "\n"

@@ -15,9 +15,7 @@ static constexpr const char* const ARG_HELP = "help";
 
 static constexpr const char* const ARG_INPUT = "input";
 static constexpr const char* const ARG_OUTPUT = "output";
-
-static constexpr const char* const ARG_DUMP_HEADER = "dump-header";
-static constexpr const char* const ARG_DUMP_BONES = "dump-bones";
+static constexpr const char* const ARG_HEADER_ONLY = "header-only";
 
 struct DumpOption
 {
@@ -46,6 +44,7 @@ bool ParseCommandLineOptions(int argc, const char** argv, AppOptions& options)
 		(ARG_HELP, "Print help")
 		(ARG_INPUT, "Input file", cxxopts::value<std::string>())
 		(ARG_OUTPUT, "Output file", cxxopts::value<std::string>())
+		(ARG_HEADER_ONLY, "Read header only - ignore file contents")
 	;
 
 	cxxopts::OptionAdder dumpOptionsAdder = launchOptions.add_options("Element dumping");
@@ -81,6 +80,8 @@ bool ParseCommandLineOptions(int argc, const char** argv, AppOptions& options)
 			options.outputFile = result[ARG_OUTPUT].as<std::string>();
 		}
 
+		options.readHeaderOnly = result[ARG_HEADER_ONLY].as<bool>();
+
 		for ( uint32_t index = 0; index < ArraySize(DumpOptionsList); ++index )
 		{
 			const DumpOption& dumpOpt = DumpOptionsList[index];
@@ -106,6 +107,7 @@ static bool ConvertFile(const AppOptions& options)
 
 	try
 	{
+		reader.SetReadHeaderOnly(options.readHeaderOnly);
 		reader.ReadFromFile(options.inputFile);
 	}
 	catch ( const std::exception& ex )

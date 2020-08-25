@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include "ElementTraits.h"
 
 namespace NFMDL
 {
@@ -24,4 +25,10 @@ namespace NFMDL
 		float zPosition;
 	};
 #pragma pack(pop)
+
+	template<>
+	struct ElementTraits<BoneFixUpV14>
+	{
+		static constexpr const char* ELEMENT_NAME = "BoneFixUpV14";
+	};
 }

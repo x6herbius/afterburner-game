@@ -48,7 +48,7 @@ namespace NFMDL
 		uint32_t vertexOffset;
 		uint32_t normalOffset;
 		uint32_t textureCoOrdOffset;
-		uint32_t blendingScaleOffset;
+		uint32_t boneBlendScaleOffset;
 		uint32_t boneBlendOffset;
 		uint32_t boneFixUpOffset;
 		uint32_t modelOffset[FormatTraits<HeaderV14>::MAX_MODELS];

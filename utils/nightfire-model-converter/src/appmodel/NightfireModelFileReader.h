@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <sstream>
 #include "NightfireModelFile.h"
 #include "elements/ElementTraits.h"
 
@@ -16,43 +17,40 @@ namespace NFMDL
 
 		void ReadFromFile(const std::string& filePath);
 
+		bool ReadHeaderOnly() const;
+		void SetReadHeaderOnly(bool headerOnly);
+
 	private:
 		using FileBuffer = std::vector<char>;
 
 		template<typename T>
 		inline const T* GetElement(uint32_t offset = 0, uint32_t count = 0) const
 		{
-			if ( count == 0 )
+			const size_t bytesRequired = (count == 0 ? 1 : count) * sizeof(T);
+			const size_t bytesAvailable = m_InputFileData->size() - offset;
+
+			if ( bytesRequired > bytesAvailable )
 			{
-				if ( sizeof(T) > m_InputFileData->size() - offset )
-				{
-					throw std::runtime_error("Not enough input file data (" +
-											 std::to_string(m_InputFileData->size()) +
-											 " bytes) to get " +
-											 std::string(ElementTraits<T>::ELEMENT_NAME) +
-											 " element of " +
-											 std::to_string(sizeof(T)) +
-											 " bytes at offset " +
-											 std::to_string(offset) +
-											 ".");
-				}
-			}
-			else
-			{
-				if ( count * sizeof(T) > m_InputFileData->size() - offset )
-				{
-					throw std::runtime_error("Not enough input file data (" +
-											 std::to_string(m_InputFileData->size()) +
-											 " bytes) to get " +
-											 std::to_string(count) +
-											 " " +
-											 std::string(ElementTraits<T>::ELEMENT_NAME) +
-											 " elements totalling " +
-											 std::to_string(count * sizeof(T)) +
-											 " bytes at offset " +
-											 std::to_string(offset) +
-											 ".");
-				}
+				std::stringstream stream;
+
+				stream
+					<< "Tried to get "
+					<< bytesRequired
+					<< " bytes of data when only "
+					<< bytesAvailable
+					<< " bytes were available. ("
+					<< m_InputFileData->size()
+					<< " total input bytes; attempt was made to get "
+					<< (count == 0 ? 1 : count)
+					<< " '"
+					<< ElementTraits<T>::ELEMENT_NAME
+					<< "' elements at "
+					<< sizeof(T)
+					<< " bytes each from input offset "
+					<< offset
+					<< ".";
+
+				throw std::runtime_error(stream.str());
 			}
 
 			return reinterpret_cast<const T*>(m_InputFileData->data() + offset);
@@ -69,10 +67,19 @@ namespace NFMDL
 			}
 		}
 
+		template<typename T>
+		inline void ReadElementArray(uint32_t offset, uint32_t count, ElementArray<T>& array)
+		{
+			ReadElementArray(CountOffsetPair{count, offset}, array);
+		}
+
 		void ReadEntireFile();
 		void ReadHeader();
+		void ReadModels();
+		void ReadLevelsOfDetail();
 
 		std::shared_ptr<NightfireModelFile> m_ModelFile;
 		std::unique_ptr<FileBuffer> m_InputFileData;
+		bool m_ReadHeaderOnly = false;
 	};
 }

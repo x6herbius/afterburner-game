@@ -27,6 +27,11 @@ void DumpMDLFileItems(const AppOptions& options, const NFMDL::NightfireModelFile
 		std::cout << stream.str() << std::endl;
 	}
 
+	if ( options.readHeaderOnly )
+	{
+		return;
+	}
+
 	if ( options.dumpBones )
 	{
 		DumpItems("Bone", "bones", modelFile.Bones);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include "ElementTraits.h"
 
 namespace NFMDL
 {
@@ -11,4 +12,10 @@ namespace NFMDL
 		float v;
 	};
 #pragma pack(pop)
+
+	template<>
+	struct ElementTraits<TextureCoOrdinateV14>
+	{
+		static constexpr const char* ELEMENT_NAME = "TextureCoOrdinateV14";
+	};
 }

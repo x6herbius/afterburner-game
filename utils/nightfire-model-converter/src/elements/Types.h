@@ -30,6 +30,17 @@ namespace NFMDL
 		Sequence_Looping = (1 << 0)
 	};
 
+	enum LevelOfDetailFlags
+	{
+		LOD_None = 0,
+		LOD_TimesOne = (1 << 0),
+		LOD_TimesTwo = (1 << 1),
+		LOD_TimesFive = (1 << 2),
+		LOD_PlusOne = (1 << 8),
+		LOD_PlusTwo = (1 << 9),
+		LOD_PlusFour = (1 << 10)
+	};
+
 	// Excludes the loop flag:
 	static constexpr uint32_t MOTION_FLAGS_DOF_MASK = 0x7FF;
 

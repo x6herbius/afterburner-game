@@ -43,13 +43,15 @@ namespace NFMDL
 	public:
 		struct AnimationCollectionKey
 		{
+			uint32_t sequenceIndex = 0;
 			uint32_t blendIndex = 0;
 			uint32_t boneIndex = 0;
 			uint32_t blendComponent = 0;
 
 			inline bool operator ==(const AnimationCollectionKey& other) const
 			{
-				return blendIndex == other.blendIndex &&
+				return sequenceIndex == other.sequenceIndex &&
+					   blendIndex == other.blendIndex &&
 					   boneIndex == other.boneIndex &&
 					   blendComponent == other.blendComponent;
 			}
@@ -63,11 +65,12 @@ namespace NFMDL
 			{
 				inline std::size_t operator()(const AnimationCollectionKey& key) const noexcept
 				{
-					const std::size_t blendIndexHash = std::hash<uint32_t>{}(key.blendIndex);
-					const std::size_t boneIndexHash  = std::hash<uint32_t>{}(key.boneIndex);
-					const std::size_t blendComponentHash  = std::hash<uint32_t>{}(key.blendComponent);
+					size_t hash = std::hash<uint32_t>{}(key.sequenceIndex);
+					hash = std::hash<uint32_t>{}(key.blendIndex) ^ (hash << 1);
+					hash = std::hash<uint32_t>{}(key.boneIndex) ^ (hash << 1);
+					hash = std::hash<uint32_t>{}(key.blendComponent) ^ (hash << 1);
 
-					return blendIndexHash ^ (boneIndexHash << 1) ^ (blendComponentHash << 2);
+					return hash;
 				}
 			};
 		};
@@ -92,17 +95,53 @@ namespace NFMDL
 			{
 				inline std::size_t operator()(const SkinCollectionKey& key) const noexcept
 				{
-					const std::size_t skinReferencesHash = std::hash<uint32_t>{}(key.skinReferences);
-					const std::size_t skinFamiliesHash  = std::hash<uint32_t>{}(key.skinFamilies);
+					size_t hash = std::hash<uint32_t>{}(key.skinReferences);
+					hash = std::hash<uint32_t>{}(key.skinFamilies) ^ (hash << 1);
 
-					return skinReferencesHash ^ (skinFamiliesHash << 1);
+					return hash;
 				}
 			};
 		};
 
+		struct OwnedItemKey
+		{
+			uint32_t ownerIndex = 0;
+			uint32_t itemIndex;
+
+			inline bool operator ==(const OwnedItemKey& other) const
+			{
+				return ownerIndex == other.ownerIndex &&
+					   itemIndex == other.itemIndex;
+			}
+
+			inline bool operator !=(const OwnedItemKey& other) const
+			{
+				return !(*this == other);
+			}
+
+			struct Hash
+			{
+				inline std::size_t operator()(const OwnedItemKey& key) const noexcept
+				{
+					size_t hash = std::hash<uint32_t>{}(key.ownerIndex);
+					hash = std::hash<uint32_t>{}(key.itemIndex) ^ (hash << 1);
+
+					return hash;
+				}
+			};
+		};
+
+		template<typename T>
+		using OwnedItemCollection = std::unordered_map<OwnedItemKey, T, OwnedItemKey::Hash>;
+
 		using BlendedAnimationValueList = std::vector<decltype(AnimationValue::value)>;
 		using BlendedAnimationCollection = std::unordered_map<AnimationCollectionKey, BlendedAnimationValueList, AnimationCollectionKey::Hash>;
 		using SkinCollection = std::unordered_map<SkinCollectionKey, int16_t, SkinCollectionKey::Hash>;
+		using EventCollection = OwnedItemCollection<Event>;
+		using PivotCollection = OwnedItemCollection<Pivot>;
+		using SoundCollection = OwnedItemCollection<SoundV14>;
+		using ModelInfoCollection = OwnedItemCollection<ModelInfoV14>;
+		using MeshCollection = OwnedItemCollection<MeshV14>;
 
 		HeaderV14 Header;
 
@@ -123,16 +162,21 @@ namespace NFMDL
 		ElementArray<BoneFixUpV14> BoneFixUps;
 		ElementArray<ModelV14> Models;
 		ElementArray<LevelOfDetailV14> LevelsOfDetail;
-		ElementArray<Event> Events;
-		ElementArray<Pivot> Pivots;
 		ElementArray<Animation> Animations;
 		ElementArray<BodyGroupV14> BodyGroups;
 
-		ElementMap<ModelInfoV14> ModelInfos;
-		ElementMap<MeshV14> Meshes;
-		ElementMap<SoundV14> Sounds;
-
-		BlendedAnimationCollection BlendedAnimationData;
 		SkinCollection Skins;
+
+		// Owned by sequences:
+		EventCollection Events;
+		PivotCollection Pivots;
+		BlendedAnimationCollection BlendedAnimationData;
+
+		// Owned by sound groups:
+		SoundCollection Sounds;
+
+		// Owned by models:
+		ModelInfoCollection ModelInfos;
+		MeshCollection Meshes;
 	};
 }
