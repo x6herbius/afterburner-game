@@ -78,8 +78,10 @@ namespace NFMDL
 		ReadElementArray(header.attachments, file.Attachments);
 		ReadElementArray(header.soundGroups, file.SoundGroups);
 		ReadLevelsOfDetail();
-		// TODO: Animations
 		ReadElementArray(header.bodyGroups, file.BodyGroups);
+		ReadSkins();
+
+		// TODO: Animations
 
 		// Triangle data
 		ReadElementArray(header.triangleMapOffset, header.triangleCount, file.TriangleMaps);
@@ -161,6 +163,24 @@ namespace NFMDL
 		offset = AlignTo16Bytes(offset);
 
 		ReadElementArray(offset, lodCount, m_ModelFile->LevelsOfDetail);
+	}
+
+	void NightfireModelFileReader::ReadSkins()
+	{
+		const uint32_t skinCount = m_ModelFile->Header.skinReferenceCount * m_ModelFile->Header.skinFamilyCount;
+		const Skin* skinElements = GetElement<Skin>(m_ModelFile->Header.skinDataOffset, skinCount);
+
+		for ( uint32_t family = 0; family < m_ModelFile->Header.skinFamilyCount; ++family )
+		{
+			for ( uint32_t reference = 0; reference < m_ModelFile->Header.skinReferenceCount; ++reference )
+			{
+				NightfireModelFile::SkinCollectionKey key;
+				key.skinFamily = family;
+				key.skinReference = reference;
+
+				m_ModelFile->Skins.emplace(key, *(skinElements++));
+			}
+		}
 	}
 
 	uint32_t NightfireModelFileReader::AlignTo16Bytes(uint32_t offset)

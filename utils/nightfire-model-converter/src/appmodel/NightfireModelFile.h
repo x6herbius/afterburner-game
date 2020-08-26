@@ -35,6 +35,7 @@
 #include "elements/ModelInfoV14.h"
 #include "elements/MeshV14.h"
 #include "elements/SoundV14.h"
+#include "elements/Skin.h"
 
 namespace NFMDL
 {
@@ -61,6 +62,26 @@ namespace NFMDL
 				return !(*this == other);
 			}
 
+			inline bool operator <(const AnimationCollectionKey& other) const
+			{
+				if ( sequenceIndex != other.sequenceIndex )
+				{
+					return sequenceIndex < other.sequenceIndex;
+				}
+
+				if ( blendIndex != other.blendIndex )
+				{
+					return blendIndex < other.blendIndex;
+				}
+
+				if ( boneIndex < other.boneIndex )
+				{
+					return boneIndex < other.boneIndex;
+				}
+
+				return blendComponent < other.blendComponent;
+			}
+
 			struct Hash
 			{
 				inline std::size_t operator()(const AnimationCollectionKey& key) const noexcept
@@ -77,13 +98,13 @@ namespace NFMDL
 
 		struct SkinCollectionKey
 		{
-			uint32_t skinReferences = 0;
-			uint32_t skinFamilies = 0;
+			uint32_t skinFamily = 0;
+			uint32_t skinReference = 0;
 
 			inline bool operator ==(const SkinCollectionKey& other) const
 			{
-				return skinReferences == other.skinReferences &&
-					   skinFamilies == other.skinFamilies;
+				return skinFamily == other.skinFamily &&
+					   skinReference == other.skinReference;
 			}
 
 			inline bool operator !=(const SkinCollectionKey& other) const
@@ -91,12 +112,22 @@ namespace NFMDL
 				return !(*this == other);
 			}
 
+			inline bool operator <(const SkinCollectionKey& other) const
+			{
+				if ( skinFamily != other.skinFamily )
+				{
+					return skinFamily < other.skinFamily;
+				}
+
+				return skinReference < other.skinReference;
+			}
+
 			struct Hash
 			{
 				inline std::size_t operator()(const SkinCollectionKey& key) const noexcept
 				{
-					size_t hash = std::hash<uint32_t>{}(key.skinReferences);
-					hash = std::hash<uint32_t>{}(key.skinFamilies) ^ (hash << 1);
+					size_t hash = std::hash<uint32_t>{}(key.skinFamily);
+					hash = std::hash<uint32_t>{}(key.skinReference) ^ (hash << 1);
 
 					return hash;
 				}
@@ -119,6 +150,16 @@ namespace NFMDL
 				return !(*this == other);
 			}
 
+			inline bool operator <(const OwnedItemKey& other) const
+			{
+				if ( ownerIndex != other.ownerIndex )
+				{
+					return ownerIndex < other.ownerIndex;
+				}
+
+				return itemIndex < other.itemIndex;
+			}
+
 			struct Hash
 			{
 				inline std::size_t operator()(const OwnedItemKey& key) const noexcept
@@ -132,11 +173,11 @@ namespace NFMDL
 		};
 
 		template<typename T>
-		using OwnedItemCollection = std::unordered_map<OwnedItemKey, T, OwnedItemKey::Hash>;
+		using OwnedItemCollection = std::map<OwnedItemKey, T>;
 
 		using BlendedAnimationValueList = std::vector<decltype(AnimationValue::value)>;
-		using BlendedAnimationCollection = std::unordered_map<AnimationCollectionKey, BlendedAnimationValueList, AnimationCollectionKey::Hash>;
-		using SkinCollection = std::unordered_map<SkinCollectionKey, int16_t, SkinCollectionKey::Hash>;
+		using BlendedAnimationCollection = std::map<AnimationCollectionKey, BlendedAnimationValueList>;
+		using SkinCollection = std::map<SkinCollectionKey, Skin>;
 		using EventCollection = OwnedItemCollection<Event>;
 		using PivotCollection = OwnedItemCollection<Pivot>;
 		using SoundCollection = OwnedItemCollection<SoundV14>;

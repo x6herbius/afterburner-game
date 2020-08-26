@@ -12,10 +12,21 @@ static inline void DumpItems(const std::string& itemName,
 
 	elementArray.ForEach([itemName](uint32_t index, const T& item)
 	{
-		std::stringstream stream;
-		stream << item;
-		std::cout << itemName << " " << index << ":\n" << stream.str() << std::endl;
+		std::cout << itemName << " " << index << ":\n" << item << std::endl;
 	});
+}
+
+template<typename K, typename V>
+static inline void DumpItems(const std::string& itemName,
+							 const std::string& itemNamePlural,
+							 const std::map<K, V>& hashMap)
+{
+	std::cout << hashMap.size() << " " << itemNamePlural << ":" << std::endl;
+
+	for ( typename std::map<K, V>::const_iterator it = hashMap.cbegin(); it != hashMap.cend(); ++it )
+	{
+		std::cout << itemName << " " << it->first << ":\n" << it->second << std::endl;
+	}
 }
 
 void DumpMDLFileItems(const AppOptions& options, const NFMDL::NightfireModelFile& modelFile)
@@ -110,5 +121,15 @@ void DumpMDLFileItems(const AppOptions& options, const NFMDL::NightfireModelFile
 	if ( options.dumpVertexBlendScales )
 	{
 		DumpItems("Vertex blend scale", "vertex blend scales", modelFile.VertexBlendScales);
+	}
+
+	if ( options.dumpBoneFixUps )
+	{
+		DumpItems("Bone fix-up", "bone fix-ups", modelFile.BoneFixUps);
+	}
+
+	if ( options.dumpSkins )
+	{
+		DumpItems("Skin", "skins", modelFile.Skins);
 	}
 }

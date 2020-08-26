@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ostream>
+#include "appmodel/NightfireModelFile.h"
 #include "HeaderV14.h"
 #include "Bone.h"
 #include "BoneController.h"
@@ -18,6 +19,8 @@
 #include "TextureCoOrdinateV14.h"
 #include "VertexBlendV14.h"
 #include "VertexBlendScaleV14.h"
+#include "BoneFixUpV14.h"
+#include "Skin.h"
 
 std::ostream& operator <<(std::ostream& stream, const NFMDL::HeaderV14& header);
 std::ostream& operator <<(std::ostream& stream, const NFMDL::Bone& bone);
@@ -36,3 +39,8 @@ std::ostream& operator <<(std::ostream& stream, const NFMDL::NormalV14& normal);
 std::ostream& operator <<(std::ostream& stream, const NFMDL::TextureCoOrdinateV14& texCoOrd);
 std::ostream& operator <<(std::ostream& stream, const NFMDL::VertexBlendV14& vBlend);
 std::ostream& operator <<(std::ostream& stream, const NFMDL::VertexBlendScaleV14& vBlendScale);
+std::ostream& operator <<(std::ostream& stream, const NFMDL::BoneFixUpV14& boneFixUp);
+std::ostream& operator <<(std::ostream& stream, const NFMDL::Skin& skin);
+
+
+std::ostream& operator <<(std::ostream& stream, const NFMDL::NightfireModelFile::SkinCollectionKey& key);

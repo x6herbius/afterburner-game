@@ -25,4 +25,6 @@ struct AppOptions
 	bool dumpTextureCoOrdinates = false;
 	bool dumpVertexBlendScales = false;
 	bool dumpVertexBlends = false;
+	bool dumpBoneFixUps = false;
+	bool dumpSkins = false;
 };

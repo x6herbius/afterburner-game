@@ -77,6 +77,7 @@ namespace NFMDL
 		void ReadHeader();
 		void ReadModels();
 		void ReadLevelsOfDetail();
+		void ReadSkins();
 
 		static uint32_t AlignTo16Bytes(uint32_t offset);
 

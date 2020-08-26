@@ -47,6 +47,8 @@ static const DumpOption DumpOptionsList[] =
 	{ "texture-coords", &AppOptions::dumpTextureCoOrdinates },
 	{ "vertex-blends", &AppOptions::dumpVertexBlends },
 	{ "vertex-blend-scales", &AppOptions::dumpVertexBlendScales },
+	{ "bone-fixups", &AppOptions::dumpBoneFixUps },
+	{ "skins", &AppOptions::dumpSkins },
 };
 
 bool ParseCommandLineOptions(int argc, const char** argv, AppOptions& options)

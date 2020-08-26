@@ -448,3 +448,42 @@ std::ostream& operator <<(std::ostream& stream, const NFMDL::VertexBlendScaleV14
 
 	return stream;
 }
+
+std::ostream& operator <<(std::ostream& stream, const NFMDL::BoneFixUpV14& boneFixUp)
+{
+	stream
+		<< CLASS_INFO(BoneFixUpV14) << "\n"
+		<< "[\n"
+		<< "    X scale: " << boneFixUp.xScale << "\n"
+		<< "    X skew Y: " << boneFixUp.xSkewY << "\n"
+		<< "    X skew Z: " << boneFixUp.xSkewZ << "\n"
+		<< "    X position: " << boneFixUp.xPosition << "\n"
+		<< "    Y skew X: " << boneFixUp.ySkewX << "\n"
+		<< "    Y scale: " << boneFixUp.yScale << "\n"
+		<< "    Y skew Z: " << boneFixUp.ySkewZ << "\n"
+		<< "    Y position: " << boneFixUp.yPosition << "\n"
+		<< "    Z skew X: " << boneFixUp.zSkewX << "\n"
+		<< "    Z skew Y: " << boneFixUp.zSkewY << "\n"
+		<< "    Z scale: " << boneFixUp.zScale << "\n"
+		<< "    Z position: " << boneFixUp.zPosition << "\n"
+		<< "]";
+
+	return stream;
+}
+
+std::ostream& operator <<(std::ostream& stream, const NFMDL::Skin& skin)
+{
+	stream
+		<< CLASS_INFO(Skin) << "\n"
+		<< "[\n"
+		<< "    Value: " << skin.value << "\n"
+		<< "]";
+
+	return stream;
+}
+
+std::ostream& operator <<(std::ostream& stream, const NFMDL::NightfireModelFile::SkinCollectionKey& key)
+{
+	stream << "[Family " << key.skinFamily << ", Reference " << key.skinReference << "]";
+	return stream;
+}
