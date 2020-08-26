@@ -12,4 +12,11 @@ struct AppOptions
 	bool dumpBones = false;
 	bool dumpBoneControllers = false;
 	bool dumpSequences = false;
+	bool dumpSequenceGroups = false;
+	bool dumpHitBoxes = false;
+	bool dumpTextures = false;
+	bool dumpAttachments = false;
+	bool dumpSoundGroups = false;
+	bool dumpLevelsOfDetail = false;
+	bool dumpBodyGroups = false;
 };

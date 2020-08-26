@@ -77,9 +77,9 @@ namespace NFMDL
 		ReadElementArray(header.textures, file.Textures);
 		ReadElementArray(header.attachments, file.Attachments);
 		ReadElementArray(header.soundGroups, file.SoundGroups);
-		// TODO: Levels of detail
+		ReadLevelsOfDetail();
 		// TODO: Animations
-		// TODO: Body groups
+		ReadElementArray(header.bodyGroups, file.BodyGroups);
 
 		// Triangle data
 		ReadElementArray(header.triangleMapOffset, header.triangleCount, file.TriangleMaps);
@@ -155,6 +155,27 @@ namespace NFMDL
 
 		const size_t lodCount = LevelOfDetailFlagsToCount(m_ModelFile->Header.lodFlags);
 
-		// TODO: Continue
+		uint32_t offset = m_ModelFile->Header.sequenceGroups.offset +
+			(m_ModelFile->Header.sequenceGroups.count * sizeof(SequenceGroup));
+
+		offset = AlignTo16Bytes(offset);
+
+		ReadElementArray(offset, lodCount, m_ModelFile->LevelsOfDetail);
+	}
+
+	uint32_t NightfireModelFileReader::AlignTo16Bytes(uint32_t offset)
+	{
+		// This function was called StaticMethods.Buffer(..., 16) in Ulti/Ford's
+		// code, and I wasn't provided with the implementation. Given the surrounding
+		// context of its use, this is my best guess as to what it was doing.
+
+		const uint32_t modulo = offset % 16;
+
+		if ( modulo > 0 )
+		{
+			offset += (16 - modulo);
+		}
+
+		return offset;
 	}
 }

@@ -34,6 +34,13 @@ static const DumpOption DumpOptionsList[] =
 	{ "bones", &AppOptions::dumpBones },
 	{ "bone-controllers", &AppOptions::dumpBoneControllers },
 	{ "sequences", &AppOptions::dumpSequences },
+	{ "sequence-groups", &AppOptions::dumpSequenceGroups },
+	{ "hitboxes", &AppOptions::dumpHitBoxes },
+	{ "textures", &AppOptions::dumpTextures },
+	{ "attachments", &AppOptions::dumpAttachments },
+	{ "sound-groups", &AppOptions::dumpSoundGroups },
+	{ "levels-of-detail", &AppOptions::dumpLevelsOfDetail },
+	{ "body-groups", &AppOptions::dumpBodyGroups },
 };
 
 bool ParseCommandLineOptions(int argc, const char** argv, AppOptions& options)

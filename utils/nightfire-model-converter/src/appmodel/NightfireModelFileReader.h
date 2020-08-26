@@ -78,6 +78,8 @@ namespace NFMDL
 		void ReadModels();
 		void ReadLevelsOfDetail();
 
+		static uint32_t AlignTo16Bytes(uint32_t offset);
+
 		std::shared_ptr<NightfireModelFile> m_ModelFile;
 		std::unique_ptr<FileBuffer> m_InputFileData;
 		bool m_ReadHeaderOnly = false;

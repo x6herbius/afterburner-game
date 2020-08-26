@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <cstddef>
 #include "Types.h"
+#include "ElementTraits.h"
 
 namespace NFMDL
 {
@@ -55,4 +56,10 @@ namespace NFMDL
 
 		return output;
 	}
+
+	template<>
+	struct ElementTraits<LevelOfDetailV14>
+	{
+		static constexpr const char* ELEMENT_NAME = "LevelOfDetailV14";
+	};
 }

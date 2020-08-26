@@ -11,7 +11,7 @@ namespace NFMDL
 	{
 		char name[32];
 		uint32_t type;
-		int32_t boneIndex;
+		int32_t parentBoneIndex;
 		Vec3F origin;
 
 		// Not 100% sure what these are for

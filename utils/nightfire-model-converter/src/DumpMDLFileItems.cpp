@@ -46,4 +46,39 @@ void DumpMDLFileItems(const AppOptions& options, const NFMDL::NightfireModelFile
 	{
 		DumpItems("Sequence", "sequences", modelFile.Sequences);
 	}
+
+	if ( options.dumpSequenceGroups )
+	{
+		DumpItems("Sequence group", "sequence groups", modelFile.SequenceGroups);
+	}
+
+	if ( options.dumpHitBoxes )
+	{
+		DumpItems("Hitbox", "hitboxes", modelFile.HitBoxes);
+	}
+
+	if ( options.dumpTextures )
+	{
+		DumpItems("Texture", "textures", modelFile.Textures);
+	}
+
+	if ( options.dumpAttachments )
+	{
+		DumpItems("Attachment", "attachments", modelFile.Attachments);
+	}
+
+	if ( options.dumpSoundGroups )
+	{
+		DumpItems("Sound group", "sound groups", modelFile.SoundGroups);
+	}
+
+	if ( options.dumpLevelsOfDetail )
+	{
+		DumpItems("Level of detail", "levels of detail", modelFile.LevelsOfDetail);
+	}
+
+	if ( options.dumpBodyGroups )
+	{
+		DumpItems("Body group", "body groups", modelFile.BodyGroups);
+	}
 }

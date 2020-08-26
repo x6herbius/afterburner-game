@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include "ElementTraits.h"
 
 namespace NFMDL
 {
@@ -13,4 +14,10 @@ namespace NFMDL
 		uint32_t modelOffset;
 	};
 #pragma pack(pop)
+
+	template<>
+	struct ElementTraits<BodyGroupV14>
+	{
+		static constexpr const char* ELEMENT_NAME = "BodyGroupV14";
+	};
 }

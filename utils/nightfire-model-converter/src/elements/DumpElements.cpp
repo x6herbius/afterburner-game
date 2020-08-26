@@ -3,6 +3,7 @@
 #include <cstdint>
 #include "DumpElements.h"
 #include "Utils.h"
+#include "LevelOfDetailV14.h"
 
 using namespace NFMDL;
 
@@ -137,7 +138,7 @@ std::ostream& operator <<(std::ostream& stream, const HeaderV14& header)
 		<< "    Transitions: " << header.transitionCount << "\n"
 		<< "    Transition flags offset: " << header.transitionFlagsOffset << "\n"
 		<< "    Transitions offset: " << header.transitionsOffset << "\n"
-		<< "    LOD flags: " << FlagNames(header.lodFlags, LODFlagNames) << "\n"
+		<< "    LOD flags: " << FlagNames(header.lodFlags, LODFlagNames) << " (" << LevelOfDetailFlagsToCount(header.lodFlags) << " levels)" << "\n"
 		<< "    Model count: " << header.modelCount << "\n"
 		<< "    Vertex count: " << header.vertexCount << "\n"
 		<< "    Triangle count: " << header.triangleCount << "\n"
@@ -207,7 +208,7 @@ std::ostream& operator <<(std::ostream& stream, const NFMDL::BoneController& bon
 std::ostream& operator <<(std::ostream& stream, const NFMDL::SequenceV14& sequence)
 {
 	stream
-		<< ElementTraits<BoneController>::ELEMENT_NAME << "\n"
+		<< ElementTraits<SequenceV14>::ELEMENT_NAME << "\n"
 		<< "[\n"
 		<< "    Name: " << sequence.name << "\n"
 		<< "    FPS: " << sequence.fps << "\n"
@@ -254,6 +255,112 @@ std::ostream& operator <<(std::ostream& stream, const NFMDL::SequenceV14& sequen
 	}
 
 	stream
+		<< "]";
+
+	return stream;
+}
+
+std::ostream& operator <<(std::ostream& stream, const NFMDL::HitBox& hitbox)
+{
+	stream
+		<< ElementTraits<HitBox>::ELEMENT_NAME << "\n"
+		<< "[\n"
+		<< "    Parent bone index: " << hitbox.parentBoneIndex << "\n"
+		<< "    Hit group index: " << hitbox.hitGroupIndex << "\n"
+		<< "    Bounding box: " << hitbox.bbox << "\n"
+		<< "]";
+
+	return stream;
+}
+
+std::ostream& operator <<(std::ostream& stream, const NFMDL::SequenceGroup& sequenceGroup)
+{
+	stream
+		<< ElementTraits<SequenceGroup>::ELEMENT_NAME << "\n"
+		<< "[\n"
+		<< "    Name: " << sequenceGroup.name << "\n"
+		<< "    File name: " << sequenceGroup.fileName << "\n"
+		<< "    Cache: " << AS_HEX(sequenceGroup.cache) << "\n"
+		<< "    Data: " << AS_HEX(sequenceGroup.data) << "\n"
+		<< "]";
+
+	return stream;
+}
+
+std::ostream& operator <<(std::ostream& stream, const NFMDL::TextureV14& texture)
+{
+	stream
+		<< ElementTraits<TextureV14>::ELEMENT_NAME << "\n"
+		<< "[\n"
+		<< "    Material name: " << texture.materialName << "\n"
+		<< "    Texture name: " << texture.textureName << "\n"
+		<< "    Reference count: " << texture.referenceCount << "\n"
+		<< "    Unknown: " << texture.unknown << "\n"
+		<< "]";
+
+	return stream;
+}
+
+std::ostream& operator <<(std::ostream& stream, const NFMDL::Attachment& attachment)
+{
+	stream
+		<< ElementTraits<Attachment>::ELEMENT_NAME << "\n"
+		<< "[\n"
+		<< "    Name: " << attachment.name << "\n"
+		<< "    Type: " << attachment.type << "\n"
+		<< "    Parent bone index: " << attachment.type << "\n"
+		<< "    Origin: " << attachment.origin << "\n";
+
+	for ( uint32_t index = 0; index < ArraySize(attachment.vectors); ++index )
+	{
+		stream << "    Vector [" << index << "]: " << attachment.vectors[index] << "\n";
+	}
+
+	stream
+		<< "]";
+
+	return stream;
+}
+
+std::ostream& operator <<(std::ostream& stream, const NFMDL::SoundGroupV14& soundGroup)
+{
+	stream
+		<< ElementTraits<SoundGroupV14>::ELEMENT_NAME << "\n"
+		<< "[\n"
+		<< "    Name: " << soundGroup.name << "\n"
+		<< "    Offset: " << soundGroup.offset << "\n"
+		<< "]";
+
+	return stream;
+}
+
+std::ostream& operator <<(std::ostream& stream, const NFMDL::LevelOfDetailV14& lod)
+{
+	stream
+		<< ElementTraits<LevelOfDetailV14>::ELEMENT_NAME << "\n"
+		<< "[\n"
+		<< "    Levels: " << lod.levels << "\n";
+
+	for ( uint32_t index = 0; index < ArraySize(lod.distance); ++index )
+	{
+		stream << "    Distance [" << index << "]: " << lod.distance[index] << "\n";
+	}
+
+	stream
+		<< "]";
+
+	return stream;
+}
+
+std::ostream& operator <<(std::ostream& stream, const NFMDL::BodyGroupV14& bodyGroup)
+{
+	stream
+		<< ElementTraits<BodyGroupV14>::ELEMENT_NAME << "\n"
+		<< "[\n"
+		<< "    Name: " << bodyGroup.name << "\n"
+		<< "    Model count: " << bodyGroup.modelCount << "\n"
+		<< "    Body count: " << bodyGroup.bodyCount << "\n"
+		<< "    Model offset: " << bodyGroup.modelOffset << "\n"
 		<< "]";
 
 	return stream;
