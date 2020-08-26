@@ -41,6 +41,8 @@ static const DumpOption DumpOptionsList[] =
 	{ "sound-groups", &AppOptions::dumpSoundGroups },
 	{ "levels-of-detail", &AppOptions::dumpLevelsOfDetail },
 	{ "body-groups", &AppOptions::dumpBodyGroups },
+	{ "triangle-maps", &AppOptions::dumpTriangleMaps },
+	{ "vertices", &AppOptions::dumpVertices },
 };
 
 bool ParseCommandLineOptions(int argc, const char** argv, AppOptions& options)

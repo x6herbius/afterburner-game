@@ -12,6 +12,8 @@
 #include "SoundGroupV14.h"
 #include "LevelOfDetailV14.h"
 #include "BodyGroupV14.h"
+#include "TriangleMapV14.h"
+#include "VertexV14.h"
 
 std::ostream& operator <<(std::ostream& stream, const NFMDL::HeaderV14& header);
 std::ostream& operator <<(std::ostream& stream, const NFMDL::Bone& bone);
@@ -24,3 +26,5 @@ std::ostream& operator <<(std::ostream& stream, const NFMDL::Attachment& attachm
 std::ostream& operator <<(std::ostream& stream, const NFMDL::SoundGroupV14& soundGroup);
 std::ostream& operator <<(std::ostream& stream, const NFMDL::LevelOfDetailV14& lod);
 std::ostream& operator <<(std::ostream& stream, const NFMDL::BodyGroupV14& bodyGroup);
+std::ostream& operator <<(std::ostream& stream, const NFMDL::TriangleMapV14& triangleMap);
+std::ostream& operator <<(std::ostream& stream, const NFMDL::VertexV14& vertex);

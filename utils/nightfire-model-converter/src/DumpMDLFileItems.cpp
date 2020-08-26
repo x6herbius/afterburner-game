@@ -81,4 +81,14 @@ void DumpMDLFileItems(const AppOptions& options, const NFMDL::NightfireModelFile
 	{
 		DumpItems("Body group", "body groups", modelFile.BodyGroups);
 	}
+
+	if ( options.dumpTriangleMaps )
+	{
+		DumpItems("Triangle map", "triangle maps", modelFile.TriangleMaps);
+	}
+
+	if ( options.dumpVertices )
+	{
+		DumpItems("Vertex", "vertices", modelFile.Vertices);
+	}
 }

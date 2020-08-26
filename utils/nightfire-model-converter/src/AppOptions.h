@@ -19,4 +19,6 @@ struct AppOptions
 	bool dumpSoundGroups = false;
 	bool dumpLevelsOfDetail = false;
 	bool dumpBodyGroups = false;
+	bool dumpTriangleMaps = false;
+	bool dumpVertices = false;
 };

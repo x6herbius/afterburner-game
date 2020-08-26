@@ -34,7 +34,7 @@ static const char* const SequenceFlagNames[1] =
 	"Sequence_Looping"
 };
 
-static const char* const LODFlagNames[] =
+static const char* const LODFlagNames[11] =
 {
 	"LOD_TimesOne",
 	"LOD_TimesTwo",
@@ -52,6 +52,8 @@ static const char* const LODFlagNames[] =
 template<size_t N>
 static inline std::string FlagNames(uint32_t flags, const char* const(& flagNames)[N])
 {
+	static_assert(N <= 32, "Number of flags must fit into a 32-bit integer.");
+
 	std::stringstream stream;
 	bool flagAdded = false;
 
@@ -361,6 +363,29 @@ std::ostream& operator <<(std::ostream& stream, const NFMDL::BodyGroupV14& bodyG
 		<< "    Model count: " << bodyGroup.modelCount << "\n"
 		<< "    Body count: " << bodyGroup.bodyCount << "\n"
 		<< "    Model offset: " << bodyGroup.modelOffset << "\n"
+		<< "]";
+
+	return stream;
+}
+
+std::ostream& operator <<(std::ostream& stream, const NFMDL::TriangleMapV14& triangleMap)
+{
+	stream
+		<< ElementTraits<TriangleMapV14>::ELEMENT_NAME << "\n"
+		<< "[\n"
+		<< "    Vertex index: " << triangleMap.vertexIndex << "\n"
+		<< "]";
+
+	return stream;
+}
+
+std::ostream& operator <<(std::ostream& stream, const NFMDL::VertexV14& vertex)
+{
+	stream
+		<< ElementTraits<VertexV14>::ELEMENT_NAME << "\n"
+		<< "[\n"
+		<< "    Position: " << vertex.position << "\n"
+		<< "    Scale: " << vertex.scale << "\n"
 		<< "]";
 
 	return stream;
