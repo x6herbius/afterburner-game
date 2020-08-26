@@ -88,8 +88,8 @@ namespace NFMDL
 		ReadElementArray(header.vertexOffset, header.vertexCount, file.Vertices);
 		ReadElementArray(header.normalOffset, header.vertexCount, file.Normals);
 		ReadElementArray(header.textureCoOrdOffset, header.vertexCount, file.TextureCoOrdinates);
-		ReadElementArray(header.boneBlendScaleOffset, header.vertexCount, file.BoneBlendScales);
-		ReadElementArray(header.boneBlendOffset, header.vertexCount, file.BoneBlends);
+		ReadElementArray(header.vertexBlendScaleOffset, header.vertexCount, file.VertexBlendScales);
+		ReadElementArray(header.vertexBlendOffset, header.vertexCount, file.VertexBlends);
 
 		// Bone data
 		ReadElementArray(header.bones, file.Bones);

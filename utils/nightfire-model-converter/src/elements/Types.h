@@ -96,9 +96,10 @@ namespace NFMDL
 		}
 	};
 
-	struct Vec3F
+	template<size_t N>
+	struct VecF
 	{
-		float v[3];
+		float v[N];
 
 		inline float& operator [](int index)
 		{
@@ -110,6 +111,9 @@ namespace NFMDL
 			return v[index];
 		}
 	};
+
+	using Vec2F = VecF<2>;
+	using Vec3F = VecF<3>;
 
 	struct CountOffsetPair
 	{

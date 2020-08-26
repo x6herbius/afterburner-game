@@ -43,6 +43,10 @@ static const DumpOption DumpOptionsList[] =
 	{ "body-groups", &AppOptions::dumpBodyGroups },
 	{ "triangle-maps", &AppOptions::dumpTriangleMaps },
 	{ "vertices", &AppOptions::dumpVertices },
+	{ "normals", &AppOptions::dumpNormals },
+	{ "texture-coords", &AppOptions::dumpTextureCoOrdinates },
+	{ "vertex-blends", &AppOptions::dumpVertexBlends },
+	{ "vertex-blend-scales", &AppOptions::dumpVertexBlendScales },
 };
 
 bool ParseCommandLineOptions(int argc, const char** argv, AppOptions& options)

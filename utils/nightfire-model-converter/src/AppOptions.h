@@ -21,4 +21,8 @@ struct AppOptions
 	bool dumpBodyGroups = false;
 	bool dumpTriangleMaps = false;
 	bool dumpVertices = false;
+	bool dumpNormals = false;
+	bool dumpTextureCoOrdinates = false;
+	bool dumpVertexBlendScales = false;
+	bool dumpVertexBlends = false;
 };

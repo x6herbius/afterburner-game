@@ -6,15 +6,15 @@
 namespace NFMDL
 {
 #pragma pack(push, 1)
-	struct BoneBlendV14
+	struct VertexBlendV14
 	{
-		uint8_t boneIndex[4];
+		int8_t boneIndex[4];
 	};
 #pragma pack(pop)
 
 	template<>
-	struct ElementTraits<BoneBlendV14>
+	struct ElementTraits<VertexBlendV14>
 	{
-		static constexpr const char* ELEMENT_NAME = "BoneBlendV14";
+		static constexpr const char* ELEMENT_NAME = "VertexBlendV14";
 	};
 }

@@ -22,8 +22,8 @@
 #include "elements/VertexV14.h"
 #include "elements/NormalV14.h"
 #include "elements/TextureCoOrdinateV14.h"
-#include "elements/BoneBlendScaleV14.h"
-#include "elements/BoneBlendV14.h"
+#include "elements/VertexBlendScaleV14.h"
+#include "elements/VertexBlendV14.h"
 #include "elements/BoneFixUpV14.h"
 #include "elements/ModelV14.h"
 #include "elements/LevelOfDetailV14.h"
@@ -157,8 +157,8 @@ namespace NFMDL
 		ElementArray<VertexV14> Vertices;
 		ElementArray<NormalV14> Normals;
 		ElementArray<TextureCoOrdinateV14> TextureCoOrdinates;
-		ElementArray<BoneBlendScaleV14> BoneBlendScales;
-		ElementArray<BoneBlendV14> BoneBlends;
+		ElementArray<VertexBlendScaleV14> VertexBlendScales;
+		ElementArray<VertexBlendV14> VertexBlends;
 		ElementArray<BoneFixUpV14> BoneFixUps;
 		ElementArray<ModelV14> Models;
 		ElementArray<LevelOfDetailV14> LevelsOfDetail;

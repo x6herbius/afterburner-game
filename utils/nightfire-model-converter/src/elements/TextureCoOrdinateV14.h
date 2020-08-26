@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include "Types.h"
 #include "ElementTraits.h"
 
 namespace NFMDL
@@ -8,8 +9,7 @@ namespace NFMDL
 #pragma pack(push, 1)
 	struct TextureCoOrdinateV14
 	{
-		float u;
-		float v;
+		Vec2F coOrds;
 	};
 #pragma pack(pop)
 

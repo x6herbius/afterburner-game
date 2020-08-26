@@ -8,6 +8,7 @@
 using namespace NFMDL;
 
 #define AS_HEX(value) "0x" << std::hex << std::setfill('0') << std::setw(8) << (value) << std::dec
+#define CLASS_INFO(className) ElementTraits<className>::ELEMENT_NAME << " (" << sizeof(className) << " bytes)"
 
 static const char* const MotionFlagNames[16] =
 {
@@ -113,7 +114,7 @@ std::ostream& operator <<(std::ostream& stream, const HeaderV14& header)
 	const HeaderIdentifier& ident = header.ident;
 
 	stream
-		<< ElementTraits<HeaderV14>::ELEMENT_NAME << "\n"
+		<< CLASS_INFO(HeaderV14) << "\n"
 		<< "[\n"
 		<< "    Ident: " << ident.ident[0] << ident.ident[1] << ident.ident[2] << ident.ident[3] << "\n"
 		<< "    Version: " << header.version << "\n"
@@ -149,7 +150,7 @@ std::ostream& operator <<(std::ostream& stream, const HeaderV14& header)
 		<< "    Normals offset: " << header.normalOffset << "\n"
 		<< "    Texture co-ords offset: " << header.textureCoOrdOffset << "\n"
 		<< "    Blending scales offset: " << header.textureCoOrdOffset << "\n"
-		<< "    Bone blends offset: " << header.boneBlendOffset << "\n"
+		<< "    Vertex blends offset: " << header.vertexBlendOffset << "\n"
 		<< "    Bone fix-ups offset: " << header.boneFixUpOffset << "\n";
 
 		for ( uint32_t index = 0; index < ArraySize(header.modelOffset); ++index )
@@ -170,7 +171,7 @@ std::ostream& operator <<(std::ostream& stream, const HeaderV14& header)
 std::ostream& operator <<(std::ostream& stream, const NFMDL::Bone& bone)
 {
 	stream
-		<< ElementTraits<Bone>::ELEMENT_NAME << "\n"
+		<< CLASS_INFO(Bone) << "\n"
 		<< "[\n"
 		<< "    Name: " << bone.name << "\n"
 		<< "    Parent index: " << bone.parentBoneIndex << "\n"
@@ -194,7 +195,7 @@ std::ostream& operator <<(std::ostream& stream, const NFMDL::Bone& bone)
 std::ostream& operator <<(std::ostream& stream, const NFMDL::BoneController& boneController)
 {
 	stream
-		<< ElementTraits<BoneController>::ELEMENT_NAME << "\n"
+		<< CLASS_INFO(BoneController) << "\n"
 		<< "[\n"
 		<< "    Bone index: " << boneController.boneIndex << "\n"
 		<< "    Motion flags: " << FlagNames(boneController.motionFlags, MotionFlagNames) << "\n"
@@ -210,7 +211,7 @@ std::ostream& operator <<(std::ostream& stream, const NFMDL::BoneController& bon
 std::ostream& operator <<(std::ostream& stream, const NFMDL::SequenceV14& sequence)
 {
 	stream
-		<< ElementTraits<SequenceV14>::ELEMENT_NAME << "\n"
+		<< CLASS_INFO(SequenceV14) << "\n"
 		<< "[\n"
 		<< "    Name: " << sequence.name << "\n"
 		<< "    FPS: " << sequence.fps << "\n"
@@ -265,7 +266,7 @@ std::ostream& operator <<(std::ostream& stream, const NFMDL::SequenceV14& sequen
 std::ostream& operator <<(std::ostream& stream, const NFMDL::HitBox& hitbox)
 {
 	stream
-		<< ElementTraits<HitBox>::ELEMENT_NAME << "\n"
+		<< CLASS_INFO(HitBox) << "\n"
 		<< "[\n"
 		<< "    Parent bone index: " << hitbox.parentBoneIndex << "\n"
 		<< "    Hit group index: " << hitbox.hitGroupIndex << "\n"
@@ -278,7 +279,7 @@ std::ostream& operator <<(std::ostream& stream, const NFMDL::HitBox& hitbox)
 std::ostream& operator <<(std::ostream& stream, const NFMDL::SequenceGroup& sequenceGroup)
 {
 	stream
-		<< ElementTraits<SequenceGroup>::ELEMENT_NAME << "\n"
+		<< CLASS_INFO(SequenceGroup) << "\n"
 		<< "[\n"
 		<< "    Name: " << sequenceGroup.name << "\n"
 		<< "    File name: " << sequenceGroup.fileName << "\n"
@@ -292,7 +293,7 @@ std::ostream& operator <<(std::ostream& stream, const NFMDL::SequenceGroup& sequ
 std::ostream& operator <<(std::ostream& stream, const NFMDL::TextureV14& texture)
 {
 	stream
-		<< ElementTraits<TextureV14>::ELEMENT_NAME << "\n"
+		<< CLASS_INFO(TextureV14) << "\n"
 		<< "[\n"
 		<< "    Material name: " << texture.materialName << "\n"
 		<< "    Texture name: " << texture.textureName << "\n"
@@ -306,7 +307,7 @@ std::ostream& operator <<(std::ostream& stream, const NFMDL::TextureV14& texture
 std::ostream& operator <<(std::ostream& stream, const NFMDL::Attachment& attachment)
 {
 	stream
-		<< ElementTraits<Attachment>::ELEMENT_NAME << "\n"
+		<< CLASS_INFO(Attachment) << "\n"
 		<< "[\n"
 		<< "    Name: " << attachment.name << "\n"
 		<< "    Type: " << attachment.type << "\n"
@@ -327,7 +328,7 @@ std::ostream& operator <<(std::ostream& stream, const NFMDL::Attachment& attachm
 std::ostream& operator <<(std::ostream& stream, const NFMDL::SoundGroupV14& soundGroup)
 {
 	stream
-		<< ElementTraits<SoundGroupV14>::ELEMENT_NAME << "\n"
+		<< CLASS_INFO(SoundGroupV14) << "\n"
 		<< "[\n"
 		<< "    Name: " << soundGroup.name << "\n"
 		<< "    Offset: " << soundGroup.offset << "\n"
@@ -339,7 +340,7 @@ std::ostream& operator <<(std::ostream& stream, const NFMDL::SoundGroupV14& soun
 std::ostream& operator <<(std::ostream& stream, const NFMDL::LevelOfDetailV14& lod)
 {
 	stream
-		<< ElementTraits<LevelOfDetailV14>::ELEMENT_NAME << "\n"
+		<< CLASS_INFO(LevelOfDetailV14) << "\n"
 		<< "[\n"
 		<< "    Levels: " << lod.levels << "\n";
 
@@ -357,7 +358,7 @@ std::ostream& operator <<(std::ostream& stream, const NFMDL::LevelOfDetailV14& l
 std::ostream& operator <<(std::ostream& stream, const NFMDL::BodyGroupV14& bodyGroup)
 {
 	stream
-		<< ElementTraits<BodyGroupV14>::ELEMENT_NAME << "\n"
+		<< CLASS_INFO(BodyGroupV14) << "\n"
 		<< "[\n"
 		<< "    Name: " << bodyGroup.name << "\n"
 		<< "    Model count: " << bodyGroup.modelCount << "\n"
@@ -371,7 +372,7 @@ std::ostream& operator <<(std::ostream& stream, const NFMDL::BodyGroupV14& bodyG
 std::ostream& operator <<(std::ostream& stream, const NFMDL::TriangleMapV14& triangleMap)
 {
 	stream
-		<< ElementTraits<TriangleMapV14>::ELEMENT_NAME << "\n"
+		<< CLASS_INFO(TriangleMapV14) << "\n"
 		<< "[\n"
 		<< "    Vertex index: " << triangleMap.vertexIndex << "\n"
 		<< "]";
@@ -382,10 +383,67 @@ std::ostream& operator <<(std::ostream& stream, const NFMDL::TriangleMapV14& tri
 std::ostream& operator <<(std::ostream& stream, const NFMDL::VertexV14& vertex)
 {
 	stream
-		<< ElementTraits<VertexV14>::ELEMENT_NAME << "\n"
+		<< CLASS_INFO(VertexBlendV14) << "\n"
 		<< "[\n"
 		<< "    Position: " << vertex.position << "\n"
 		<< "    Scale: " << vertex.scale << "\n"
+		<< "]";
+
+	return stream;
+}
+
+std::ostream& operator <<(std::ostream& stream, const NFMDL::NormalV14& normal)
+{
+	stream
+		<< CLASS_INFO(NormalV14) << "\n"
+		<< "[\n"
+		<< "    Position: " << normal.position << "\n"
+		<< "    Scale: " << normal.scale << "\n"
+		<< "]";
+
+	return stream;
+}
+
+std::ostream& operator <<(std::ostream& stream, const NFMDL::TextureCoOrdinateV14& texCoOrd)
+{
+	stream
+		<< CLASS_INFO(TextureCoOrdinateV14) << "\n"
+		<< "[\n"
+		<< "    Co-ord: (" << texCoOrd.coOrds[0] << ", " << texCoOrd.coOrds[1] << ")\n"
+		<< "]";
+
+	return stream;
+}
+
+std::ostream& operator <<(std::ostream& stream, const NFMDL::VertexBlendV14& vBlend)
+{
+	stream
+		<< CLASS_INFO(VertexBlendV14) << "\n"
+		<< "[\n";
+
+	for ( uint32_t index = 0; index < ArraySize(vBlend.boneIndex); ++index )
+	{
+		stream << "    Bone index [" << index << "]: " << static_cast<int32_t>(vBlend.boneIndex[index]) << "\n";
+	}
+
+	stream
+		<< "]";
+
+	return stream;
+}
+
+std::ostream& operator <<(std::ostream& stream, const NFMDL::VertexBlendScaleV14& vBlendScale)
+{
+	stream
+		<< CLASS_INFO(VertexBlendScaleV14) << "\n"
+		<< "[\n";
+
+	for ( uint32_t index = 0; index < ArraySize(vBlendScale.scale); ++index )
+	{
+		stream << "    Scale [" << index << "]: " << vBlendScale.scale[index] << "\n";
+	}
+
+	stream
 		<< "]";
 
 	return stream;

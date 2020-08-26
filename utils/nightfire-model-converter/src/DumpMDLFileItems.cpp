@@ -8,7 +8,7 @@ static inline void DumpItems(const std::string& itemName,
 							 const std::string& itemNamePlural,
 							 const NFMDL::ElementArray<T>& elementArray)
 {
-	std::cout << elementArray.Count() << " " + itemNamePlural + ":" << std::endl;
+	std::cout << elementArray.Count() << " " << itemNamePlural << ":" << std::endl;
 
 	elementArray.ForEach([itemName](uint32_t index, const T& item)
 	{
@@ -90,5 +90,25 @@ void DumpMDLFileItems(const AppOptions& options, const NFMDL::NightfireModelFile
 	if ( options.dumpVertices )
 	{
 		DumpItems("Vertex", "vertices", modelFile.Vertices);
+	}
+
+	if ( options.dumpNormals )
+	{
+		DumpItems("Normal", "normals", modelFile.Normals);
+	}
+
+	if ( options.dumpTextureCoOrdinates )
+	{
+		DumpItems("Texture co-ordinate", "texture co-ordinates", modelFile.TextureCoOrdinates);
+	}
+
+	if ( options.dumpVertexBlends )
+	{
+		DumpItems("Vertex blend", "vertex blends", modelFile.VertexBlends);
+	}
+
+	if ( options.dumpVertexBlendScales )
+	{
+		DumpItems("Vertex blend scale", "vertex blend scales", modelFile.VertexBlendScales);
 	}
 }

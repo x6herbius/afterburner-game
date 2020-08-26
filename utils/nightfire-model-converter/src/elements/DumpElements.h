@@ -14,6 +14,10 @@
 #include "BodyGroupV14.h"
 #include "TriangleMapV14.h"
 #include "VertexV14.h"
+#include "NormalV14.h"
+#include "TextureCoOrdinateV14.h"
+#include "VertexBlendV14.h"
+#include "VertexBlendScaleV14.h"
 
 std::ostream& operator <<(std::ostream& stream, const NFMDL::HeaderV14& header);
 std::ostream& operator <<(std::ostream& stream, const NFMDL::Bone& bone);
@@ -28,3 +32,7 @@ std::ostream& operator <<(std::ostream& stream, const NFMDL::LevelOfDetailV14& l
 std::ostream& operator <<(std::ostream& stream, const NFMDL::BodyGroupV14& bodyGroup);
 std::ostream& operator <<(std::ostream& stream, const NFMDL::TriangleMapV14& triangleMap);
 std::ostream& operator <<(std::ostream& stream, const NFMDL::VertexV14& vertex);
+std::ostream& operator <<(std::ostream& stream, const NFMDL::NormalV14& normal);
+std::ostream& operator <<(std::ostream& stream, const NFMDL::TextureCoOrdinateV14& texCoOrd);
+std::ostream& operator <<(std::ostream& stream, const NFMDL::VertexBlendV14& vBlend);
+std::ostream& operator <<(std::ostream& stream, const NFMDL::VertexBlendScaleV14& vBlendScale);
