@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include "ElementTraits.h"
 
 namespace NFMDL
 {
@@ -14,4 +15,10 @@ namespace NFMDL
 		uint16_t verticesIndexTo;
 	};
 #pragma pack(pop)
+
+	template<>
+	struct ElementTraits<MeshV14>
+	{
+		static constexpr const char* ELEMENT_NAME = "MeshV14";
+	};
 }

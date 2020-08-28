@@ -21,6 +21,9 @@
 #include "VertexBlendScaleV14.h"
 #include "BoneFixUpV14.h"
 #include "Skin.h"
+#include "ModelV14.h"
+#include "ModelInfoV14.h"
+#include "MeshV14.h"
 
 std::ostream& operator <<(std::ostream& stream, const NFMDL::HeaderV14& header);
 std::ostream& operator <<(std::ostream& stream, const NFMDL::Bone& bone);
@@ -41,6 +44,10 @@ std::ostream& operator <<(std::ostream& stream, const NFMDL::VertexBlendV14& vBl
 std::ostream& operator <<(std::ostream& stream, const NFMDL::VertexBlendScaleV14& vBlendScale);
 std::ostream& operator <<(std::ostream& stream, const NFMDL::BoneFixUpV14& boneFixUp);
 std::ostream& operator <<(std::ostream& stream, const NFMDL::Skin& skin);
-
+std::ostream& operator <<(std::ostream& stream, const NFMDL::ModelV14& model);
+std::ostream& operator <<(std::ostream& stream, const NFMDL::ModelInfoV14& modelInfo);
+std::ostream& operator <<(std::ostream& stream, const NFMDL::MeshV14& mesh);
 
 std::ostream& operator <<(std::ostream& stream, const NFMDL::NightfireModelFile::SkinCollectionKey& key);
+std::ostream& operator <<(std::ostream& stream, const NFMDL::NightfireModelFile::TOwnedItemKey<NFMDL::ModelInfoV14>& key);
+std::ostream& operator <<(std::ostream& stream, const NFMDL::NightfireModelFile::MeshCollectionKey& key);

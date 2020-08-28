@@ -27,4 +27,7 @@ struct AppOptions
 	bool dumpVertexBlends = false;
 	bool dumpBoneFixUps = false;
 	bool dumpSkins = false;
+	bool dumpModels = false;
+	bool dumpModelInfos = false;
+	bool dumpMeshes = false;
 };

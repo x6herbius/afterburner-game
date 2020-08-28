@@ -82,6 +82,7 @@ namespace NFMDL
 		ReadSkins();
 
 		// TODO: Animations
+		// TODO: Sounds
 
 		// Triangle data
 		ReadElementArray(header.triangleMapOffset, header.triangleCount, file.TriangleMaps);
@@ -99,8 +100,8 @@ namespace NFMDL
 
 		// Model data
 		ReadModels();
-		// TODO: Model infos
-		// TODO: Meshes
+		ReadModelInfos();
+		ReadMeshes();
 
 		// Sequence data
 		// TODO: Events
@@ -129,15 +130,16 @@ namespace NFMDL
 
 	void NightfireModelFileReader::ReadModels()
 	{
-		size_t modelCount = 0;
+		const uint32_t modelCount = m_ModelFile->Header.modelCount;
+		const size_t maxModelCount = ArraySize(m_ModelFile->Header.modelOffset);
 
-		for ( uint32_t index = 0; index < ArraySize(m_ModelFile->Header.modelOffset); ++index )
+		if ( modelCount > maxModelCount )
 		{
-			if ( m_ModelFile->Header.modelOffset[index] < 1 )
-			{
-				modelCount = index;
-				break;
-			}
+			throw std::runtime_error("Header provided model count of " +
+									 std::to_string(modelCount) +
+									 " when maximum allowed is " +
+									 std::to_string(maxModelCount) +
+									 ".");
 		}
 
 		m_ModelFile->Models.AllocateAndZero(modelCount);
@@ -179,6 +181,69 @@ namespace NFMDL
 				key.skinReference = reference;
 
 				m_ModelFile->Skins.emplace(key, *(skinElements++));
+			}
+		}
+	}
+
+	void NightfireModelFileReader::ReadModelInfos()
+	{
+		const size_t modelCount = m_ModelFile->Models.Count();
+
+		for ( uint32_t modelIndex = 0; modelIndex < modelCount; ++modelIndex )
+		{
+			const ModelV14& model = m_ModelFile->Models[modelIndex];
+
+			for ( uint32_t modelInfoIndex = 0; modelInfoIndex < ArraySize(model.modelInfoOffset); ++modelInfoIndex )
+			{
+				const uint32_t modelInfoOffset = model.modelInfoOffset[modelInfoIndex];
+
+				if ( modelInfoOffset < 1 )
+				{
+					continue;
+				}
+
+				NightfireModelFile::TOwnedItemKey<ModelInfoV14> key;
+				key.ownerIndex = modelIndex;
+				key.itemIndex = modelInfoIndex;
+
+				m_ModelFile->ModelInfos.emplace(key, *GetElement<ModelInfoV14>(modelInfoOffset));
+			}
+		}
+	}
+
+	// TODO: Combine with above function?
+	void NightfireModelFileReader::ReadMeshes()
+	{
+		const size_t modelCount = m_ModelFile->Models.Count();
+
+		for ( uint32_t modelIndex = 0; modelIndex < modelCount; ++modelIndex )
+		{
+			const ModelV14& model = m_ModelFile->Models[modelIndex];
+
+			for ( uint32_t modelInfoIndex = 0; modelInfoIndex < ArraySize(model.modelInfoOffset); ++modelInfoIndex )
+			{
+				if ( model.modelInfoOffset[modelInfoIndex] < 1 )
+				{
+					continue;
+				}
+
+				NightfireModelFile::TOwnedItemKey<ModelInfoV14> key;
+				key.ownerIndex = modelIndex;
+				key.itemIndex = modelInfoIndex;
+
+				const ModelInfoV14& modelInfo = m_ModelFile->ModelInfos[key];
+				const uint32_t meshCount = modelInfo.meshes.count;
+				const MeshV14* meshElements = GetElement<MeshV14>(modelInfo.meshes.offset, modelInfo.meshes.count);
+
+				for ( uint32_t meshIndex = 0; meshIndex < meshCount; ++meshIndex )
+				{
+					NightfireModelFile::MeshCollectionKey meshKey;
+					meshKey.modelIndex = modelIndex;
+					meshKey.modelInfoIndex = modelInfoIndex;
+					meshKey.meshIndex = meshIndex;
+
+					m_ModelFile->Meshes.emplace(meshKey, meshElements[meshIndex]);
+				}
 			}
 		}
 	}

@@ -85,6 +85,18 @@ static inline std::string FlagNames(uint32_t flags, const char* const(& flagName
 	return stream.str();
 }
 
+static inline std::ostream& WriteOwnedItemKey(std::ostream& stream,
+											  const NightfireModelFile::OwnedItemKey& key,
+											  const char* owner,
+											  const char* item)
+{
+	stream
+		<< "[" << owner << " index " << key.ownerIndex
+		<< ", " << item << " index " << key.itemIndex << "]";
+
+	return stream;
+}
+
 static inline std::ostream& operator <<(std::ostream& stream, const CountOffsetPair& pair)
 {
 	stream << "[" << pair.count << (pair.count == 1 ? " element" : " elements") << " @ offset " << pair.offset << "]";
@@ -482,8 +494,71 @@ std::ostream& operator <<(std::ostream& stream, const NFMDL::Skin& skin)
 	return stream;
 }
 
+std::ostream& operator <<(std::ostream& stream, const NFMDL::ModelV14& model)
+{
+	stream
+		<< CLASS_INFO(ModelV14) << "\n"
+		<< "[\n"
+		<< "    Name: " << model.name << "\n"
+		<< "    Index: " << model.index << "\n";
+
+	for ( uint32_t index = 0; index < ArraySize(model.modelInfoOffset); ++index )
+	{
+		stream << "    Model info offset [" << index << "]: " << model.modelInfoOffset[index] << "\n";
+	}
+
+	stream
+		<< "]";
+
+	return stream;
+}
+
+std::ostream& operator <<(std::ostream& stream, const NFMDL::ModelInfoV14& modelInfo)
+{
+	stream
+		<< CLASS_INFO(ModelInfoV14) << "\n"
+		<< "[\n"
+		<< "    Skin reference: " << modelInfo.skinReference << "\n"
+		<< "    Meshes: " << modelInfo.meshes << "\n"
+		<< "]";
+
+	return stream;
+}
+
+std::ostream& operator <<(std::ostream& stream, const NFMDL::MeshV14& mesh)
+{
+	stream
+		<< CLASS_INFO(MeshV14) << "\n"
+		<< "[\n";
+
+	for ( uint32_t index = 0; index < ArraySize(mesh.boneMappings); ++index )
+	{
+		stream << "    Bone [" << index << "]: " << static_cast<int32_t>(mesh.boneMappings[index]) << "\n";
+	}
+
+	stream
+		<< "    Triangles index: " << mesh.trianglesIndex << "\n"
+		<< "    Triangles count: " << mesh.trianglesCount << "\n"
+		<< "    Vertices index (from): " << mesh.verticesIndexFrom << "\n"
+		<< "    Vertices index (to): " << mesh.verticesIndexTo << "\n"
+		<< "]";
+
+	return stream;
+}
+
 std::ostream& operator <<(std::ostream& stream, const NFMDL::NightfireModelFile::SkinCollectionKey& key)
 {
 	stream << "[Family " << key.skinFamily << ", Reference " << key.skinReference << "]";
+	return stream;
+}
+
+std::ostream& operator <<(std::ostream& stream, const NFMDL::NightfireModelFile::TOwnedItemKey<NFMDL::ModelInfoV14>& key)
+{
+	return WriteOwnedItemKey(stream, key, "Parent model", "Model info");
+}
+
+std::ostream& operator <<(std::ostream& stream, const NFMDL::NightfireModelFile::MeshCollectionKey& key)
+{
+	stream << "[Parent model index " << key.modelIndex << ", Parent model info index " << key.modelInfoIndex << ", Mesh index " << key.meshIndex << "]";
 	return stream;
 }

@@ -132,4 +132,19 @@ void DumpMDLFileItems(const AppOptions& options, const NFMDL::NightfireModelFile
 	{
 		DumpItems("Skin", "skins", modelFile.Skins);
 	}
+
+	if ( options.dumpModels )
+	{
+		DumpItems("Model", "models", modelFile.Models);
+	}
+
+	if ( options.dumpModelInfos )
+	{
+		DumpItems("Model info", "model infos", modelFile.ModelInfos);
+	}
+
+	if ( options.dumpMeshes )
+	{
+		DumpItems("Mesh", "meshes", modelFile.Meshes);
+	}
 }

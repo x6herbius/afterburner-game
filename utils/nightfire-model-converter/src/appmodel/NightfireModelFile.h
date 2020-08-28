@@ -134,10 +134,56 @@ namespace NFMDL
 			};
 		};
 
+		struct MeshCollectionKey
+		{
+			uint32_t modelIndex = 0;
+			uint32_t modelInfoIndex = 0;
+			uint32_t meshIndex = 0;
+
+			inline bool operator ==(const MeshCollectionKey& other) const
+			{
+				return modelIndex == other.modelIndex &&
+					   modelInfoIndex == other.modelInfoIndex &&
+					   meshIndex == other.meshIndex;
+			}
+
+			inline bool operator !=(const MeshCollectionKey& other) const
+			{
+				return !(*this == other);
+			}
+
+			inline bool operator <(const MeshCollectionKey& other) const
+			{
+				if ( modelIndex != other.modelIndex )
+				{
+					return modelIndex < other.modelIndex;
+				}
+
+				if ( modelInfoIndex != other.modelInfoIndex )
+				{
+					return modelInfoIndex < other.modelInfoIndex;
+				}
+
+				return meshIndex < other.meshIndex;
+			}
+
+			struct Hash
+			{
+				inline std::size_t operator()(const MeshCollectionKey& key) const noexcept
+				{
+					size_t hash = std::hash<uint32_t>{}(key.modelIndex);
+					hash = std::hash<uint32_t>{}(key.modelInfoIndex) ^ (hash << 1);
+					hash = std::hash<uint32_t>{}(key.meshIndex) ^ (hash << 1);
+
+					return hash;
+				}
+			};
+		};
+
 		struct OwnedItemKey
 		{
 			uint32_t ownerIndex = 0;
-			uint32_t itemIndex;
+			uint32_t itemIndex = 0;
 
 			inline bool operator ==(const OwnedItemKey& other) const
 			{
@@ -172,8 +218,13 @@ namespace NFMDL
 			};
 		};
 
+		// So that we can specialise the stream operator when dumping keys
+		// from containers of different types.
 		template<typename T>
-		using OwnedItemCollection = std::map<OwnedItemKey, T>;
+		struct TOwnedItemKey : public OwnedItemKey {};
+
+		template<typename T>
+		using OwnedItemCollection = std::map<TOwnedItemKey<T>, T>;
 
 		using BlendedAnimationValueList = std::vector<decltype(AnimationValue::value)>;
 		using BlendedAnimationCollection = std::map<AnimationCollectionKey, BlendedAnimationValueList>;
@@ -182,7 +233,7 @@ namespace NFMDL
 		using PivotCollection = OwnedItemCollection<Pivot>;
 		using SoundCollection = OwnedItemCollection<SoundV14>;
 		using ModelInfoCollection = OwnedItemCollection<ModelInfoV14>;
-		using MeshCollection = OwnedItemCollection<MeshV14>;
+		using MeshCollection = std::map<MeshCollectionKey, MeshV14>;
 
 		HeaderV14 Header;
 

@@ -49,6 +49,9 @@ static const DumpOption DumpOptionsList[] =
 	{ "vertex-blend-scales", &AppOptions::dumpVertexBlendScales },
 	{ "bone-fixups", &AppOptions::dumpBoneFixUps },
 	{ "skins", &AppOptions::dumpSkins },
+	{ "models", &AppOptions::dumpModels },
+	{ "model-infos", &AppOptions::dumpModelInfos },
+	{ "meshes", &AppOptions::dumpMeshes },
 };
 
 bool ParseCommandLineOptions(int argc, const char** argv, AppOptions& options)
