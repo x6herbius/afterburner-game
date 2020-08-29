@@ -11,11 +11,17 @@ See [here](https://github.com/x6herbius/afterburner-game/releases). Please note,
 
 ## I want to compile the game from source, how do I do that?
 
-Ensure that you have Python 3 installed on your computer, as well as the appropriate C/C++ development tools for your platform (Windows and Linux are supported). You will also need to ensure that the **32-bit development** version of the [SDL2 library](https://www.libsdl.org/download-2.0.php) is installed. If this is not available for download for your platform, you should compile it from source. For detailed information on the prerequisites for compiling, see the Xash3D FWGS readme [here](https://github.com/FWGS/xash3d-fwgs), or at the bottom of this file.
+### Prerequisites
 
-*Note that 64-bit builds of the game will be supported in future, but are not at the moment.*
+*64-bit builds of the game will be supported in future, but are not at the moment.* Until 64-bit support is properly implemented, 32-bit compilers and libraries are required.
 
-Clone this repository using `git clone --recursive`. If you don't use the `--recursive` switch, the game **will not** compile without manually updating the subrepositories.
+Ensure that you have Python 3 installed on your computer, as well as the appropriate C/C++ development tools for your platform (Windows and Linux are supported). You will also need to ensure that the **32-bit development** version of the [SDL2 library](https://www.libsdl.org/download-2.0.php) is installed. If this is not available for download for your platform, you should compile it from source.
+
+For detailed information on the prerequisites for your platform, see the Xash3D FWGS readme [here](https://github.com/FWGS/xash3d-fwgs), or at the bottom of this file. Note that some of the 32-bit dependencies on Linux may also need to have their 64-bit counterparts installed in order for the configuration step to correctly detect them; for example, on Ubuntu the `libfreetype-dev` and `libfontconfig1-dev` dependencies need to be installed alongside their `libfreetype-dev:i386` and `libfontconfig1-dev:i386` counterparts.
+
+Finally, clone this repository using `git clone --recursive`. If you don't use the `--recursive` switch, the game **will not** compile without manually initialising the subrepositories. If you find yourself needing to do this, run `git submodule update --init --recursive` from within the root directory of the repository.
+
+### Building
 
 To build, open a terminal in the root of the repository and call:
 
@@ -23,7 +29,7 @@ To build, open a terminal in the root of the repository and call:
 python3 ./waf configure --disable-vgui --win-style-install --build-type=debug --prefix=build/debug
 ```
 
-This will set up the build for a debug version of the game. Note that if you downloaded SDL2 from the website and it is not available in the system path, you will need to pass the path to the directory you extracted it to via the `--sdl2` option, eg. `--sdl2=~/my-SDL2-folder`.
+This will set up the build for a debug version of the game. Note that if you downloaded SDL2 from the website and it is not available in the system path, you will need to pass the path to the directory you extracted it to via the `--sdl2` option, eg. `--sdl2=/path/to/SDL2`.
 
 To build the game and copy all output to the `build/debug` folder in the root of the repo, call:
 
@@ -53,8 +59,8 @@ Many thanks to:
 * Developers of [STB libraries](https://github.com/nothings/stb).
 * Developers of [rapidjson library](http://rapidjson.org/).
 * Contributors to [XeNTaX game reverse-engineering forums](https://forum.xentax.com/).
-* Various Nightfire modders over the years whose tools and reverse-engineering have proven invaluable when developing this mod (specifically Tres, 009, Ford, UltimateSniper).
 * ZapSplat.com for various free sound effects.
+* Various Nightfire modders over the years whose tools and reverse-engineering have proven invaluable when developing this mod (specifically Tres, 009, Ford, UltimateSniper).
 
 For posterity, the Xash3D engine readme is below.
 
