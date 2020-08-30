@@ -76,13 +76,15 @@ namespace NFMDL
 		ReadElementArray(header.sequenceGroups, file.SequenceGroups);
 		ReadElementArray(header.textures, file.Textures);
 		ReadElementArray(header.attachments, file.Attachments);
-		ReadElementArray(header.soundGroups, file.SoundGroups);
 		ReadLevelsOfDetail();
 		ReadElementArray(header.bodyGroups, file.BodyGroups);
 		ReadSkins();
 
 		// TODO: Animations
-		// TODO: Sounds
+
+		// Sound data
+		ReadElementArray(header.soundGroups, file.SoundGroups);
+		ReadSounds();
 
 		// Triangle data
 		ReadElementArray(header.triangleMapOffset, header.triangleCount, file.TriangleMaps);
@@ -245,6 +247,23 @@ namespace NFMDL
 					m_ModelFile->Meshes.emplace(meshKey, meshElements[meshIndex]);
 				}
 			}
+		}
+	}
+
+	void NightfireModelFileReader::ReadSounds()
+	{
+		const size_t soundGroupCount = m_ModelFile->SoundGroups.Count();
+		const uint32_t soundsOffset = m_ModelFile->Header.soundGroups.offset + (m_ModelFile->Header.soundGroups.count * sizeof(SoundGroupV14));
+
+		for ( uint32_t soundGroupIndex = 0; soundGroupIndex < soundGroupCount; ++soundGroupIndex )
+		{
+			const SoundGroupV14& soundGroup = m_ModelFile->SoundGroups[soundGroupIndex];
+
+			NightfireModelFile::TOwnedItemKey<SoundV14> key;
+			key.itemIndex = 0;
+			key.ownerIndex = soundGroupIndex;
+
+			m_ModelFile->Sounds.emplace(key, *GetElement<SoundV14>(soundsOffset + soundGroup.offset));
 		}
 	}
 

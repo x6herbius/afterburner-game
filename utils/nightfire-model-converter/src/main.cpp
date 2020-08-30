@@ -39,6 +39,7 @@ static const DumpOption DumpOptionsList[] =
 	{ "textures", &AppOptions::dumpTextures },
 	{ "attachments", &AppOptions::dumpAttachments },
 	{ "sound-groups", &AppOptions::dumpSoundGroups },
+	{ "sounds", &AppOptions::dumpSounds },
 	{ "levels-of-detail", &AppOptions::dumpLevelsOfDetail },
 	{ "body-groups", &AppOptions::dumpBodyGroups },
 	{ "triangle-maps", &AppOptions::dumpTriangleMaps },
@@ -75,7 +76,7 @@ bool ParseCommandLineOptions(int argc, const char** argv, AppOptions& options)
 		ReplaceAllSubstrings(itemName, "-", " ");
 
 		dumpOptionsAdder(dumpOpt.FullArgName(),
-						 std::string("Dump information about MDL file ") + dumpOpt.argName + std::string(" to stdout"));
+						 std::string("Dump information about MDL file ") + itemName + std::string(" to stdout"));
 	}
 
 	// Booooo, cxxopts developers...

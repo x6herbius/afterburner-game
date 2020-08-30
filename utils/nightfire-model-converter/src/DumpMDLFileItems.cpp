@@ -83,6 +83,11 @@ void DumpMDLFileItems(const AppOptions& options, const NFMDL::NightfireModelFile
 		DumpItems("Sound group", "sound groups", modelFile.SoundGroups);
 	}
 
+	if ( options.dumpSounds )
+	{
+		DumpItems("Sound", "sounds", modelFile.Sounds);
+	}
+
 	if ( options.dumpLevelsOfDetail )
 	{
 		DumpItems("Level of detail", "levels of detail", modelFile.LevelsOfDetail);

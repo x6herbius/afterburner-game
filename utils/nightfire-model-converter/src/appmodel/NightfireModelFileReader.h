@@ -80,6 +80,7 @@ namespace NFMDL
 		void ReadSkins();
 		void ReadModelInfos();
 		void ReadMeshes();
+		void ReadSounds();
 
 		static uint32_t AlignTo16Bytes(uint32_t offset);
 

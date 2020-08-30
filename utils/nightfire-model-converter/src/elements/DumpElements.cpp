@@ -349,6 +349,24 @@ std::ostream& operator <<(std::ostream& stream, const NFMDL::SoundGroupV14& soun
 	return stream;
 }
 
+std::ostream& operator <<(std::ostream& stream, const NFMDL::SoundV14& sound)
+{
+	stream
+		<< CLASS_INFO(SoundV14) << "\n"
+		<< "[\n"
+		<< "    Name count: " << sound.nameCount << "\n";
+
+	for ( uint32_t index = 0; index < ArraySize(sound.names); ++index )
+	{
+		stream << "    Name [" << index << "]: " << sound.names[index] << "\n";
+	}
+
+	stream
+		<< "]";
+
+	return stream;
+}
+
 std::ostream& operator <<(std::ostream& stream, const NFMDL::LevelOfDetailV14& lod)
 {
 	stream
@@ -561,4 +579,9 @@ std::ostream& operator <<(std::ostream& stream, const NFMDL::NightfireModelFile:
 {
 	stream << "[Parent model index " << key.modelIndex << ", Parent model info index " << key.modelInfoIndex << ", Mesh index " << key.meshIndex << "]";
 	return stream;
+}
+
+std::ostream& operator <<(std::ostream& stream, const NFMDL::NightfireModelFile::TOwnedItemKey<NFMDL::SoundV14>& key)
+{
+	return WriteOwnedItemKey(stream, key, "Parent sound group", "Sound");
 }

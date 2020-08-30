@@ -11,6 +11,7 @@
 #include "TextureV14.h"
 #include "Attachment.h"
 #include "SoundGroupV14.h"
+#include "SoundV14.h"
 #include "LevelOfDetailV14.h"
 #include "BodyGroupV14.h"
 #include "TriangleMapV14.h"
@@ -34,6 +35,7 @@ std::ostream& operator <<(std::ostream& stream, const NFMDL::SequenceGroup& sequ
 std::ostream& operator <<(std::ostream& stream, const NFMDL::TextureV14& texture);
 std::ostream& operator <<(std::ostream& stream, const NFMDL::Attachment& attachment);
 std::ostream& operator <<(std::ostream& stream, const NFMDL::SoundGroupV14& soundGroup);
+std::ostream& operator <<(std::ostream& stream, const NFMDL::SoundV14& sound);
 std::ostream& operator <<(std::ostream& stream, const NFMDL::LevelOfDetailV14& lod);
 std::ostream& operator <<(std::ostream& stream, const NFMDL::BodyGroupV14& bodyGroup);
 std::ostream& operator <<(std::ostream& stream, const NFMDL::TriangleMapV14& triangleMap);
@@ -51,3 +53,4 @@ std::ostream& operator <<(std::ostream& stream, const NFMDL::MeshV14& mesh);
 std::ostream& operator <<(std::ostream& stream, const NFMDL::NightfireModelFile::SkinCollectionKey& key);
 std::ostream& operator <<(std::ostream& stream, const NFMDL::NightfireModelFile::TOwnedItemKey<NFMDL::ModelInfoV14>& key);
 std::ostream& operator <<(std::ostream& stream, const NFMDL::NightfireModelFile::MeshCollectionKey& key);
+std::ostream& operator <<(std::ostream& stream, const NFMDL::NightfireModelFile::TOwnedItemKey<NFMDL::SoundV14>& key);
