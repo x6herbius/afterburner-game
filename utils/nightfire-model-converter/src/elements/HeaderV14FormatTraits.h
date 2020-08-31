@@ -16,5 +16,6 @@ namespace NFMDL
 		static constexpr size_t MAX_NAMES_PER_SOUND = 10;
 		static constexpr const char* const TARGET_IDENTIFIER = MDL_IDENTIFIER_NIGHTFIRE;
 		static constexpr uint32_t TARGET_VERSION = 14;
+		static constexpr size_t NUM_ANIMATION_COMPONENTS = 6;
 	};
 }

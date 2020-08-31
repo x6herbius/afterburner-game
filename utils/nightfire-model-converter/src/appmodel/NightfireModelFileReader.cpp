@@ -267,6 +267,96 @@ namespace NFMDL
 		}
 	}
 
+	void NightfireModelFileReader::ReadSequenceAnimationData()
+	{
+#if 0
+		const size_t sequenceCount = m_ModelFile->Sequences.Count();
+		const size_t boneCount = m_ModelFile->Bones.Count();
+
+		for ( uint32_t sequenceIndex = 0; sequenceIndex < sequenceCount; ++sequenceIndex )
+		{
+			const SequenceV14& sequence = m_ModelFile->Sequences[sequenceIndex];
+			const uint32_t animationDataOffset = sequence.animationDataOffset;
+			uint32_t currentDataOffset = animationDataOffset;
+
+			for ( uint32_t blendIndex = 0; blendIndex < sequence.blendCount; ++blendIndex )
+			{
+				for ( uint32_t boneIndex = 0; boneIndex < boneCount; ++boneIndex )
+				{
+					const uint32_t boneDataOffsetBase = currentDataOffset;
+
+					// We assume that each of the 6 components correspond to X/Y/Z/XR/YR/ZR.
+					// At the beginning of the row are 6 offsets, corresponding to the beginning of the data
+					// in the row for for each component.
+					// If an offset is 0, it means there is no data for this component.
+					const uint16_t* dataOffsetForComponent = GetElement<uint16_t>(currentDataOffset, FormatTraits<HeaderV14>::NUM_ANIMATION_COMPONENTS);
+
+					// Check each component.
+					for ( uint32_t componentIndex = 0; componentIndex < FormatTraits<HeaderV14>::NUM_ANIMATION_COMPONENTS; ++componentIndex )
+					{
+						if ( dataOffsetForComponent[componentIndex] < 1 )
+						{
+							continue;
+						}
+
+						NightfireModelFile::BlendedAnimationCollectionKey key;
+						key.sequenceIndex = sequenceIndex;
+						key.blendIndex = blendIndex;
+						key.boneIndex = boneIndex;
+						key.componentIndex = componentIndex;
+
+						m_ModelFile->BlendedAnimationData[key] = NightfireModelFile::BlendedAnimationValueList();
+						NightfireModelFile::BlendedAnimationValueList& valueList = m_ModelFile->BlendedAnimationData[key];
+
+						currentDataOffset = boneDataOffsetBase + dataOffsetForComponent[componentIndex];
+
+						size_t numFramesRead = 0;
+
+						while ( numFramesRead < sequence.frameCount )
+						{
+							const AnimationValue* animValue = GetElement<AnimationValue>(currentDataOffset);
+							currentDataOffset += sizeof(AnimationValue);
+
+							// We will read as many frames as the specified total.
+							const uint8_t numFramesToRead = animValue->span.total;
+
+							// Resize the value list to account for the new frames.
+							const size_t valueOffset = valueList.size();
+							valueList.resize(valueOffset + numFramesToRead);
+
+							// The number of "valid" frames will be <= the number of total frames.
+							// I'm assuming that when blending sequences of different lengths, a
+							// shorter sequence's length is "valid" frames long, and the longest
+							// sequence's length is "total" frames long. The shorter sequences are
+							// then padded to the total length by copying their last frame.
+							const uint8_t numValidFrames = animValue->span.valid;
+
+							const AnimationValue* valuesToRead = GetElement<AnimationValue>(currentDataOffset, numFramesToRead);
+
+							// First of all, read all the valid frames.
+							for ( uint32_t validFrameIndex = 0;
+								  validFrameIndex < numValidFrames;
+								  ++validFrameIndex, ++numFramesRead )
+							{
+								valueList[valueOffset + validFrameIndex] = valuesToRead[validFrameIndex].value;
+							}
+
+							// Then pad with the final frame.
+							const int16_t finalValue = valuesToRead[numValidFrames - 1].value;
+							for ( uint32_t paddingFrameIndex = numValidFrames;
+								  paddingFrameIndex < numFramesToRead;
+								  ++paddingFrameIndex, ++numFramesRead )
+							{
+								valueList[valueOffset + paddingFrameIndex] = finalValue;
+							}
+						}
+					}
+				}
+			}
+		}
+#endif
+	}
+
 	uint32_t NightfireModelFileReader::AlignTo16Bytes(uint32_t offset)
 	{
 		// This function was called StaticMethods.Buffer(..., 16) in Ulti/Ford's

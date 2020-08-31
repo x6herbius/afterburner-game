@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <type_traits>
 #include "NightfireModelFile.h"
 #include "elements/ElementTraits.h"
 
@@ -23,8 +24,24 @@ namespace NFMDL
 	private:
 		using FileBuffer = std::vector<char>;
 
+		// Function used for types that are not arithmetic (ie. structs/classes).
 		template<typename T>
-		inline const T* GetElement(uint32_t offset = 0, uint32_t count = 0) const
+		inline typename std::enable_if<!std::is_arithmetic<T>::value, const T*>::type
+		GetElement(uint32_t offset = 0, uint32_t count = 0) const
+		{
+			return GetElementInternal<T>(offset, count, std::string("'") + ElementTraits<T>::ELEMENT_NAME + std::string("'"));
+		}
+
+		// Function used for types that are arithmetic (ie. integers).
+		template<typename T>
+		inline typename std::enable_if<std::is_arithmetic<T>::value, const T*>::type
+		GetElement(uint32_t offset = 0, uint32_t count = 0) const
+		{
+			return GetElementInternal<T>(offset, count, "arithmetic");
+		}
+
+		template<typename T>
+		inline const T* GetElementInternal(uint32_t offset, uint32_t count, const std::string& typeName) const
 		{
 			const size_t bytesRequired = (count == 0 ? 1 : count) * sizeof(T);
 			const size_t bytesAvailable = m_InputFileData->size() - offset;
@@ -42,9 +59,9 @@ namespace NFMDL
 					<< m_InputFileData->size()
 					<< " total input bytes; attempt was made to get "
 					<< (count == 0 ? 1 : count)
-					<< " '"
-					<< ElementTraits<T>::ELEMENT_NAME
-					<< "' elements at "
+					<< " "
+					<< typeName
+					<< " elements at "
 					<< sizeof(T)
 					<< " bytes each from input offset "
 					<< offset
@@ -54,7 +71,7 @@ namespace NFMDL
 			}
 
 			return reinterpret_cast<const T*>(m_InputFileData->data() + offset);
-		};
+		}
 
 		template<typename T>
 		inline void ReadElementArray(const CountOffsetPair& cop, ElementArray<T>& array)
@@ -81,6 +98,7 @@ namespace NFMDL
 		void ReadModelInfos();
 		void ReadMeshes();
 		void ReadSounds();
+		void ReadSequenceAnimationData();
 
 		static uint32_t AlignTo16Bytes(uint32_t offset);
 

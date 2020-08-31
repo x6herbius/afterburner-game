@@ -42,27 +42,27 @@ namespace NFMDL
 	class NightfireModelFile
 	{
 	public:
-		struct AnimationCollectionKey
+		struct BlendedAnimationCollectionKey
 		{
 			uint32_t sequenceIndex = 0;
 			uint32_t blendIndex = 0;
 			uint32_t boneIndex = 0;
-			uint32_t blendComponent = 0;
+			uint32_t componentIndex = 0;
 
-			inline bool operator ==(const AnimationCollectionKey& other) const
+			inline bool operator ==(const BlendedAnimationCollectionKey& other) const
 			{
 				return sequenceIndex == other.sequenceIndex &&
 					   blendIndex == other.blendIndex &&
 					   boneIndex == other.boneIndex &&
-					   blendComponent == other.blendComponent;
+					   componentIndex == other.componentIndex;
 			}
 
-			inline bool operator !=(const AnimationCollectionKey& other) const
+			inline bool operator !=(const BlendedAnimationCollectionKey& other) const
 			{
 				return !(*this == other);
 			}
 
-			inline bool operator <(const AnimationCollectionKey& other) const
+			inline bool operator <(const BlendedAnimationCollectionKey& other) const
 			{
 				if ( sequenceIndex != other.sequenceIndex )
 				{
@@ -79,17 +79,17 @@ namespace NFMDL
 					return boneIndex < other.boneIndex;
 				}
 
-				return blendComponent < other.blendComponent;
+				return componentIndex < other.componentIndex;
 			}
 
 			struct Hash
 			{
-				inline std::size_t operator()(const AnimationCollectionKey& key) const noexcept
+				inline std::size_t operator()(const BlendedAnimationCollectionKey& key) const noexcept
 				{
 					size_t hash = std::hash<uint32_t>{}(key.sequenceIndex);
 					hash = std::hash<uint32_t>{}(key.blendIndex) ^ (hash << 1);
 					hash = std::hash<uint32_t>{}(key.boneIndex) ^ (hash << 1);
-					hash = std::hash<uint32_t>{}(key.blendComponent) ^ (hash << 1);
+					hash = std::hash<uint32_t>{}(key.componentIndex) ^ (hash << 1);
 
 					return hash;
 				}
@@ -227,7 +227,7 @@ namespace NFMDL
 		using OwnedItemCollection = std::map<TOwnedItemKey<T>, T>;
 
 		using BlendedAnimationValueList = std::vector<decltype(AnimationValue::value)>;
-		using BlendedAnimationCollection = std::map<AnimationCollectionKey, BlendedAnimationValueList>;
+		using BlendedAnimationCollection = std::map<BlendedAnimationCollectionKey, BlendedAnimationValueList>;
 		using SkinCollection = std::map<SkinCollectionKey, Skin>;
 		using EventCollection = OwnedItemCollection<Event>;
 		using PivotCollection = OwnedItemCollection<Pivot>;
