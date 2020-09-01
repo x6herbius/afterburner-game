@@ -32,4 +32,6 @@ struct AppOptions
 	bool dumpModelInfos = false;
 	bool dumpMeshes = false;
 	bool dumpAnimationData = false;
+	bool dumpEvents = false;
+	bool dumpFootPivots = false;
 };

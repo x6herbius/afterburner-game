@@ -157,4 +157,14 @@ void DumpMDLFileItems(const AppOptions& options, const NFMDL::NightfireModelFile
 	{
 		DumpItems("Animation data", "animation data items", modelFile.AnimationData);
 	}
+
+	if ( options.dumpEvents )
+	{
+		DumpItems("Event", "events", modelFile.Events);
+	}
+
+	if ( options.dumpFootPivots )
+	{
+		DumpItems("Foot pivot", "foot pivots", modelFile.FootPivots);
+	}
 }

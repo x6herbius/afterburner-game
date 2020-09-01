@@ -28,7 +28,7 @@
 #include "elements/ModelV14.h"
 #include "elements/LevelOfDetailV14.h"
 #include "elements/Event.h"
-#include "elements/Pivot.h"
+#include "elements/FootPivot.h"
 #include "elements/AnimationValue.h"
 #include "elements/TriangleMapV14.h"
 #include "elements/ModelInfoV14.h"
@@ -234,7 +234,7 @@ namespace NFMDL
 		using AnimationDataCollection = std::map<AnimationDataCollectionKey, AnimationDataValueList>;
 		using SkinCollection = std::map<SkinCollectionKey, Skin>;
 		using EventCollection = OwnedItemCollection<Event>;
-		using PivotCollection = OwnedItemCollection<Pivot>;
+		using FootPivotCollection = OwnedItemCollection<FootPivot>;
 		using SoundCollection = OwnedItemCollection<SoundV14>;
 		using ModelInfoCollection = OwnedItemCollection<ModelInfoV14>;
 		using MeshCollection = std::map<MeshCollectionKey, MeshV14>;
@@ -264,7 +264,7 @@ namespace NFMDL
 
 		// Owned by sequences:
 		EventCollection Events;
-		PivotCollection Pivots;
+		FootPivotCollection FootPivots;
 		AnimationDataCollection AnimationData;
 
 		// Owned by sound groups:

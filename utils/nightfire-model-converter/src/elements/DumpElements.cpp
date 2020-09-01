@@ -575,6 +575,33 @@ std::ostream& operator <<(std::ostream& stream, const NFMDL::NightfireModelFile:
 	return stream;
 }
 
+std::ostream& operator <<(std::ostream& stream, const NFMDL::Event& event)
+{
+	stream
+		<< CLASS_INFO(Event) << "\n"
+		<< "[\n"
+		<< "    Trigger frame: " << event.triggerFrame << "\n"
+		<< "    ID: " << event.eventID << "\n"
+		<< "    Type: " << event.type << "\n"
+		<< "    Options: " << event.options << "\n"
+		<< "]";
+
+	return stream;
+}
+
+std::ostream& operator <<(std::ostream& stream, const NFMDL::FootPivot& footPivot)
+{
+	stream
+		<< CLASS_INFO(FootPivot) << "\n"
+		<< "[\n"
+		<< "    Position: " << footPivot.position << "\n"
+		<< "    Start: " << footPivot.start << "\n"
+		<< "    End: " << footPivot.end << "\n"
+		<< "]";
+
+	return stream;
+}
+
 std::ostream& operator <<(std::ostream& stream, const NFMDL::NightfireModelFile::SkinCollectionKey& key)
 {
 	stream << "[Family " << key.skinFamily << ", Reference " << key.skinReference << "]";
@@ -601,4 +628,14 @@ std::ostream& operator <<(std::ostream& stream, const NFMDL::NightfireModelFile:
 {
 	stream << "[Sequence " << key.sequenceIndex << ", Blend " << key.blendIndex << ", Bone " << key.boneIndex << ", Component " << key.componentIndex << "]";
 	return stream;
+}
+
+std::ostream& operator <<(std::ostream& stream, const NFMDL::NightfireModelFile::TOwnedItemKey<NFMDL::Event>& key)
+{
+	return WriteOwnedItemKey(stream, key, "Parent sequence", "Event");
+}
+
+std::ostream& operator <<(std::ostream& stream, const NFMDL::NightfireModelFile::TOwnedItemKey<NFMDL::FootPivot>& key)
+{
+	return WriteOwnedItemKey(stream, key, "Parent sequence", "Foot pivot");
 }

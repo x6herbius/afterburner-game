@@ -101,6 +101,8 @@ namespace NFMDL
 		void ReadMeshes();
 		void ReadSounds();
 		void ReadSequenceAnimationData();
+		void ReadEvents();
+		void ReadFootPivots();
 
 		void ReadRLEAnimationData(NightfireModelFile::AnimationDataValueList& valueList,
 								  uint32_t dataOffset,

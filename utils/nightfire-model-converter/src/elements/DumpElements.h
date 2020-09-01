@@ -50,9 +50,13 @@ std::ostream& operator <<(std::ostream& stream, const NFMDL::ModelV14& model);
 std::ostream& operator <<(std::ostream& stream, const NFMDL::ModelInfoV14& modelInfo);
 std::ostream& operator <<(std::ostream& stream, const NFMDL::MeshV14& mesh);
 std::ostream& operator <<(std::ostream& stream, const NFMDL::NightfireModelFile::AnimationDataValueList& list);
+std::ostream& operator <<(std::ostream& stream, const NFMDL::Event& event);
+std::ostream& operator <<(std::ostream& stream, const NFMDL::FootPivot& footPivot);
 
 std::ostream& operator <<(std::ostream& stream, const NFMDL::NightfireModelFile::SkinCollectionKey& key);
 std::ostream& operator <<(std::ostream& stream, const NFMDL::NightfireModelFile::TOwnedItemKey<NFMDL::ModelInfoV14>& key);
 std::ostream& operator <<(std::ostream& stream, const NFMDL::NightfireModelFile::MeshCollectionKey& key);
 std::ostream& operator <<(std::ostream& stream, const NFMDL::NightfireModelFile::TOwnedItemKey<NFMDL::SoundV14>& key);
 std::ostream& operator <<(std::ostream& stream, const NFMDL::NightfireModelFile::AnimationDataCollectionKey& key);
+std::ostream& operator <<(std::ostream& stream, const NFMDL::NightfireModelFile::TOwnedItemKey<NFMDL::Event>& key);
+std::ostream& operator <<(std::ostream& stream, const NFMDL::NightfireModelFile::TOwnedItemKey<NFMDL::FootPivot>& key);

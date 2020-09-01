@@ -106,8 +106,8 @@ namespace NFMDL
 		ReadMeshes();
 
 		// Sequence data
-		// TODO: Events
-		// TODO: Pivots
+		ReadEvents();
+		ReadFootPivots();
 		ReadSequenceAnimationData();
 	}
 
@@ -171,6 +171,8 @@ namespace NFMDL
 
 	void NightfireModelFileReader::ReadSkins()
 	{
+		m_ModelFile->Skins.clear();
+
 		const uint32_t skinCount = m_ModelFile->Header.skinReferenceCount * m_ModelFile->Header.skinFamilyCount;
 		const Skin* skinElements = GetElement<Skin>(m_ModelFile->Header.skinDataOffset, skinCount);
 
@@ -189,6 +191,8 @@ namespace NFMDL
 
 	void NightfireModelFileReader::ReadModelInfos()
 	{
+		m_ModelFile->ModelInfos.clear();
+
 		const size_t modelCount = m_ModelFile->Models.Count();
 
 		for ( uint32_t modelIndex = 0; modelIndex < modelCount; ++modelIndex )
@@ -216,6 +220,8 @@ namespace NFMDL
 	// TODO: Combine with above function?
 	void NightfireModelFileReader::ReadMeshes()
 	{
+		m_ModelFile->Meshes.clear();
+
 		const size_t modelCount = m_ModelFile->Models.Count();
 
 		for ( uint32_t modelIndex = 0; modelIndex < modelCount; ++modelIndex )
@@ -252,6 +258,8 @@ namespace NFMDL
 
 	void NightfireModelFileReader::ReadSounds()
 	{
+		m_ModelFile->Sounds.clear();
+
 		const size_t soundGroupCount = m_ModelFile->SoundGroups.Count();
 		const uint32_t soundsOffset = m_ModelFile->Header.soundGroups.offset + (m_ModelFile->Header.soundGroups.count * sizeof(SoundGroupV14));
 
@@ -267,8 +275,54 @@ namespace NFMDL
 		}
 	}
 
+	void NightfireModelFileReader::ReadEvents()
+	{
+		m_ModelFile->Events.clear();
+
+		const size_t sequenceCount = m_ModelFile->Sequences.Count();
+
+		for ( uint32_t sequenceIndex = 0; sequenceIndex < sequenceCount; ++sequenceIndex )
+		{
+			const SequenceV14& sequence = m_ModelFile->Sequences[sequenceIndex];
+			const Event* events = GetElement<Event>(sequence.events.offset, sequence.events.count);
+
+			for ( uint32_t eventIndex = 0; eventIndex < sequence.events.count; ++eventIndex )
+			{
+				NightfireModelFile::TOwnedItemKey<Event> key;
+				key.ownerIndex = sequenceIndex;
+				key.itemIndex = eventIndex;
+
+				m_ModelFile->Events.emplace(key, events[eventIndex]);
+			}
+		}
+	}
+
+	void NightfireModelFileReader::ReadFootPivots()
+	{
+		m_ModelFile->FootPivots.clear();
+
+		const size_t sequenceCount = m_ModelFile->Sequences.Count();
+
+		for ( uint32_t sequenceIndex = 0; sequenceIndex < sequenceCount; ++sequenceIndex )
+		{
+			const SequenceV14& sequence = m_ModelFile->Sequences[sequenceIndex];
+			const FootPivot* footPivots = GetElement<FootPivot>(sequence.footPivots.offset, sequence.footPivots.count);
+
+			for ( uint32_t footPivotIndex = 0; footPivotIndex < sequence.footPivots.count; ++footPivotIndex )
+			{
+				NightfireModelFile::TOwnedItemKey<FootPivot> key;
+				key.ownerIndex = sequenceIndex;
+				key.itemIndex = footPivotIndex;
+
+				m_ModelFile->FootPivots.emplace(key, footPivots[footPivotIndex]);
+			}
+		}
+	}
+
 	void NightfireModelFileReader::ReadSequenceAnimationData()
 	{
+		m_ModelFile->AnimationData.clear();
+
 		const size_t sequenceCount = m_ModelFile->Sequences.Count();
 		const size_t boneCount = m_ModelFile->Bones.Count();
 
