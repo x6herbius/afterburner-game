@@ -3,6 +3,8 @@
 
 #include "NightfireModelFileReader.h"
 #include "elements/HeaderV14.h"
+#include "elements/BoneAnimationDataOffsets.h"
+#include "elements/AnimationValueMeta.h"
 #include "Utils.h"
 
 namespace NFMDL
@@ -80,8 +82,6 @@ namespace NFMDL
 		ReadElementArray(header.bodyGroups, file.BodyGroups);
 		ReadSkins();
 
-		// TODO: Animations
-
 		// Sound data
 		ReadElementArray(header.soundGroups, file.SoundGroups);
 		ReadSounds();
@@ -108,7 +108,7 @@ namespace NFMDL
 		// Sequence data
 		// TODO: Events
 		// TODO: Pivots
-		// TODO: Blended animation data
+		ReadSequenceAnimationData();
 	}
 
 	void NightfireModelFileReader::ReadHeader()
@@ -269,92 +269,190 @@ namespace NFMDL
 
 	void NightfireModelFileReader::ReadSequenceAnimationData()
 	{
-#if 0
 		const size_t sequenceCount = m_ModelFile->Sequences.Count();
 		const size_t boneCount = m_ModelFile->Bones.Count();
 
 		for ( uint32_t sequenceIndex = 0; sequenceIndex < sequenceCount; ++sequenceIndex )
 		{
 			const SequenceV14& sequence = m_ModelFile->Sequences[sequenceIndex];
-			const uint32_t animationDataOffset = sequence.animationDataOffset;
-			uint32_t currentDataOffset = animationDataOffset;
+
+			// Strap in - things get a little convoluted here.
+
+			// One entire sequence may be comprised of multiple other sequences that are blended together
+			// dynamically by the engine, eg. depending on the direction in which a player character is running.
+			// Each sub-sequence (referred to as a "blend sequence") makes use of all the bones that are present
+			// in the model, and each bone references per-frame animation data for its X, Y and Z positions, and
+			// also its X, Y and Z rotations.
+
+			// The animation data itself is laid out in two macro-blocks: the second block is the raw animation
+			// values (what value should be assigned to X/Y/Z/XR/YR/ZR on each frame), and the first block holds
+			// offsets into this data depending on which blend sequence, bone and component the data refers to.
+			// For example, an offset might be used to work out the value for the X position of bone 5 in blend
+			// sequence 2 on frame 15.
+
+			// The offsets block is comprised of many consecutive BoneAnimationDataOffsets elements, and there
+			// are (blendCount * boneCount) elements present within the offsets block. Each of these elements
+			// holds 6 offsets, to correspond to X/Y/Z/XR/YR/ZR data, and each of the offsets is relative to
+			// the beginning of the element. If an offset is zero, it means there is no data for this particular
+			// blend/bone/component combination.
+
+			// After adding a BoneAnimationDataOffsets value to the location of the BoneAnimationDataOffsets
+			// element itself, the animation values for that particular blend/bone/component combination can be
+			// read. The data is provided for as many frames as there are in the original sequence, and is
+			// run-length encoded. It begins with a AnimationValueMeta element, which provides two values:
+			// "valid", which is how many values may explicitly be found in this particular RLE run, and "total",
+			// which is the total number of frames *implicitly* provided in the run. If total > valid, any
+			// frames in-between are just duplicates of the final valid frame in the run (index valid-1).
+			// Multiple RLE runs may need to be traversed in order to read all frames of data. The animation
+			// values themselves are signed 16-bit integers.
+
+			// The following properties should be validated when reading animation data for a blend/bone/component
+			// combination:
+			// - For all RLE runs in one "row" of values, the sum of all the "totals" should be exactly equal to
+			//   the number of frames in the original sequence.
+			// - For any RLE run, "valid" and "total" should be at least 1.
+			// - For any RLE run, "total" should be >= "valid".
+
+			const size_t numDataOffsets = sequence.blendCount * boneCount;
+			const BoneAnimationDataOffsets* dataOffsets = GetElement<BoneAnimationDataOffsets>(sequence.animationDataOffset, numDataOffsets);
 
 			for ( uint32_t blendIndex = 0; blendIndex < sequence.blendCount; ++blendIndex )
 			{
 				for ( uint32_t boneIndex = 0; boneIndex < boneCount; ++boneIndex )
 				{
-					const uint32_t boneDataOffsetBase = currentDataOffset;
+					// Find which data offset group we should use.
+					// Each blend index corresponds to a stride of boneCount items.
+					const uint32_t currentDataOffsetsIndex = (blendIndex * boneCount) + boneIndex;
+					const BoneAnimationDataOffsets& currentDataOffsets = dataOffsets[currentDataOffsetsIndex];
 
-					// We assume that each of the 6 components correspond to X/Y/Z/XR/YR/ZR.
-					// At the beginning of the row are 6 offsets, corresponding to the beginning of the data
-					// in the row for for each component.
-					// If an offset is 0, it means there is no data for this component.
-					const uint16_t* dataOffsetForComponent = GetElement<uint16_t>(currentDataOffset, FormatTraits<HeaderV14>::NUM_ANIMATION_COMPONENTS);
+					// For each component, the offset to the raw animation data is relative to the beginning of the
+					// currentDataOffsets data we're reading.
+					const uint32_t rawDataOffsetBase = sequence.animationDataOffset + (currentDataOffsetsIndex * sizeof(BoneAnimationDataOffsets));
 
-					// Check each component.
-					for ( uint32_t componentIndex = 0; componentIndex < FormatTraits<HeaderV14>::NUM_ANIMATION_COMPONENTS; ++componentIndex )
+					for ( uint32_t componentIndex = 0; componentIndex < ArraySize(currentDataOffsets.dataOffsetForComponent); ++componentIndex )
 					{
-						if ( dataOffsetForComponent[componentIndex] < 1 )
+						if ( currentDataOffsets.dataOffsetForComponent[componentIndex] < 1 )
 						{
+							// No data present - ignore.
 							continue;
 						}
 
-						NightfireModelFile::BlendedAnimationCollectionKey key;
+						NightfireModelFile::AnimationDataCollectionKey key;
 						key.sequenceIndex = sequenceIndex;
 						key.blendIndex = blendIndex;
 						key.boneIndex = boneIndex;
 						key.componentIndex = componentIndex;
 
-						m_ModelFile->BlendedAnimationData[key] = NightfireModelFile::BlendedAnimationValueList();
-						NightfireModelFile::BlendedAnimationValueList& valueList = m_ModelFile->BlendedAnimationData[key];
+						m_ModelFile->AnimationData[key] = NightfireModelFile::AnimationDataValueList();
 
-						currentDataOffset = boneDataOffsetBase + dataOffsetForComponent[componentIndex];
+						// Locate the raw data.
+						const uint32_t rawDataOffset = rawDataOffsetBase + currentDataOffsets.dataOffsetForComponent[componentIndex];
 
-						size_t numFramesRead = 0;
-
-						while ( numFramesRead < sequence.frameCount )
+						try
 						{
-							const AnimationValue* animValue = GetElement<AnimationValue>(currentDataOffset);
-							currentDataOffset += sizeof(AnimationValue);
+							ReadRLEAnimationData(m_ModelFile->AnimationData[key], rawDataOffset, sequence.frameCount);
+						}
+						catch ( const std::runtime_error& ex )
+						{
+							std::stringstream stream;
 
-							// We will read as many frames as the specified total.
-							const uint8_t numFramesToRead = animValue->span.total;
+							stream
+								<< "Error reading animation data for sequence "
+								<< sequenceIndex
+								<< ", blend "
+								<< blendIndex
+								<< ", bone "
+								<< boneIndex
+								<< ", component "
+								<< componentIndex
+								<< ". "
+								<< ex.what();
 
-							// Resize the value list to account for the new frames.
-							const size_t valueOffset = valueList.size();
-							valueList.resize(valueOffset + numFramesToRead);
-
-							// The number of "valid" frames will be <= the number of total frames.
-							// I'm assuming that when blending sequences of different lengths, a
-							// shorter sequence's length is "valid" frames long, and the longest
-							// sequence's length is "total" frames long. The shorter sequences are
-							// then padded to the total length by copying their last frame.
-							const uint8_t numValidFrames = animValue->span.valid;
-
-							const AnimationValue* valuesToRead = GetElement<AnimationValue>(currentDataOffset, numFramesToRead);
-
-							// First of all, read all the valid frames.
-							for ( uint32_t validFrameIndex = 0;
-								  validFrameIndex < numValidFrames;
-								  ++validFrameIndex, ++numFramesRead )
-							{
-								valueList[valueOffset + validFrameIndex] = valuesToRead[validFrameIndex].value;
-							}
-
-							// Then pad with the final frame.
-							const int16_t finalValue = valuesToRead[numValidFrames - 1].value;
-							for ( uint32_t paddingFrameIndex = numValidFrames;
-								  paddingFrameIndex < numFramesToRead;
-								  ++paddingFrameIndex, ++numFramesRead )
-							{
-								valueList[valueOffset + paddingFrameIndex] = finalValue;
-							}
+							throw std::runtime_error(stream.str());
 						}
 					}
 				}
 			}
 		}
-#endif
+	}
+
+	void NightfireModelFileReader::ReadRLEAnimationData(NightfireModelFile::AnimationDataValueList& valueList,
+														uint32_t dataOffset,
+														uint32_t frameCount)
+	{
+		size_t numFramesRead = 0;
+
+		while ( numFramesRead < frameCount )
+		{
+			// The first item will always be a "meta" item, giving the number of valid
+			// frames vs. the total number of frames in the span.
+			const AnimationValueMeta* animMeta = GetElement<AnimationValueMeta>(dataOffset);
+			dataOffset += sizeof(AnimationValueMeta);
+
+			if ( animMeta->valid < 1 )
+			{
+				throw std::runtime_error("Encountered RLE block with 0 valid frames.");
+			}
+
+			if ( animMeta->total < 1 )
+			{
+				throw std::runtime_error("Encountered RLE block with 0 total frames.");
+			}
+
+			if ( animMeta->total < animMeta->valid )
+			{
+				throw std::runtime_error("Encountered RLE block with number of valid frames (" +
+										 std::to_string(animMeta->valid) +
+										 ") greater than number of total frames (" +
+										 std::to_string(animMeta->total) +
+										 ").");
+			}
+
+			// We will read as many frames as the specified total.
+			const uint8_t numFramesToRead = animMeta->total;
+
+			// Resize the value list to account for the new frames.
+			const size_t valueOffset = valueList.size();
+			valueList.resize(valueOffset + numFramesToRead);
+
+			// The number of "valid" frames will be <= the number of total frames.
+			// I'm assuming that when blending sequences of different lengths, a
+			// shorter sequence's length is "valid" frames long, and the longest
+			// sequence's length is "total" frames long. The shorter sequences are
+			// then padded to the total length by copying their last frame.
+			const uint8_t numValidFrames = animMeta->valid;
+
+			// Get a pointer to the raw data.
+			const AnimationValue* animValues = GetElement<AnimationValue>(dataOffset, numValidFrames);
+			dataOffset += numValidFrames * sizeof(AnimationValue);
+
+			// First of all, read all the valid frames.
+			for ( uint32_t validFrameIndex = 0;
+					validFrameIndex < numValidFrames;
+					++validFrameIndex, ++numFramesRead )
+			{
+				valueList[valueOffset + validFrameIndex] = animValues[validFrameIndex].value;
+			}
+
+			// Then pad with the final frame.
+			const int16_t finalValue = animValues[numValidFrames - 1].value;
+
+			for ( uint32_t paddingFrameIndex = numValidFrames;
+					paddingFrameIndex < numFramesToRead;
+					++paddingFrameIndex, ++numFramesRead )
+			{
+				valueList[valueOffset + paddingFrameIndex] = finalValue;
+			}
+		}
+
+		if ( numFramesRead != frameCount )
+		{
+			throw std::runtime_error("Expected to read data for " +
+									 std::to_string(frameCount) +
+									 " frames, but was provided with " +
+									 std::to_string(numFramesRead) +
+									 " frames.");
+		}
 	}
 
 	uint32_t NightfireModelFileReader::AlignTo16Bytes(uint32_t offset)

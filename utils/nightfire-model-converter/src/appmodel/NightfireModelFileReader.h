@@ -24,6 +24,8 @@ namespace NFMDL
 	private:
 		using FileBuffer = std::vector<char>;
 
+		static uint32_t AlignTo16Bytes(uint32_t offset);
+
 		// Function used for types that are not arithmetic (ie. structs/classes).
 		template<typename T>
 		inline typename std::enable_if<!std::is_arithmetic<T>::value, const T*>::type
@@ -100,7 +102,9 @@ namespace NFMDL
 		void ReadSounds();
 		void ReadSequenceAnimationData();
 
-		static uint32_t AlignTo16Bytes(uint32_t offset);
+		void ReadRLEAnimationData(NightfireModelFile::AnimationDataValueList& valueList,
+								  uint32_t dataOffset,
+								  uint32_t frameCount);
 
 		std::shared_ptr<NightfireModelFile> m_ModelFile;
 		std::unique_ptr<FileBuffer> m_InputFileData;

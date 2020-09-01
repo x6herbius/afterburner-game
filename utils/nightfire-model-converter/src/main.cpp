@@ -53,6 +53,7 @@ static const DumpOption DumpOptionsList[] =
 	{ "models", &AppOptions::dumpModels },
 	{ "model-infos", &AppOptions::dumpModelInfos },
 	{ "meshes", &AppOptions::dumpMeshes },
+	{ "animation-data", &AppOptions::dumpAnimationData },
 };
 
 bool ParseCommandLineOptions(int argc, const char** argv, AppOptions& options)

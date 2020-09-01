@@ -29,7 +29,6 @@
 #include "elements/LevelOfDetailV14.h"
 #include "elements/Event.h"
 #include "elements/Pivot.h"
-#include "elements/Animation.h"
 #include "elements/AnimationValue.h"
 #include "elements/TriangleMapV14.h"
 #include "elements/ModelInfoV14.h"
@@ -37,19 +36,21 @@
 #include "elements/SoundV14.h"
 #include "elements/Skin.h"
 
+#include "elements/ElementTraits.h"
+
 namespace NFMDL
 {
 	class NightfireModelFile
 	{
 	public:
-		struct BlendedAnimationCollectionKey
+		struct AnimationDataCollectionKey
 		{
 			uint32_t sequenceIndex = 0;
 			uint32_t blendIndex = 0;
 			uint32_t boneIndex = 0;
 			uint32_t componentIndex = 0;
 
-			inline bool operator ==(const BlendedAnimationCollectionKey& other) const
+			inline bool operator ==(const AnimationDataCollectionKey& other) const
 			{
 				return sequenceIndex == other.sequenceIndex &&
 					   blendIndex == other.blendIndex &&
@@ -57,12 +58,12 @@ namespace NFMDL
 					   componentIndex == other.componentIndex;
 			}
 
-			inline bool operator !=(const BlendedAnimationCollectionKey& other) const
+			inline bool operator !=(const AnimationDataCollectionKey& other) const
 			{
 				return !(*this == other);
 			}
 
-			inline bool operator <(const BlendedAnimationCollectionKey& other) const
+			inline bool operator <(const AnimationDataCollectionKey& other) const
 			{
 				if ( sequenceIndex != other.sequenceIndex )
 				{
@@ -84,7 +85,7 @@ namespace NFMDL
 
 			struct Hash
 			{
-				inline std::size_t operator()(const BlendedAnimationCollectionKey& key) const noexcept
+				inline std::size_t operator()(const AnimationDataCollectionKey& key) const noexcept
 				{
 					size_t hash = std::hash<uint32_t>{}(key.sequenceIndex);
 					hash = std::hash<uint32_t>{}(key.blendIndex) ^ (hash << 1);
@@ -218,6 +219,10 @@ namespace NFMDL
 			};
 		};
 
+		class AnimationDataValueList : public std::vector<decltype(AnimationValue::value)>
+		{
+		};
+
 		// So that we can specialise the stream operator when dumping keys
 		// from containers of different types.
 		template<typename T>
@@ -226,8 +231,7 @@ namespace NFMDL
 		template<typename T>
 		using OwnedItemCollection = std::map<TOwnedItemKey<T>, T>;
 
-		using BlendedAnimationValueList = std::vector<decltype(AnimationValue::value)>;
-		using BlendedAnimationCollection = std::map<BlendedAnimationCollectionKey, BlendedAnimationValueList>;
+		using AnimationDataCollection = std::map<AnimationDataCollectionKey, AnimationDataValueList>;
 		using SkinCollection = std::map<SkinCollectionKey, Skin>;
 		using EventCollection = OwnedItemCollection<Event>;
 		using PivotCollection = OwnedItemCollection<Pivot>;
@@ -254,7 +258,6 @@ namespace NFMDL
 		ElementArray<BoneFixUpV14> BoneFixUps;
 		ElementArray<ModelV14> Models;
 		ElementArray<LevelOfDetailV14> LevelsOfDetail;
-		ElementArray<Animation> Animations;
 		ElementArray<BodyGroupV14> BodyGroups;
 
 		SkinCollection Skins;
@@ -262,7 +265,7 @@ namespace NFMDL
 		// Owned by sequences:
 		EventCollection Events;
 		PivotCollection Pivots;
-		BlendedAnimationCollection BlendedAnimationData;
+		AnimationDataCollection AnimationData;
 
 		// Owned by sound groups:
 		SoundCollection Sounds;
@@ -270,5 +273,11 @@ namespace NFMDL
 		// Owned by models:
 		ModelInfoCollection ModelInfos;
 		MeshCollection Meshes;
+	};
+
+	template<>
+	struct ElementTraits<NightfireModelFile::AnimationDataValueList>
+	{
+		static constexpr const char* ELEMENT_NAME = "AnimationDataValueList";
 	};
 }

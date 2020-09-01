@@ -152,4 +152,9 @@ void DumpMDLFileItems(const AppOptions& options, const NFMDL::NightfireModelFile
 	{
 		DumpItems("Mesh", "meshes", modelFile.Meshes);
 	}
+
+	if ( options.dumpAnimationData )
+	{
+		DumpItems("Animation data", "animation data items", modelFile.AnimationData);
+	}
 }

@@ -564,6 +564,17 @@ std::ostream& operator <<(std::ostream& stream, const NFMDL::MeshV14& mesh)
 	return stream;
 }
 
+std::ostream& operator <<(std::ostream& stream, const NFMDL::NightfireModelFile::AnimationDataValueList& list)
+{
+	stream
+		<< CLASS_INFO(NightfireModelFile::AnimationDataValueList) << "\n"
+		<< "[\n"
+		<< "    Value count: " << list.size() << "\n"
+		<< "]";
+
+	return stream;
+}
+
 std::ostream& operator <<(std::ostream& stream, const NFMDL::NightfireModelFile::SkinCollectionKey& key)
 {
 	stream << "[Family " << key.skinFamily << ", Reference " << key.skinReference << "]";
@@ -584,4 +595,10 @@ std::ostream& operator <<(std::ostream& stream, const NFMDL::NightfireModelFile:
 std::ostream& operator <<(std::ostream& stream, const NFMDL::NightfireModelFile::TOwnedItemKey<NFMDL::SoundV14>& key)
 {
 	return WriteOwnedItemKey(stream, key, "Parent sound group", "Sound");
+}
+
+std::ostream& operator <<(std::ostream& stream, const NFMDL::NightfireModelFile::AnimationDataCollectionKey& key)
+{
+	stream << "[Sequence " << key.sequenceIndex << ", Blend " << key.blendIndex << ", Bone " << key.boneIndex << ", Component " << key.componentIndex << "]";
+	return stream;
 }

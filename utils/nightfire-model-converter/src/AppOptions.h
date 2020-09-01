@@ -31,4 +31,5 @@ struct AppOptions
 	bool dumpModels = false;
 	bool dumpModelInfos = false;
 	bool dumpMeshes = false;
+	bool dumpAnimationData = false;
 };
