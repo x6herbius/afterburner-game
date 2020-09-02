@@ -104,7 +104,7 @@ namespace NFMDL
 		void ReadEvents();
 		void ReadFootPivots();
 
-		void ReadRLEAnimationData(NightfireModelFile::AnimationDataValueList& valueList,
+		void ReadRLEAnimationData(AnimationDataValueList& valueList,
 								  uint32_t dataOffset,
 								  uint32_t frameCount);
 

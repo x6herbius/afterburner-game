@@ -1,6 +1,7 @@
 #include <fstream>
 #include <iterator>
 
+#include "Types.h"
 #include "NightfireModelFileReader.h"
 #include "elements/HeaderV14.h"
 #include "elements/BoneAnimationDataOffsets.h"
@@ -180,7 +181,7 @@ namespace NFMDL
 		{
 			for ( uint32_t reference = 0; reference < m_ModelFile->Header.skinReferenceCount; ++reference )
 			{
-				NightfireModelFile::SkinCollectionKey key;
+				SkinCollectionKey key;
 				key.skinFamily = family;
 				key.skinReference = reference;
 
@@ -208,7 +209,7 @@ namespace NFMDL
 					continue;
 				}
 
-				NightfireModelFile::TOwnedItemKey<ModelInfoV14> key;
+				TOwnedItemKey<ModelInfoV14> key;
 				key.ownerIndex = modelIndex;
 				key.itemIndex = modelInfoIndex;
 
@@ -235,7 +236,7 @@ namespace NFMDL
 					continue;
 				}
 
-				NightfireModelFile::TOwnedItemKey<ModelInfoV14> key;
+				TOwnedItemKey<ModelInfoV14> key;
 				key.ownerIndex = modelIndex;
 				key.itemIndex = modelInfoIndex;
 
@@ -245,7 +246,7 @@ namespace NFMDL
 
 				for ( uint32_t meshIndex = 0; meshIndex < meshCount; ++meshIndex )
 				{
-					NightfireModelFile::MeshCollectionKey meshKey;
+					MeshCollectionKey meshKey;
 					meshKey.modelIndex = modelIndex;
 					meshKey.modelInfoIndex = modelInfoIndex;
 					meshKey.meshIndex = meshIndex;
@@ -267,7 +268,7 @@ namespace NFMDL
 		{
 			const SoundGroupV14& soundGroup = m_ModelFile->SoundGroups[soundGroupIndex];
 
-			NightfireModelFile::TOwnedItemKey<SoundV14> key;
+			TOwnedItemKey<SoundV14> key;
 			key.itemIndex = 0;
 			key.ownerIndex = soundGroupIndex;
 
@@ -288,7 +289,7 @@ namespace NFMDL
 
 			for ( uint32_t eventIndex = 0; eventIndex < sequence.events.count; ++eventIndex )
 			{
-				NightfireModelFile::TOwnedItemKey<Event> key;
+				TOwnedItemKey<Event> key;
 				key.ownerIndex = sequenceIndex;
 				key.itemIndex = eventIndex;
 
@@ -310,7 +311,7 @@ namespace NFMDL
 
 			for ( uint32_t footPivotIndex = 0; footPivotIndex < sequence.footPivots.count; ++footPivotIndex )
 			{
-				NightfireModelFile::TOwnedItemKey<FootPivot> key;
+				TOwnedItemKey<FootPivot> key;
 				key.ownerIndex = sequenceIndex;
 				key.itemIndex = footPivotIndex;
 
@@ -391,13 +392,13 @@ namespace NFMDL
 							continue;
 						}
 
-						NightfireModelFile::AnimationDataCollectionKey key;
+						AnimationDataCollectionKey key;
 						key.sequenceIndex = sequenceIndex;
 						key.blendIndex = blendIndex;
 						key.boneIndex = boneIndex;
 						key.componentIndex = componentIndex;
 
-						m_ModelFile->AnimationData[key] = NightfireModelFile::AnimationDataValueList();
+						m_ModelFile->AnimationData[key] = AnimationDataValueList();
 
 						// Locate the raw data.
 						const uint32_t rawDataOffset = rawDataOffsetBase + currentDataOffsets.dataOffsetForComponent[componentIndex];
@@ -430,7 +431,7 @@ namespace NFMDL
 		}
 	}
 
-	void NightfireModelFileReader::ReadRLEAnimationData(NightfireModelFile::AnimationDataValueList& valueList,
+	void NightfireModelFileReader::ReadRLEAnimationData(AnimationDataValueList& valueList,
 														uint32_t dataOffset,
 														uint32_t frameCount)
 	{

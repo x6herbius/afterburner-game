@@ -86,7 +86,7 @@ static inline std::string FlagNames(uint32_t flags, const char* const(& flagName
 }
 
 static inline std::ostream& WriteOwnedItemKey(std::ostream& stream,
-											  const NightfireModelFile::OwnedItemKey& key,
+											  const OwnedItemKey& key,
 											  const char* owner,
 											  const char* item)
 {
@@ -564,10 +564,10 @@ std::ostream& operator <<(std::ostream& stream, const NFMDL::MeshV14& mesh)
 	return stream;
 }
 
-std::ostream& operator <<(std::ostream& stream, const NFMDL::NightfireModelFile::AnimationDataValueList& list)
+std::ostream& operator <<(std::ostream& stream, const NFMDL::AnimationDataValueList& list)
 {
 	stream
-		<< CLASS_INFO(NightfireModelFile::AnimationDataValueList) << "\n"
+		<< CLASS_INFO(AnimationDataValueList) << "\n"
 		<< "[\n"
 		<< "    Value count: " << list.size() << "\n"
 		<< "]";
@@ -602,40 +602,40 @@ std::ostream& operator <<(std::ostream& stream, const NFMDL::FootPivot& footPivo
 	return stream;
 }
 
-std::ostream& operator <<(std::ostream& stream, const NFMDL::NightfireModelFile::SkinCollectionKey& key)
+std::ostream& operator <<(std::ostream& stream, const NFMDL::SkinCollectionKey& key)
 {
 	stream << "[Family " << key.skinFamily << ", Reference " << key.skinReference << "]";
 	return stream;
 }
 
-std::ostream& operator <<(std::ostream& stream, const NFMDL::NightfireModelFile::TOwnedItemKey<NFMDL::ModelInfoV14>& key)
+std::ostream& operator <<(std::ostream& stream, const NFMDL::TOwnedItemKey<NFMDL::ModelInfoV14>& key)
 {
 	return WriteOwnedItemKey(stream, key, "Parent model", "Model info");
 }
 
-std::ostream& operator <<(std::ostream& stream, const NFMDL::NightfireModelFile::MeshCollectionKey& key)
+std::ostream& operator <<(std::ostream& stream, const NFMDL::MeshCollectionKey& key)
 {
 	stream << "[Parent model index " << key.modelIndex << ", Parent model info index " << key.modelInfoIndex << ", Mesh index " << key.meshIndex << "]";
 	return stream;
 }
 
-std::ostream& operator <<(std::ostream& stream, const NFMDL::NightfireModelFile::TOwnedItemKey<NFMDL::SoundV14>& key)
+std::ostream& operator <<(std::ostream& stream, const NFMDL::TOwnedItemKey<NFMDL::SoundV14>& key)
 {
 	return WriteOwnedItemKey(stream, key, "Parent sound group", "Sound");
 }
 
-std::ostream& operator <<(std::ostream& stream, const NFMDL::NightfireModelFile::AnimationDataCollectionKey& key)
+std::ostream& operator <<(std::ostream& stream, const NFMDL::AnimationDataCollectionKey& key)
 {
 	stream << "[Sequence " << key.sequenceIndex << ", Blend " << key.blendIndex << ", Bone " << key.boneIndex << ", Component " << key.componentIndex << "]";
 	return stream;
 }
 
-std::ostream& operator <<(std::ostream& stream, const NFMDL::NightfireModelFile::TOwnedItemKey<NFMDL::Event>& key)
+std::ostream& operator <<(std::ostream& stream, const NFMDL::TOwnedItemKey<NFMDL::Event>& key)
 {
 	return WriteOwnedItemKey(stream, key, "Parent sequence", "Event");
 }
 
-std::ostream& operator <<(std::ostream& stream, const NFMDL::NightfireModelFile::TOwnedItemKey<NFMDL::FootPivot>& key)
+std::ostream& operator <<(std::ostream& stream, const NFMDL::TOwnedItemKey<NFMDL::FootPivot>& key)
 {
 	return WriteOwnedItemKey(stream, key, "Parent sequence", "Foot pivot");
 }
