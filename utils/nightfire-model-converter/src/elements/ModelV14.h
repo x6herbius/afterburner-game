@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstdint>
-#include "HeaderV14FormatTraits.h"
 #include "ElementTraits.h"
 
 namespace NFMDL

@@ -17,5 +17,6 @@ namespace NFMDL
 		static constexpr const char* const TARGET_IDENTIFIER = MDL_IDENTIFIER_NIGHTFIRE;
 		static constexpr uint32_t TARGET_VERSION = 14;
 		static constexpr size_t NUM_ANIMATION_COMPONENTS = 6;
+		static constexpr size_t MAX_VERTEX_BONE_BLENDS = 4;
 	};
 }

@@ -30,7 +30,7 @@ namespace NFMDL
 		Sequence_Looping = (1 << 0)
 	};
 
-	enum LevelOfDetailFlags
+	enum LevelOfDetailFlag
 	{
 		LOD_None = 0,
 		LOD_TimesOne = (1 << 0),
@@ -39,6 +39,24 @@ namespace NFMDL
 		LOD_PlusOne = (1 << 8),
 		LOD_PlusTwo = (1 << 9),
 		LOD_PlusFour = (1 << 10)
+	};
+
+	enum ClientModelFlags
+	{
+		ClMdl_Rocket = (1 << 0),
+		ClMdl_Grenade = (1 << 1),
+		ClMdl_Gib = (1 << 2),
+		ClMdl_Rotate = (1 << 3),
+		ClMdl_Tracer = (1 << 4),
+		ClMdl_ZombieGib = (1 << 5),
+		ClMdl_Tracer2 = (1 << 6),
+		ClMdl_Tracer3 = (1 << 7),
+		ClMdl_AmbientLight = (1 << 8),
+		ClMdl_TraceHitbox = (1 << 9),
+		ClMdl_ForceSkyLight = (1 << 10),
+		ClMdl_StaticProp = (1 << 29),
+		ClMdl_HasBoneInfo = (1 << 30),
+		ClMdl_HasBoneWeights = (1 << 31)
 	};
 
 	// Excludes the loop flag:
