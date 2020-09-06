@@ -14,6 +14,7 @@
 #include "elements/Event.h"
 #include "elements/FootPivot.h"
 #include "elements/Skin.h"
+#include "elements/BodyGroupV10Xash.h"
 
 namespace NFMDL
 {
@@ -34,6 +35,7 @@ namespace NFMDL
 		ElementArray<SequenceGroup> SequenceGroups;
 		ElementArray<TextureV10Xash> Textures;
 		ElementArray<Attachment> Attachments;
+		ElementArray<BodyGroupV10Xash> BodyGroups;
 
 		SkinCollection Skins;
 

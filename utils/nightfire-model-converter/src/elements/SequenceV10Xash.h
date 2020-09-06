@@ -29,7 +29,7 @@ namespace NFMDL
 		uint32_t blendCount;
 
 		// Relative to start of sequence group data
-		uint32_t animIndex;
+		uint32_t animationDataOffset;
 
 		uint32_t blendMotionFlags[2];
 		float blendStart[2];
