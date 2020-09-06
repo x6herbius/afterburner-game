@@ -385,10 +385,10 @@ std::ostream& operator <<(std::ostream& stream, const NFMDL::LevelOfDetailV14& l
 	return stream;
 }
 
-std::ostream& operator <<(std::ostream& stream, const NFMDL::BodyGroupV14& bodyGroup)
+std::ostream& operator <<(std::ostream& stream, const NFMDL::BodyGroup& bodyGroup)
 {
 	stream
-		<< CLASS_INFO(BodyGroupV14) << "\n"
+		<< CLASS_INFO(BodyGroup) << "\n"
 		<< "[\n"
 		<< "    Name: " << bodyGroup.name << "\n"
 		<< "    Model count: " << bodyGroup.modelCount << "\n"

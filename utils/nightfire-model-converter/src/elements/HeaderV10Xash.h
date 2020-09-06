@@ -3,19 +3,10 @@
 #include <cstdint>
 #include <cstddef>
 #include "Types.h"
+#include "HeaderV10XashFormatTraits.h"
 
 namespace NFMDL
 {
-	struct HeaderV10Xash;
-
-	template<>
-	struct FormatTraits<HeaderV10Xash>
-	{
-		static constexpr size_t MAX_NAME_LENGTH = 64;
-		static constexpr const char* const TARGET_IDENTIFIER = MDL_IDENTIFIER;
-		static constexpr uint32_t TARGET_VERSION = 10;
-	};
-
 #pragma pack(push, 1)
 	struct HeaderV10Xash
 	{
@@ -37,7 +28,7 @@ namespace NFMDL
 		CountOffsetPair sequences;
 		CountOffsetPair sequenceGroups;
 		CountOffsetPair textures;
-		uint32_t textureInfoOffset;
+		uint32_t textureDataOffset;
 		uint32_t skinReferenceCount;
 		uint32_t skinFamilyCount;
 		uint32_t skinOffset;

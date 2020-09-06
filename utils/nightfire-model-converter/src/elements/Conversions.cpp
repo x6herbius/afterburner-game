@@ -1,6 +1,7 @@
 #include <cstring>
 #include <stdexcept>
 #include "Conversions.h"
+#include "HeaderV10XashFormatTraits.h"
 
 namespace NFMDL
 {
@@ -8,7 +9,28 @@ namespace NFMDL
 	{
 		memset(&out, 0, sizeof(out));
 
-		// TODO: Continue
+		// TODO: Sort out how we're going to do textures.
+		// Leave them zeroed for the moment.
+		// Sounds and transitions don't seem to be referenced at all
+		// in the Xash engine, so they're not included here.
+
+		out.ident = HeaderIdentifier(FormatTraits<HeaderV10Xash>::TARGET_IDENTIFIER);
+		out.version = FormatTraits<HeaderV10Xash>::TARGET_VERSION;
+		strncpy(out.name, in.name, sizeof(out.name));
+		out.name[sizeof(out.name) - 1] = '\0';
+		out.eyePosition = in.eyePosition;
+		out.movementHull = in.movementHull;
+		out.clippingHull = in.clippingHull;
+		out.flags = in.flags;
+		out.bones.count = in.bones.count;
+		out.boneControllers.count = in.boneControllers.count;
+		out.hitBoxes.count = in.hitBoxes.count;
+		out.sequences.count = in.sequences.count;
+		out.sequenceGroups.count = in.sequenceGroups.count;
+		out.skinReferenceCount = in.skinReferenceCount;
+		out.skinFamilyCount = in.skinFamilyCount;
+		out.bodyGroups.count = in.bodyGroups.count;
+		out.attachments.count = in.attachments.count;
 	}
 
 	void Convert(const SequenceV14& in, SequenceV10Xash& out)

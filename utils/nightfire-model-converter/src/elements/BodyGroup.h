@@ -6,7 +6,7 @@
 namespace NFMDL
 {
 #pragma pack(push, 1)
-	struct BodyGroupV14
+	struct BodyGroup
 	{
 		char name[64];
 		uint32_t modelCount;
@@ -16,8 +16,8 @@ namespace NFMDL
 #pragma pack(pop)
 
 	template<>
-	struct ElementTraits<BodyGroupV14>
+	struct ElementTraits<BodyGroup>
 	{
-		static constexpr const char* ELEMENT_NAME = "BodyGroupV14";
+		static constexpr const char* ELEMENT_NAME = "BodyGroup";
 	};
 }

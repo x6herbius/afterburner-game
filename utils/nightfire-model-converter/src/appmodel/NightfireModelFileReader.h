@@ -14,7 +14,7 @@ namespace NFMDL
 	class NightfireModelFileReader
 	{
 	public:
-		NightfireModelFileReader(const std::shared_ptr<NightfireModelFile>& modelFile);
+		explicit NightfireModelFileReader(const std::shared_ptr<NightfireModelFile>& modelFile);
 
 		void ReadFromFile(const std::string& filePath);
 
@@ -45,7 +45,12 @@ namespace NFMDL
 		template<typename T>
 		inline const T* GetElementInternal(uint32_t offset, uint32_t count, const std::string& typeName) const
 		{
-			const size_t bytesRequired = (count == 0 ? 1 : count) * sizeof(T);
+			if ( count < 1 )
+			{
+				count = 1;
+			}
+
+			const size_t bytesRequired = count * sizeof(T);
 			const size_t bytesAvailable = m_InputFileData->size() - offset;
 
 			if ( bytesRequired > bytesAvailable )
@@ -60,14 +65,14 @@ namespace NFMDL
 					<< " bytes were available. ("
 					<< m_InputFileData->size()
 					<< " total input bytes; attempt was made to get "
-					<< (count == 0 ? 1 : count)
+					<< count
 					<< " "
 					<< typeName
 					<< " elements at "
 					<< sizeof(T)
 					<< " bytes each from input offset "
 					<< offset
-					<< ".";
+					<< ".)";
 
 				throw std::runtime_error(stream.str());
 			}

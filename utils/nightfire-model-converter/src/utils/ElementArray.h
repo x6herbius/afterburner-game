@@ -40,6 +40,11 @@ namespace NFMDL
 			m_Elements.clear();
 		}
 
+		inline const ValueType* ConstData() const
+		{
+			return m_Elements.data();
+		}
+
 		inline ValueType& operator [](size_t index)
 		{
 			assert(index < m_Elements.size());

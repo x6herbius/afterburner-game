@@ -7,6 +7,7 @@
 #include "AppOptions.h"
 #include "appmodel/NightfireModelFile.h"
 #include "appmodel/NightfireModelFileReader.h"
+#include "appmodel/XashModelFile.h"
 #include "elements/DumpElements.h"
 #include "Utils.h"
 #include "DumpMDLFileItems.h"
@@ -124,8 +125,8 @@ static bool ConvertFile(const AppOptions& options)
 {
 	std::cout << "Reading " << options.inputFile << std::endl;
 
-	std::shared_ptr<NFMDL::NightfireModelFile> modelFile = std::make_shared<NFMDL::NightfireModelFile>();
-	NFMDL::NightfireModelFileReader reader(modelFile);
+	std::shared_ptr<NFMDL::NightfireModelFile> inModelFile = std::make_shared<NFMDL::NightfireModelFile>();
+	NFMDL::NightfireModelFileReader reader(inModelFile);
 
 	try
 	{
@@ -140,7 +141,13 @@ static bool ConvertFile(const AppOptions& options)
 
 	std::cout << "Read successfully." << std::endl;
 
-	DumpMDLFileItems(options, *modelFile);
+	DumpMDLFileItems(options, *inModelFile);
+
+	if ( !options.outputFile.empty() )
+	{
+		std::shared_ptr<NFMDL::XashModelFile> outModelFile = std::make_shared<NFMDL::XashModelFile>();
+	}
+
 	return true;
 }
 

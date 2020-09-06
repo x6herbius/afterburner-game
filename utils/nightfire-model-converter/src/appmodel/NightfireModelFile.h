@@ -11,7 +11,7 @@
 #include "elements/SequenceV14.h"
 #include "elements/SequenceGroup.h"
 #include "elements/TextureV14.h"
-#include "elements/BodyGroupV14.h"
+#include "elements/BodyGroup.h"
 #include "elements/Attachment.h"
 #include "elements/SoundGroupV14.h"
 #include "elements/TriangleMapV14.h"
@@ -66,7 +66,7 @@ namespace NFMDL
 		ElementArray<BoneFixUpV14> BoneFixUps;
 		ElementArray<ModelV14> Models;
 		ElementArray<LevelOfDetailV14> LevelsOfDetail;
-		ElementArray<BodyGroupV14> BodyGroups;
+		ElementArray<BodyGroup> BodyGroups;
 
 		SkinCollection Skins;
 
