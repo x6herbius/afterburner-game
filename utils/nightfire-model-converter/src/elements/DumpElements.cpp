@@ -167,12 +167,10 @@ std::ostream& operator <<(std::ostream& stream, const HeaderV14& header)
 
 		for ( uint32_t index = 0; index < ArraySize(header.modelOffset); ++index )
 		{
-			if ( header.modelOffset[index] == 0 )
+			if ( header.modelOffset[index] != 0 )
 			{
-				break;
+				stream << "    Model offset [" << index << "]: " << header.modelOffset[index] << "\n";
 			}
-
-			stream << "    Model offset [" << index << "]: " << header.modelOffset[index] << "\n";
 		}
 
 		stream << "]";
@@ -522,7 +520,10 @@ std::ostream& operator <<(std::ostream& stream, const NFMDL::ModelV14& model)
 
 	for ( uint32_t index = 0; index < ArraySize(model.modelInfoOffset); ++index )
 	{
-		stream << "    Model info offset [" << index << "]: " << model.modelInfoOffset[index] << "\n";
+		if ( model.modelInfoOffset[index] != 0 )
+		{
+			stream << "    Model info offset [" << index << "]: " << model.modelInfoOffset[index] << "\n";
+		}
 	}
 
 	stream
