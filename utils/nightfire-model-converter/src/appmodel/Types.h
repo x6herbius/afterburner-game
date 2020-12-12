@@ -42,7 +42,7 @@ namespace NFMDL
 				return blendIndex < other.blendIndex;
 			}
 
-			if ( boneIndex < other.boneIndex )
+			if ( boneIndex != other.boneIndex )
 			{
 				return boneIndex < other.boneIndex;
 			}
