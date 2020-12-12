@@ -81,5 +81,8 @@ namespace NFMDL
 		// Owned by models:
 		ModelInfoCollection ModelInfos;
 		MeshCollection Meshes;
+
+		// Other related information, useful for dumping later.
+		uint32_t LODOffset = 0;
 	};
 }

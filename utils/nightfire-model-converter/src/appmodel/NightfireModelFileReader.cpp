@@ -162,12 +162,12 @@ namespace NFMDL
 
 		const size_t lodCount = LevelOfDetailFlagsToCount(m_ModelFile->Header.lodFlags);
 
-		uint32_t offset = m_ModelFile->Header.sequenceGroups.offset +
+		m_ModelFile->LODOffset = m_ModelFile->Header.sequenceGroups.offset +
 			(m_ModelFile->Header.sequenceGroups.count * sizeof(SequenceGroup));
 
-		offset = AlignTo16Bytes(offset);
+		m_ModelFile->LODOffset = AlignTo16Bytes(m_ModelFile->LODOffset);
 
-		ReadElementArray(offset, lodCount, m_ModelFile->LevelsOfDetail);
+		ReadElementArray(m_ModelFile->LODOffset, lodCount, m_ModelFile->LevelsOfDetail);
 	}
 
 	void NightfireModelFileReader::ReadSkins()
