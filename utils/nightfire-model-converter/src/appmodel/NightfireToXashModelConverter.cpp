@@ -1,3 +1,4 @@
+#include <cstring>
 #include "NightfireToXashModelConverter.h"
 #include "elements/Conversions.h"
 
@@ -86,6 +87,39 @@ namespace NFMDL
 		m_OutModelFile->FootPivots = m_InModelFile->FootPivots;
 		m_OutModelFile->AnimationData = m_InModelFile->AnimationData;
 
+		ConstructHLBodyGroups();
+
 		// TODO: The rest
+	}
+
+	void NightfireToXashModelConverter::ConstructHLBodyGroups()
+	{
+		/*
+			The process of this is as follows:
+
+			Nightfire and Half Life body groups are equivalent. However, for the sub-models of each body group,
+			the data layout is a bit different between Nightfire and Half Life.
+
+			Nightfire:
+				- Model owns multiple model infos. There is no other useful information in the model element.
+				- Model info specifies the skin, and owns multiple meshes.
+				- Meshes own triangle mappings and vertices.
+
+			Half Life:
+				- mstudiomodel_t owns multiple meshes, and holds info on vertices, normals, and blends.
+				- mstudiomesh_t specifies the skin, and owns triangle mappings and normals (apparently unused).
+
+			These can roughly be combined as follows:
+				- One mstudiomodel_t should be created for each NF model.
+				- One child mstudiomesh_t should be created for each NF model info underneath this model,
+				  and should take its skin from that model info.
+				- All meshes listed underneath the NF model info should have their triangles accumulated together
+				  and recorded in the mstudiomesh_t.
+				- All vertices listed in each NF mesh under the NF model info should be accumulated together
+				  and recorded in the mstudiomodel_t.
+				- All other data required by the mstudiomesh_t should be generated and recorded appropriately.
+
+			We also need to generate the relevant vertex/normal/etc. lists from the Nightfire vertex objects.
+		*/
 	}
 }

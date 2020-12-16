@@ -70,4 +70,16 @@ namespace NFMDL
 		out.transitionNodeExit = in.transitionNodeExit;
 		out.transitionNodeFlags = in.transitionNodeFlags;
 	}
+
+	void Convert(const VertexV14& in, VertexV10Xash& out)
+	{
+		// For now, we ignore scale values - we probably don't need them.
+		out.position = in.position;
+	}
+
+	void Convert(const NormalV14& in, NormalV10Xash& out)
+	{
+		// For now, we ignore scale values - we probably don't need them.
+		out.position = in.position;
+	}
 }
