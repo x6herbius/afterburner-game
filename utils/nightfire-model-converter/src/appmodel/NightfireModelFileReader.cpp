@@ -145,7 +145,7 @@ namespace NFMDL
 									 ".");
 		}
 
-		m_ModelFile->Models.AllocateAndZero(modelCount);
+		m_ModelFile->Models.AllocateDefault(modelCount);
 
 		for ( uint32_t index = 0; index < modelCount; ++index )
 		{

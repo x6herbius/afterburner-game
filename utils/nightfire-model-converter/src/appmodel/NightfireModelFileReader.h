@@ -83,11 +83,13 @@ namespace NFMDL
 		template<typename T>
 		inline void ReadElementArray(const CountOffsetPair& cop, ElementArray<T>& array)
 		{
-			array.AllocateAndZero(cop.count);
-
 			if ( cop.count > 0 )
 			{
-				array.CopyDataFrom(GetElement<T>(cop.offset, cop.count), cop.count);
+				array.AllocateFrom(GetElement<T>(cop.offset, cop.count), cop.count);
+			}
+			else
+			{
+				array.Clear();
 			}
 		}
 

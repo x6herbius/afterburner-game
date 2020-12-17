@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vector>
-#include <type_traits>
 #include <cstring>
 #include <cassert>
 #include <cstddef>
@@ -14,24 +13,26 @@ namespace NFMDL
 	public:
 		using ValueType = T;
 
-		inline ElementArray()
-		{
-			static_assert(std::is_pod<ValueType>::value, "This container only works with POD elements.");
-		}
-
-		inline void AllocateAndZero(size_t elementCount)
+		inline void AllocateDefault(size_t elementCount)
 		{
 			m_Elements.resize(elementCount);
-			memset(m_Elements.data(), 0, m_Elements.size() * sizeof(ValueType));
 		}
 
-		inline void CopyDataFrom(const ValueType* source, size_t numItems)
+		template<typename T2>
+		inline void AllocateFrom(const T2* source, size_t numItems)
 		{
-			assert(numItems <= m_Elements.size());
+			m_Elements.clear();
 
-			if ( numItems > 0 )
+			if ( !source || numItems < 1 )
 			{
-				memcpy(m_Elements.data(), source, numItems * sizeof(ValueType));
+				return;
+			}
+
+			m_Elements.reserve(numItems);
+
+			for ( size_t index = 0; index < numItems; ++index )
+			{
+				m_Elements.emplace_back(source[index]);
 			}
 		}
 

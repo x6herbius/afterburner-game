@@ -7,18 +7,13 @@ namespace NFMDL
 	template<typename T>
 	static inline void CopyElementArray(const ElementArray<T>& src, ElementArray<T>& dest)
 	{
-		dest.AllocateAndZero(src.Count());
-
-		src.ForEach([&dest](uint32_t index, const T& element)
-		{
-			dest[index] = element;
-		});
+		dest.AllocateFrom(src.ConstData(), src.Count());
 	}
 
 	template<typename TS, typename TD>
 	static inline void CopyElementArray(const ElementArray<TS>& src, ElementArray<TD>& dest)
 	{
-		dest.AllocateAndZero(src.Count());
+		dest.AllocateDefault(src.Count());
 
 		src.ForEach([&dest](uint32_t index, const TS& element)
 		{
