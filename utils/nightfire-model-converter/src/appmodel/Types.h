@@ -102,25 +102,25 @@ namespace NFMDL
 		};
 	};
 
-	struct MeshCollectionKey
+	struct MeshCollectionKeyV14
 	{
 		uint32_t modelIndex = 0;
 		uint32_t modelInfoIndex = 0;
 		uint32_t meshIndex = 0;
 
-		inline bool operator ==(const MeshCollectionKey& other) const
+		inline bool operator ==(const MeshCollectionKeyV14& other) const
 		{
 			return modelIndex == other.modelIndex &&
 					modelInfoIndex == other.modelInfoIndex &&
 					meshIndex == other.meshIndex;
 		}
 
-		inline bool operator !=(const MeshCollectionKey& other) const
+		inline bool operator !=(const MeshCollectionKeyV14& other) const
 		{
 			return !(*this == other);
 		}
 
-		inline bool operator <(const MeshCollectionKey& other) const
+		inline bool operator <(const MeshCollectionKeyV14& other) const
 		{
 			if ( modelIndex != other.modelIndex )
 			{
@@ -137,10 +137,56 @@ namespace NFMDL
 
 		struct Hash
 		{
-			inline std::size_t operator()(const MeshCollectionKey& key) const noexcept
+			inline std::size_t operator()(const MeshCollectionKeyV14& key) const noexcept
 			{
 				size_t hash = std::hash<uint32_t>{}(key.modelIndex);
 				hash = std::hash<uint32_t>{}(key.modelInfoIndex) ^ (hash << 1);
+				hash = std::hash<uint32_t>{}(key.meshIndex) ^ (hash << 1);
+
+				return hash;
+			}
+		};
+	};
+
+		struct MeshCollectionKeyV10Xash
+	{
+		uint32_t bodyGroupIndex = 0;
+		uint32_t modelIndex = 0;
+		uint32_t meshIndex = 0;
+
+		inline bool operator ==(const MeshCollectionKeyV10Xash& other) const
+		{
+			return bodyGroupIndex == other.bodyGroupIndex &&
+					modelIndex == other.modelIndex &&
+					meshIndex == other.meshIndex;
+		}
+
+		inline bool operator !=(const MeshCollectionKeyV10Xash& other) const
+		{
+			return !(*this == other);
+		}
+
+		inline bool operator <(const MeshCollectionKeyV10Xash& other) const
+		{
+			if ( bodyGroupIndex != other.bodyGroupIndex )
+			{
+				return bodyGroupIndex < other.bodyGroupIndex;
+			}
+
+			if ( modelIndex != other.modelIndex )
+			{
+				return modelIndex < other.modelIndex;
+			}
+
+			return meshIndex < other.meshIndex;
+		}
+
+		struct Hash
+		{
+			inline std::size_t operator()(const MeshCollectionKeyV10Xash& key) const noexcept
+			{
+				size_t hash = std::hash<uint32_t>{}(key.bodyGroupIndex);
+				hash = std::hash<uint32_t>{}(key.modelIndex) ^ (hash << 1);
 				hash = std::hash<uint32_t>{}(key.meshIndex) ^ (hash << 1);
 
 				return hash;

@@ -15,6 +15,8 @@
 #include "elements/FootPivot.h"
 #include "elements/Skin.h"
 #include "elements/BodyGroup.h"
+#include "elements/ModelV10Xash.h"
+#include "elements/MeshV10Xash.h"
 
 namespace NFMDL
 {
@@ -25,6 +27,8 @@ namespace NFMDL
 		using EventCollection = OwnedItemCollection<Event>;
 		using FootPivotCollection = OwnedItemCollection<FootPivot>;
 		using SkinCollection = std::map<SkinCollectionKey, Skin>;
+		using ModelCollection = OwnedItemCollection<ModelV10Xash>;
+		using MeshCollection = std::map<MeshCollectionKeyV10Xash, MeshV10Xash>;
 
 		HeaderV10Xash Header;
 
@@ -43,5 +47,11 @@ namespace NFMDL
 		EventCollection Events;
 		FootPivotCollection FootPivots;
 		AnimationDataCollection AnimationData;
+
+		// Owned by body groups:
+		ModelCollection Models;
+
+		// Owned by models:
+		MeshCollection Meshes;
 	};
 }

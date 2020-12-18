@@ -21,19 +21,18 @@ namespace NFMDL
 		template<typename T2>
 		inline void AllocateFrom(const T2* source, size_t numItems)
 		{
-			m_Elements.clear();
+			ConstructElementsGeneric(source, numItems, true);
+		}
 
-			if ( !source || numItems < 1 )
-			{
-				return;
-			}
+		inline void AppendDefault(size_t elementCount)
+		{
+			m_Elements.resize(m_Elements.size() + elementCount);
+		}
 
-			m_Elements.reserve(numItems);
-
-			for ( size_t index = 0; index < numItems; ++index )
-			{
-				m_Elements.emplace_back(source[index]);
-			}
+		template<typename T2>
+		inline void AppendFrom(const T2* source, size_t numItems)
+		{
+			ConstructElementsGeneric(source, numItems, false);
 		}
 
 		inline void Clear()
@@ -74,7 +73,55 @@ namespace NFMDL
 			}
 		}
 
+		template<typename FUNC>
+		inline void MutateEach(const FUNC& callback)
+		{
+			const size_t count = m_Elements.size();
+
+			for ( uint32_t index = 0; index < count; ++index )
+			{
+				callback(index, m_Elements[index]);
+			}
+		}
+
+		template<typename FUNC>
+		inline const ValueType* FindFirstMatching(const FUNC& predicate) const
+		{
+			const size_t count = m_Elements.size();
+
+			for ( uint32_t index = 0; index < count; ++index )
+			{
+				if ( predicate(index, m_Elements[index]) )
+				{
+					return &m_Elements[index];
+				}
+			}
+
+			return nullptr;
+		}
+
 	private:
+		template<typename T2>
+		inline void ConstructElementsGeneric(const T2* source, size_t numItems, bool clearFirst)
+		{
+			if ( clearFirst )
+			{
+				m_Elements.clear();
+			}
+
+			if ( !source || numItems < 1 )
+			{
+				return;
+			}
+
+			m_Elements.reserve(m_Elements.size() + numItems);
+
+			for ( size_t index = 0; index < numItems; ++index )
+			{
+				m_Elements.emplace_back(source[index]);
+			}
+		}
+
 		std::vector<ValueType> m_Elements;
 	};
 }

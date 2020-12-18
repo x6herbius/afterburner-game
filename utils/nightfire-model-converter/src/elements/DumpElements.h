@@ -26,6 +26,7 @@
 #include "ModelInfoV14.h"
 #include "MeshV14.h"
 
+// Elements
 std::ostream& operator <<(std::ostream& stream, const NFMDL::HeaderV14& header);
 std::ostream& operator <<(std::ostream& stream, const NFMDL::Bone& bone);
 std::ostream& operator <<(std::ostream& stream, const NFMDL::BoneController& boneController);
@@ -53,10 +54,13 @@ std::ostream& operator <<(std::ostream& stream, const NFMDL::AnimationDataValueL
 std::ostream& operator <<(std::ostream& stream, const NFMDL::Event& event);
 std::ostream& operator <<(std::ostream& stream, const NFMDL::FootPivot& footPivot);
 
+// Keys
 std::ostream& operator <<(std::ostream& stream, const NFMDL::SkinCollectionKey& key);
 std::ostream& operator <<(std::ostream& stream, const NFMDL::TOwnedItemKey<NFMDL::ModelInfoV14>& key);
-std::ostream& operator <<(std::ostream& stream, const NFMDL::MeshCollectionKey& key);
+std::ostream& operator <<(std::ostream& stream, const NFMDL::MeshCollectionKeyV14& key);
 std::ostream& operator <<(std::ostream& stream, const NFMDL::TOwnedItemKey<NFMDL::SoundV14>& key);
 std::ostream& operator <<(std::ostream& stream, const NFMDL::AnimationDataCollectionKey& key);
 std::ostream& operator <<(std::ostream& stream, const NFMDL::TOwnedItemKey<NFMDL::Event>& key);
 std::ostream& operator <<(std::ostream& stream, const NFMDL::TOwnedItemKey<NFMDL::FootPivot>& key);
+std::ostream& operator <<(std::ostream& stream, const NFMDL::TOwnedItemKey<NFMDL::AugmentedModelInfoV14>& key);
+std::ostream& operator <<(std::ostream& stream, const NFMDL::TOwnedItemKey<NFMDL::AugmentedModelV14>& key);

@@ -614,7 +614,7 @@ std::ostream& operator <<(std::ostream& stream, const NFMDL::TOwnedItemKey<NFMDL
 	return WriteOwnedItemKey(stream, key, "Parent model", "Model info");
 }
 
-std::ostream& operator <<(std::ostream& stream, const NFMDL::MeshCollectionKey& key)
+std::ostream& operator <<(std::ostream& stream, const NFMDL::MeshCollectionKeyV14& key)
 {
 	stream << "[Parent model index " << key.modelIndex << ", Parent model info index " << key.modelInfoIndex << ", Mesh index " << key.meshIndex << "]";
 	return stream;
@@ -639,4 +639,9 @@ std::ostream& operator <<(std::ostream& stream, const NFMDL::TOwnedItemKey<NFMDL
 std::ostream& operator <<(std::ostream& stream, const NFMDL::TOwnedItemKey<NFMDL::FootPivot>& key)
 {
 	return WriteOwnedItemKey(stream, key, "Parent sequence", "Foot pivot");
+}
+
+std::ostream& operator <<(std::ostream& stream, const NFMDL::TOwnedItemKey<NFMDL::AugmentedModelInfoV14>& key)
+{
+	return WriteOwnedItemKey(stream, key, "Parent model", "Model info");
 }

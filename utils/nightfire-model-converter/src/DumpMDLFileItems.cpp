@@ -220,7 +220,7 @@ void DumpMDLFileItems(const AppOptions& options, const NFMDL::NightfireModelFile
 	{
 		DumpItems("Mesh", "meshes", modelFile.Meshes, [&modelFile](const NFMDL::NightfireModelFile::MeshCollection::const_iterator& it) -> uint32_t
 		{
-			NFMDL::TOwnedItemKey<NFMDL::ModelInfoV14> modelInfoKey;
+			NFMDL::TOwnedItemKey<NFMDL::AugmentedModelInfoV14> modelInfoKey;
 			modelInfoKey.ownerIndex = it->first.modelIndex;
 			modelInfoKey.itemIndex = it->first.modelInfoIndex;
 

@@ -149,7 +149,11 @@ namespace NFMDL
 
 		for ( uint32_t index = 0; index < modelCount; ++index )
 		{
-			m_ModelFile->Models[index] = *GetElement<ModelV14>(m_ModelFile->Header.modelOffset[index]);
+			const uint32_t offset = m_ModelFile->Header.modelOffset[index];
+			AugmentedModelV14& model = m_ModelFile->Models[index];
+
+			model = *GetElement<ModelV14>(offset);
+			model.SetFileOffset(offset);
 		}
 	}
 
@@ -209,11 +213,12 @@ namespace NFMDL
 					continue;
 				}
 
-				TOwnedItemKey<ModelInfoV14> key;
+				TOwnedItemKey<AugmentedModelInfoV14> key;
 				key.ownerIndex = modelIndex;
 				key.itemIndex = modelInfoIndex;
 
 				m_ModelFile->ModelInfos.emplace(key, *GetElement<ModelInfoV14>(modelInfoOffset));
+				m_ModelFile->ModelInfos[key].SetFileOffset(modelInfoOffset);
 			}
 		}
 	}
@@ -236,17 +241,17 @@ namespace NFMDL
 					continue;
 				}
 
-				TOwnedItemKey<ModelInfoV14> key;
+				TOwnedItemKey<AugmentedModelInfoV14> key;
 				key.ownerIndex = modelIndex;
 				key.itemIndex = modelInfoIndex;
 
-				const ModelInfoV14& modelInfo = m_ModelFile->ModelInfos[key];
+				const AugmentedModelInfoV14& modelInfo = m_ModelFile->ModelInfos[key];
 				const uint32_t meshCount = modelInfo.meshes.count;
 				const MeshV14* meshElements = GetElement<MeshV14>(modelInfo.meshes.offset, modelInfo.meshes.count);
 
 				for ( uint32_t meshIndex = 0; meshIndex < meshCount; ++meshIndex )
 				{
-					MeshCollectionKey meshKey;
+					MeshCollectionKeyV14 meshKey;
 					meshKey.modelIndex = modelIndex;
 					meshKey.modelInfoIndex = modelInfoIndex;
 					meshKey.meshIndex = meshIndex;

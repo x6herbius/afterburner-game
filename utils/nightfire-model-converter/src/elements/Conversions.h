@@ -8,6 +8,7 @@
 #include "elements/VertexV10Xash.h"
 #include "elements/NormalV14.h"
 #include "elements/NormalV10Xash.h"
+#include "elements/BodyGroup.h"
 
 namespace NFMDL
 {

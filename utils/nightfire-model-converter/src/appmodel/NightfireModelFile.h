@@ -21,13 +21,13 @@
 #include "elements/VertexBlendScaleV14.h"
 #include "elements/VertexBlendV14.h"
 #include "elements/BoneFixUpV14.h"
-#include "elements/ModelV14.h"
+#include "elements/AugmentedModelV14.h"
 #include "elements/LevelOfDetailV14.h"
 #include "elements/Event.h"
 #include "elements/FootPivot.h"
 #include "elements/AnimationValue.h"
 #include "elements/TriangleMapV14.h"
-#include "elements/ModelInfoV14.h"
+#include "elements/AugmentedModelInfoV14.h"
 #include "elements/MeshV14.h"
 #include "elements/SoundV14.h"
 #include "elements/Skin.h"
@@ -44,8 +44,8 @@ namespace NFMDL
 		using EventCollection = OwnedItemCollection<Event>;
 		using FootPivotCollection = OwnedItemCollection<FootPivot>;
 		using SoundCollection = OwnedItemCollection<SoundV14>;
-		using ModelInfoCollection = OwnedItemCollection<ModelInfoV14>;
-		using MeshCollection = std::map<MeshCollectionKey, MeshV14>;
+		using ModelInfoCollection = OwnedItemCollection<AugmentedModelInfoV14>;
+		using MeshCollection = std::map<MeshCollectionKeyV14, MeshV14>;
 
 		HeaderV14 Header;
 
@@ -64,7 +64,7 @@ namespace NFMDL
 		ElementArray<VertexBlendScaleV14> VertexBlendScales;
 		ElementArray<VertexBlendV14> VertexBlends;
 		ElementArray<BoneFixUpV14> BoneFixUps;
-		ElementArray<ModelV14> Models;
+		ElementArray<AugmentedModelV14> Models;
 		ElementArray<LevelOfDetailV14> LevelsOfDetail;
 		ElementArray<BodyGroup> BodyGroups;
 
