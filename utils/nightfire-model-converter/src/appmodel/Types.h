@@ -5,6 +5,7 @@
 #include <vector>
 #include <map>
 
+#include "containers/ElementContainer.h"
 #include "elements/AnimationValue.h"
 #include "elements/ElementTraits.h"
 
@@ -196,11 +197,26 @@ namespace NFMDL
 
 	struct OwnedItemKey
 	{
-		uint32_t ownerIndex = 0;
-		uint32_t itemIndex = 0;
+		size_t ownerIndex = INVALID_CONTAINER_INDEX;
+		size_t itemIndex = INVALID_CONTAINER_INDEX;
+
+		inline operator bool() const
+		{
+			return ownerIndex != INVALID_CONTAINER_INDEX && itemIndex != INVALID_CONTAINER_INDEX;
+		}
 
 		inline bool operator ==(const OwnedItemKey& other) const
 		{
+			if ( static_cast<bool>(*this) != static_cast<bool>(other) )
+			{
+				return false;
+			}
+
+			if ( !static_cast<bool>(*this) && !static_cast<bool>(other) )
+			{
+				return true;
+			}
+
 			return ownerIndex == other.ownerIndex &&
 					itemIndex == other.itemIndex;
 		}

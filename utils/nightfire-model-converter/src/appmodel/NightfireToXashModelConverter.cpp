@@ -108,7 +108,7 @@ namespace NFMDL
 
 		m_OutModelFile->Skins = m_InModelFile->Skins;
 		m_OutModelFile->Events = m_InModelFile->Events;
-		m_OutModelFile->FootPivots = m_InModelFile->FootPivots;
+		CopyContainer(m_InModelFile->FootPivots, m_OutModelFile->FootPivots);
 		m_OutModelFile->AnimationData = m_InModelFile->AnimationData;
 
 		ConstructHLBodyGroups();

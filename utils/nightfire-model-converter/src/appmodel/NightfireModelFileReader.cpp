@@ -305,8 +305,7 @@ namespace NFMDL
 
 	void NightfireModelFileReader::ReadFootPivots()
 	{
-		m_ModelFile->FootPivots.clear();
-
+		m_ModelFile->FootPivots.Clear();
 		const size_t sequenceCount = m_ModelFile->Sequences.Count();
 
 		for ( uint32_t sequenceIndex = 0; sequenceIndex < sequenceCount; ++sequenceIndex )
@@ -314,13 +313,16 @@ namespace NFMDL
 			const SequenceV14* sequence = m_ModelFile->Sequences.ElementAt(sequenceIndex);
 			const FootPivot* footPivots = GetElement<FootPivot>(sequence->footPivots.offset, sequence->footPivots.count);
 
+			const size_t footPivotsBaseIndex = m_ModelFile->FootPivots.Count();
+			m_ModelFile->FootPivots.AppendDefault(sequence->footPivots.count);
+
 			for ( uint32_t footPivotIndex = 0; footPivotIndex < sequence->footPivots.count; ++footPivotIndex )
 			{
 				TOwnedItemKey<FootPivot> key;
 				key.ownerIndex = sequenceIndex;
 				key.itemIndex = footPivotIndex;
 
-				m_ModelFile->FootPivots.emplace(key, footPivots[footPivotIndex]);
+				m_ModelFile->FootPivots.AssignMappingAndValue(key, footPivotsBaseIndex + footPivotIndex, footPivots[footPivotIndex]);
 			}
 		}
 	}

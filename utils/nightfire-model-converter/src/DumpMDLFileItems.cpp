@@ -307,21 +307,23 @@ void DumpMDLFileItems(const AppOptions& options, const NFMDL::NightfireModelFile
 
 	if ( options.dumpFootPivots )
 	{
-		DumpItems("Foot pivot", "foot pivots", modelFile.FootPivots, [&modelFile](const NFMDL::NightfireModelFile::FootPivotCollection::const_iterator& it) -> uint32_t
+		DumpItems("Foot pivot", "foot pivots", modelFile.FootPivots, [&modelFile](size_t index) -> uint32_t
 		{
-			if ( it->first.ownerIndex >= modelFile.Sequences.Count() )
+			const NFMDL::TOwnedItemKey<NFMDL::FootPivot>& key = modelFile.FootPivots.KeyFor(index);
+
+			if ( !key || key.ownerIndex >= modelFile.Sequences.Count() )
 			{
 				return 0;
 			}
 
-			const NFMDL::SequenceV14* const ownerSequence = modelFile.Sequences.ElementAt(it->first.ownerIndex);
+			const NFMDL::SequenceV14* const ownerSequence = modelFile.Sequences.ElementAt(key.ownerIndex);
 
 			if ( !ownerSequence )
 			{
 				return 0;
 			}
 
-			return ownerSequence->footPivots.offset + (it->first.itemIndex * sizeof(NFMDL::FootPivot));
+			return ownerSequence->footPivots.offset + (key.itemIndex * sizeof(NFMDL::FootPivot));
 		});
 	}
 }

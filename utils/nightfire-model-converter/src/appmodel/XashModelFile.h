@@ -46,7 +46,7 @@ namespace NFMDL
 
 		// Owned by sequences:
 		EventCollection Events;
-		FootPivotCollection FootPivots;
+		ElementContainer<FootPivot, NullElementUserData, TOwnedItemKey<FootPivot>> FootPivots;
 		AnimationDataCollection AnimationData;
 
 		// Owned by body groups:

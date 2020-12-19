@@ -8,6 +8,8 @@
 
 namespace NFMDL
 {
+	static constexpr size_t INVALID_CONTAINER_INDEX = ~0;
+
 	struct NullElementUserData
 	{
 	};
@@ -29,7 +31,6 @@ namespace NFMDL
 		using KeyType = K;
 
 		static constexpr bool USES_KEYS = sizeof(KeyType) > 0;
-		static constexpr size_t INVALID_INDEX = ~0;
 
 		class BaseIterator;
 		class ConstIterator;
@@ -37,7 +38,7 @@ namespace NFMDL
 
 		struct ConstIteratorData
 		{
-			size_t index = INVALID_INDEX;
+			size_t index = INVALID_CONTAINER_INDEX;
 			const ElementType* element = nullptr;
 			const UserDataType* userData = nullptr;
 			const KeyType* key = nullptr;
@@ -45,7 +46,7 @@ namespace NFMDL
 
 		struct IteratorData
 		{
-			size_t index = INVALID_INDEX;
+			size_t index = INVALID_CONTAINER_INDEX;
 			ElementType* element = nullptr;
 			UserDataType* userData = nullptr;
 			const KeyType* key = nullptr;
@@ -95,6 +96,17 @@ namespace NFMDL
 
 			m_KeyToItemIndex[key] = index;
 			m_Items[index].SetKey(key);
+		}
+
+		inline void AssignMappingAndValue(const KeyType& key, size_t index, const ElementType& element)
+		{
+			if ( !key || index < m_Items.size() )
+			{
+				return;
+			}
+
+			AssignMapping(key, index);
+			*m_Items[index].Element() = element;
 		}
 
 		inline void RemoveMapping(const KeyType& key)
@@ -317,14 +329,14 @@ namespace NFMDL
 		inline void Move(Item&& other)
 		{
 			m_Index = other.m_Index;
-			other.m_Index = ContainerType::INVALID_INDEX;
+			other.m_Index = INVALID_CONTAINER_INDEX;
 
 			m_Key = std::move(other.m_Key);
 			m_Element = std::move(other.m_Element);
 			m_UserData = std::move(other.m_UserData);
 		}
 
-		size_t m_Index = ContainerType::INVALID_INDEX;
+		size_t m_Index = INVALID_CONTAINER_INDEX;
 		KeyType m_Key;
 		std::unique_ptr<ElementType> m_Element;
 		std::unique_ptr<UserDataType> m_UserData;
@@ -350,7 +362,7 @@ namespace NFMDL
 
 		inline size_t Index() const
 		{
-			return IsValid() ? m_Index : ContainerType::INVALID_INDEX;
+			return IsValid() ? m_Index : INVALID_CONTAINER_INDEX;
 		}
 
 		inline operator bool() const
@@ -396,7 +408,7 @@ namespace NFMDL
 		}
 
 		const ContainerType* m_Container = nullptr;
-		size_t m_Index = ContainerType::INVALID_INDEX;
+		size_t m_Index = INVALID_CONTAINER_INDEX;
 	};
 
 	template<typename T, typename U, typename K>
