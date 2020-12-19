@@ -148,7 +148,7 @@ namespace NFMDL
 		};
 	};
 
-		struct MeshCollectionKeyV10Xash
+	struct MeshCollectionKeyV10Xash
 	{
 		uint32_t bodyGroupIndex = 0;
 		uint32_t modelIndex = 0;
