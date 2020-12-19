@@ -75,7 +75,7 @@ namespace NFMDL
 
 		ReadElements(header.boneControllers, file.BoneControllers);
 		ReadElementArray(header.hitBoxes, file.HitBoxes);
-		ReadElementArray(header.sequences, file.Sequences);
+		ReadElements(header.sequences, file.Sequences);
 		ReadElementArray(header.sequenceGroups, file.SequenceGroups);
 		ReadElementArray(header.textures, file.Textures);
 		ReadElementArray(header.attachments, file.Attachments);
@@ -289,10 +289,10 @@ namespace NFMDL
 
 		for ( uint32_t sequenceIndex = 0; sequenceIndex < sequenceCount; ++sequenceIndex )
 		{
-			const SequenceV14& sequence = m_ModelFile->Sequences[sequenceIndex];
-			const Event* events = GetElement<Event>(sequence.events.offset, sequence.events.count);
+			const SequenceV14* sequence = m_ModelFile->Sequences.ElementAt(sequenceIndex);
+			const Event* events = GetElement<Event>(sequence->events.offset, sequence->events.count);
 
-			for ( uint32_t eventIndex = 0; eventIndex < sequence.events.count; ++eventIndex )
+			for ( uint32_t eventIndex = 0; eventIndex < sequence->events.count; ++eventIndex )
 			{
 				TOwnedItemKey<Event> key;
 				key.ownerIndex = sequenceIndex;
@@ -311,10 +311,10 @@ namespace NFMDL
 
 		for ( uint32_t sequenceIndex = 0; sequenceIndex < sequenceCount; ++sequenceIndex )
 		{
-			const SequenceV14& sequence = m_ModelFile->Sequences[sequenceIndex];
-			const FootPivot* footPivots = GetElement<FootPivot>(sequence.footPivots.offset, sequence.footPivots.count);
+			const SequenceV14* sequence = m_ModelFile->Sequences.ElementAt(sequenceIndex);
+			const FootPivot* footPivots = GetElement<FootPivot>(sequence->footPivots.offset, sequence->footPivots.count);
 
-			for ( uint32_t footPivotIndex = 0; footPivotIndex < sequence.footPivots.count; ++footPivotIndex )
+			for ( uint32_t footPivotIndex = 0; footPivotIndex < sequence->footPivots.count; ++footPivotIndex )
 			{
 				TOwnedItemKey<FootPivot> key;
 				key.ownerIndex = sequenceIndex;
@@ -334,7 +334,7 @@ namespace NFMDL
 
 		for ( uint32_t sequenceIndex = 0; sequenceIndex < sequenceCount; ++sequenceIndex )
 		{
-			const SequenceV14& sequence = m_ModelFile->Sequences[sequenceIndex];
+			const SequenceV14* sequence = m_ModelFile->Sequences.ElementAt(sequenceIndex);
 
 			// Strap in - things get a little convoluted here.
 
@@ -373,10 +373,10 @@ namespace NFMDL
 			// - For any RLE run, "valid" and "total" should be at least 1.
 			// - For any RLE run, "total" should be >= "valid".
 
-			const size_t numDataOffsets = sequence.blendCount * boneCount;
-			const BoneAnimationDataOffsets* dataOffsets = GetElement<BoneAnimationDataOffsets>(sequence.animationDataOffset, numDataOffsets);
+			const size_t numDataOffsets = sequence->blendCount * boneCount;
+			const BoneAnimationDataOffsets* dataOffsets = GetElement<BoneAnimationDataOffsets>(sequence->animationDataOffset, numDataOffsets);
 
-			for ( uint32_t blendIndex = 0; blendIndex < sequence.blendCount; ++blendIndex )
+			for ( uint32_t blendIndex = 0; blendIndex < sequence->blendCount; ++blendIndex )
 			{
 				for ( uint32_t boneIndex = 0; boneIndex < boneCount; ++boneIndex )
 				{
@@ -387,7 +387,7 @@ namespace NFMDL
 
 					// For each component, the offset to the raw animation data is relative to the beginning of the
 					// currentDataOffsets data we're reading.
-					const uint32_t rawDataOffsetBase = sequence.animationDataOffset + (currentDataOffsetsIndex * sizeof(BoneAnimationDataOffsets));
+					const uint32_t rawDataOffsetBase = sequence->animationDataOffset + (currentDataOffsetsIndex * sizeof(BoneAnimationDataOffsets));
 
 					for ( uint32_t componentIndex = 0; componentIndex < ArraySize(currentDataOffsets.dataOffsetForComponent); ++componentIndex )
 					{
@@ -410,7 +410,7 @@ namespace NFMDL
 
 						try
 						{
-							ReadRLEAnimationData(m_ModelFile->AnimationData[key], rawDataOffset, sequence.frameCount);
+							ReadRLEAnimationData(m_ModelFile->AnimationData[key], rawDataOffset, sequence->frameCount);
 						}
 						catch ( const std::runtime_error& ex )
 						{

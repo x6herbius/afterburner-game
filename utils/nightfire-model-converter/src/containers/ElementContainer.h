@@ -456,7 +456,7 @@ namespace NFMDL
 		{
 		}
 
-		inline const ConstIteratorData& operator *() const
+		inline const IteratorData& operator *() const
 		{
 			UpdateOutputData();
 			return m_OutData;
@@ -485,9 +485,9 @@ namespace NFMDL
 				ContainerType* mutableContainer = const_cast<ContainerType*>(m_Container);
 
 				m_OutData.index = m_Index;
-				m_OutData.element = m_Container->ElementAt(m_Index);
-				m_OutData.userData = m_Container->UserDataAt(m_Index);
-				m_OutData.key = &m_Container->KeyFor(m_Index);
+				m_OutData.element = mutableContainer->ElementAt(m_Index);
+				m_OutData.userData = mutableContainer->UserDataAt(m_Index);
+				m_OutData.key = &mutableContainer->KeyFor(m_Index);
 			}
 		}
 

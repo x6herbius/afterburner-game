@@ -294,7 +294,14 @@ void DumpMDLFileItems(const AppOptions& options, const NFMDL::NightfireModelFile
 				return 0;
 			}
 
-			return modelFile.Sequences[it->first.ownerIndex].events.offset + (it->first.itemIndex * sizeof(NFMDL::Event));
+			const NFMDL::SequenceV14* const ownerSequence = modelFile.Sequences.ElementAt(it->first.ownerIndex);
+
+			if ( !ownerSequence )
+			{
+				return 0;
+			}
+
+			return ownerSequence->events.offset + (it->first.itemIndex * sizeof(NFMDL::Event));
 		});
 	}
 
@@ -307,7 +314,14 @@ void DumpMDLFileItems(const AppOptions& options, const NFMDL::NightfireModelFile
 				return 0;
 			}
 
-			return modelFile.Sequences[it->first.ownerIndex].footPivots.offset + (it->first.itemIndex * sizeof(NFMDL::FootPivot));
+			const NFMDL::SequenceV14* const ownerSequence = modelFile.Sequences.ElementAt(it->first.ownerIndex);
+
+			if ( !ownerSequence )
+			{
+				return 0;
+			}
+
+			return ownerSequence->footPivots.offset + (it->first.itemIndex * sizeof(NFMDL::FootPivot));
 		});
 	}
 }

@@ -52,7 +52,7 @@ namespace NFMDL
 		ElementArray<Bone> Bones;
 		ElementContainer<BoneController> BoneControllers;
 		ElementArray<HitBox> HitBoxes;
-		ElementArray<SequenceV14> Sequences;
+		ElementContainer<SequenceV14> Sequences;
 		ElementArray<SequenceGroup> SequenceGroups;
 		ElementArray<TextureV14> Textures;
 		ElementArray<Attachment> Attachments;

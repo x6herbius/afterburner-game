@@ -32,6 +32,24 @@ namespace NFMDL
 		src.Clone(dest);
 	}
 
+	// Note that this does not copy user data or keys.
+	template<typename T1, typename U1, typename K1, typename T2, typename U2, typename K2>
+	static inline void CopyContainerElements(const ElementContainer<T1, U1, K1>& src, ElementContainer<T2, U2, K2>& dest)
+	{
+		using SourceContainerType = ElementContainer<T1, U1, K1>;
+		using DestContainerType = ElementContainer<T2, U2, K2>;
+
+		dest.AllocateDefault(src.Count());
+
+		for ( const DestContainerType::IteratorData& it : dest )
+		{
+			const SourceContainerType::ElementType* source = src.ElementAt(it.index);
+			assert(source);
+
+			Convert(*source, *it.element);
+		}
+	}
+
 	std::string NightfireToXashModelConverter::GetConversionError() const
 	{
 		return m_ConversionError;
@@ -84,7 +102,7 @@ namespace NFMDL
 		CopyElementArray(m_InModelFile->Bones, m_OutModelFile->Bones);
 		CopyContainer(m_InModelFile->BoneControllers, m_OutModelFile->BoneControllers);
 		CopyElementArray(m_InModelFile->HitBoxes, m_OutModelFile->HitBoxes);
-		CopyElementArray(m_InModelFile->Sequences, m_OutModelFile->Sequences);
+		CopyContainerElements(m_InModelFile->Sequences, m_OutModelFile->Sequences);
 		CopyElementArray(m_InModelFile->SequenceGroups, m_OutModelFile->SequenceGroups);
 		CopyElementArray(m_InModelFile->Attachments, m_OutModelFile->Attachments);
 
