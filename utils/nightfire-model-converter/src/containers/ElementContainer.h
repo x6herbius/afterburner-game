@@ -95,7 +95,7 @@ namespace NFMDL
 			RemoveMapping(key);
 
 			m_KeyToItemIndex[key] = index;
-			m_Items[index].SetKey(key);
+			m_Items[index].key = key;
 		}
 
 		inline void AssignMappingAndValue(const KeyType& key, size_t index, const ElementType& element)
@@ -106,7 +106,7 @@ namespace NFMDL
 			}
 
 			AssignMapping(key, index);
-			*m_Items[index].Element() = element;
+			m_Items[index].element = element;
 		}
 
 		inline void RemoveMapping(const KeyType& key)
@@ -122,36 +122,36 @@ namespace NFMDL
 			{
 				assert(it->second < m_Items.size());
 
-				m_Items[it->second].SetKey(KeyType());
+				m_Items[it->second].key = KeyType();
 				m_KeyToItemIndex.erase(key);
 			}
 		}
 
 		inline const ElementType* ElementAt(size_t index) const
 		{
-			return index < m_Items.size() ? m_Items[index].Element() : nullptr;
+			return index < m_Items.size() ? &m_Items[index].element : nullptr;
 		}
 
 		inline ElementType* ElementAt(size_t index)
 		{
-			return index < m_Items.size() ? m_Items[index].Element() : nullptr;
+			return index < m_Items.size() ? &m_Items[index].element : nullptr;
 		}
 
 		inline const UserDataType* UserDataAt(size_t index) const
 		{
-			return index < m_Items.size() ? m_Items[index].UserData() : nullptr;
+			return index < m_Items.size() ? &m_Items[index].userData : nullptr;
 		}
 
 		inline UserDataType* UserDataAt(size_t index)
 		{
-			return index < m_Items.size() ? m_Items[index].UserData() : nullptr;
+			return index < m_Items.size() ? &m_Items[index].userData : nullptr;
 		}
 
 		inline const KeyType& KeyFor(size_t index) const
 		{
 			static const KeyType invalidKey;
 
-			return index < m_Items.size() ? m_Items[index].Key() : invalidKey;
+			return index < m_Items.size() ? m_Items[index].key : invalidKey;
 		}
 
 		inline ConstIterator begin() const
@@ -180,22 +180,20 @@ namespace NFMDL
 
 			for ( const ConstIteratorData& it : *this )
 			{
-				ElementType* element = dest.ElementAt(it.index);
-				UserDataType* userData = dest.UserDataAt(it.index);
+				assert(*it.key);
+				assert(it.index < dest.Count());
 
-				assert(userData && it.userData);
-				assert(element && it.element);
-				assert(it.key);
+				Item& destItem = dest.m_Items[it.index];
 
-				*element = *it.element;
-				*userData = *it.userData;
+				destItem.element = *it.element;
+				destItem.userData = *it.userData;
 
 				dest.AssignMapping(*it.key, it.index);
 			}
 		}
 
 	private:
-		class Item;
+		struct Item;
 		using KeyToItemIndexMap = std::map<KeyType, size_t>;
 
 		inline void ConstructItems(size_t itemCount, bool clearFirst)
@@ -210,14 +208,7 @@ namespace NFMDL
 				return;
 			}
 
-			const size_t oldCount = m_Items.size();
-			m_Items.resize(oldCount + itemCount);
-			const size_t newCount = m_Items.size();
-
-			for ( size_t index = oldCount; index < newCount; ++index )
-			{
-				m_Items[index].InitialiseToDefaults(index);
-			}
+			m_Items.resize(m_Items.size() + itemCount);
 		}
 
 		template<typename T2>
@@ -242,7 +233,7 @@ namespace NFMDL
 				const size_t sourceIndex = index - oldCount;
 				assert(sourceIndex < itemCount);
 
-				m_Items[index].InitialiseFromElement(index, source[sourceIndex]);
+				m_Items[index].element = source[sourceIndex];
 			}
 		}
 
@@ -251,7 +242,7 @@ namespace NFMDL
 	};
 
 	template<typename T, typename U, typename K>
-	class ElementContainer<T, U, K>::Item
+	struct ElementContainer<T, U, K>::Item
 	{
 	public:
 		using ContainerType = ElementContainer<T, U, K>;
@@ -259,7 +250,15 @@ namespace NFMDL
 		using UserDataType = typename ContainerType::UserDataType;
 		using KeyType = typename ContainerType::KeyType;
 
-		inline Item()
+		size_t index = INVALID_CONTAINER_INDEX;
+		KeyType key;
+		ElementType element;
+		UserDataType userData;
+
+		inline Item() :
+			key(),
+			element{},
+			userData()
 		{
 			static_assert(std::is_pod<ElementType>::value, "Element type must be POD.");
 		}
@@ -278,68 +277,16 @@ namespace NFMDL
 		Item(const Item& other) = delete;
 		Item& operator =(const Item& other) = delete;
 
-		inline bool IsValid() const
-		{
-			return m_Element.get() != nullptr;
-		}
-
-		inline const KeyType& Key() const
-		{
-			static const KeyType invalidKey;
-
-			return IsValid() ? m_Key : invalidKey;
-		}
-
-		inline void SetKey(const KeyType& key)
-		{
-			m_Key = key;
-		}
-
-		inline ElementType* Element() const
-		{
-			return m_Element.get();
-		}
-
-		inline UserDataType* UserData() const
-		{
-			return m_UserData.get();
-		}
-
-		inline size_t Index() const
-		{
-			return m_Index;
-		}
-
-		inline void InitialiseToDefaults(size_t index)
-		{
-			m_Index = index;
-			m_Element = std::make_unique<ElementType>();
-			m_UserData = std::make_unique<UserDataType>();
-		}
-
-		template<typename T2>
-		inline void InitialiseFromElement(size_t index, const T2& element)
-		{
-			m_Index = index;
-			m_Element = std::make_unique<ElementType>(element);
-			m_UserData = std::make_unique<UserDataType>();
-		}
-
 	private:
 		inline void Move(Item&& other)
 		{
-			m_Index = other.m_Index;
-			other.m_Index = INVALID_CONTAINER_INDEX;
+			index = other.index;
+			other.index = INVALID_CONTAINER_INDEX;
 
-			m_Key = std::move(other.m_Key);
-			m_Element = std::move(other.m_Element);
-			m_UserData = std::move(other.m_UserData);
+			key = std::move(other.key);
+			element = std::move(other.element);
+			userData = std::move(other.userData);
 		}
-
-		size_t m_Index = INVALID_CONTAINER_INDEX;
-		KeyType m_Key;
-		std::unique_ptr<ElementType> m_Element;
-		std::unique_ptr<UserDataType> m_UserData;
 	};
 
 	template<typename T, typename U, typename K>
@@ -451,6 +398,10 @@ namespace NFMDL
 				m_OutData.element = m_Container->ElementAt(m_Index);
 				m_OutData.userData = m_Container->UserDataAt(m_Index);
 				m_OutData.key = &m_Container->KeyFor(m_Index);
+
+				assert(m_OutData.element);
+				assert(m_OutData.userData);
+				assert(m_OutData.key);
 			}
 		}
 
@@ -500,6 +451,10 @@ namespace NFMDL
 				m_OutData.element = mutableContainer->ElementAt(m_Index);
 				m_OutData.userData = mutableContainer->UserDataAt(m_Index);
 				m_OutData.key = &mutableContainer->KeyFor(m_Index);
+
+				assert(m_OutData.element);
+				assert(m_OutData.userData);
+				assert(m_OutData.key);
 			}
 		}
 
