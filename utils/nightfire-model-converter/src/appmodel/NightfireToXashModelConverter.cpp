@@ -26,6 +26,12 @@ namespace NFMDL
 		});
 	}
 
+	template<typename T, typename U, typename K>
+	static inline void CopyContainer(const ElementContainer<T, U, K>& src, ElementContainer<T, U, K>& dest)
+	{
+		src.Clone(dest);
+	}
+
 	std::string NightfireToXashModelConverter::GetConversionError() const
 	{
 		return m_ConversionError;
@@ -76,7 +82,7 @@ namespace NFMDL
 		NFMDL::Convert(m_InModelFile->Header, m_OutModelFile->Header);
 
 		CopyElementArray(m_InModelFile->Bones, m_OutModelFile->Bones);
-		CopyElementArray(m_InModelFile->BoneControllers, m_OutModelFile->BoneControllers);
+		CopyContainer(m_InModelFile->BoneControllers, m_OutModelFile->BoneControllers);
 		CopyElementArray(m_InModelFile->HitBoxes, m_OutModelFile->HitBoxes);
 		CopyElementArray(m_InModelFile->Sequences, m_OutModelFile->Sequences);
 		CopyElementArray(m_InModelFile->SequenceGroups, m_OutModelFile->SequenceGroups);

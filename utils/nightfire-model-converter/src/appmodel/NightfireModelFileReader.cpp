@@ -73,7 +73,7 @@ namespace NFMDL
 		NFMDL::NightfireModelFile& file = *m_ModelFile;
 		const NFMDL::HeaderV14& header = file.Header;
 
-		ReadElementArray(header.boneControllers, file.BoneControllers);
+		ReadElements(header.boneControllers, file.BoneControllers);
 		ReadElementArray(header.hitBoxes, file.HitBoxes);
 		ReadElementArray(header.sequences, file.Sequences);
 		ReadElementArray(header.sequenceGroups, file.SequenceGroups);

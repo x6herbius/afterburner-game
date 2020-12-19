@@ -14,6 +14,10 @@ namespace NFMDL
 
 	struct NullElementKey
 	{
+		inline operator bool() const
+		{
+			return false;
+		}
 	};
 
 	template<typename T, typename U = NullElementUserData, typename K = NullElementKey>
@@ -80,8 +84,7 @@ namespace NFMDL
 			ConstructItemsFrom(source, itemCount, false);
 		}
 
-		inline typename std::enable_if<USES_KEYS, void>::type
-		AssignMapping(const KeyType& key, size_t index)
+		inline void AssignMapping(const KeyType& key, size_t index)
 		{
 			if ( !key || index < m_Items.size() )
 			{
@@ -94,8 +97,7 @@ namespace NFMDL
 			m_Items[index].SetKey(key);
 		}
 
-		inline typename std::enable_if<USES_KEYS, void>::type
-		RemoveMapping(const KeyType& key)
+		inline void RemoveMapping(const KeyType& key)
 		{
 			if ( !key )
 			{
@@ -150,14 +152,34 @@ namespace NFMDL
 			return ConstIterator();
 		}
 
-		inline Iterator begin() const
+		inline Iterator begin()
 		{
 			return Iterator(this, 0);
 		}
 
-		inline Iterator end() const
+		inline Iterator end()
 		{
 			return Iterator();
+		}
+
+		inline void Clone(ElementContainer<ElementType, UserDataType, KeyType>& dest) const
+		{
+			dest.AllocateDefault(Count());
+
+			for ( const ConstIteratorData& it : *this )
+			{
+				ElementType* element = dest.ElementAt(it.index);
+				UserDataType* userData = dest.UserDataAt(it.index);
+
+				assert(userData && it.userData);
+				assert(element && it.element);
+				assert(it.key);
+
+				*element = *it.element;
+				*userData = *it.userData;
+
+				dest.AssignMapping(*it.key, it.index);
+			}
 		}
 
 	private:
@@ -230,10 +252,19 @@ namespace NFMDL
 			static_assert(std::is_pod<ElementType>::value, "Element type must be POD.");
 		}
 
+		inline Item(Item&& other)
+		{
+			Move(std::forward<Item>(other));
+		}
+
+		inline Item& operator =(Item&& other)
+		{
+			Move(std::forward<Item>(other));
+			return *this;
+		}
+
 		Item(const Item& other) = delete;
-		Item(Item&& other) = delete;
 		Item& operator =(const Item& other) = delete;
-		Item& operator =(Item&& other) = delete;
 
 		inline bool IsValid() const
 		{
@@ -270,7 +301,7 @@ namespace NFMDL
 		inline void InitialiseToDefaults(size_t index)
 		{
 			m_Index = index;
-			m_Element = std::make_unique<ElementType>({});
+			m_Element = std::make_unique<ElementType>();
 			m_UserData = std::make_unique<UserDataType>();
 		}
 
@@ -283,6 +314,16 @@ namespace NFMDL
 		}
 
 	private:
+		inline void Move(Item&& other)
+		{
+			m_Index = other.m_Index;
+			other.m_Index = ContainerType::INVALID_INDEX;
+
+			m_Key = std::move(other.m_Key);
+			m_Element = std::move(other.m_Element);
+			m_UserData = std::move(other.m_UserData);
+		}
+
 		size_t m_Index = ContainerType::INVALID_INDEX;
 		KeyType m_Key;
 		std::unique_ptr<ElementType> m_Element;

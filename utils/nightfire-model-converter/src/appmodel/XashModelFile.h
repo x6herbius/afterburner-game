@@ -1,6 +1,7 @@
 #pragma once
 
 #include "containers/ElementArray.h"
+#include "containers/ElementContainer.h"
 #include "Types.h"
 
 #include "elements/HeaderV10Xash.h"
@@ -33,7 +34,7 @@ namespace NFMDL
 		HeaderV10Xash Header;
 
 		ElementArray<Bone> Bones;
-		ElementArray<BoneController> BoneControllers;
+		ElementContainer<BoneController> BoneControllers;
 		ElementArray<HitBox> HitBoxes;
 		ElementArray<SequenceV10Xash> Sequences;
 		ElementArray<SequenceGroup> SequenceGroups;

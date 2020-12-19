@@ -99,6 +99,25 @@ namespace NFMDL
 			ReadElementArray(CountOffsetPair{count, offset}, array);
 		}
 
+		template<typename T, typename U, typename K>
+		inline void ReadElements(const CountOffsetPair& cop, ElementContainer<T, U, K>& container)
+		{
+			if ( cop.count > 0 )
+			{
+				container.AllocateFrom(GetElement<T>(cop.offset, cop.count), cop.count);
+			}
+			else
+			{
+				container.Clear();
+			}
+		}
+
+		template<typename T, typename U, typename K>
+		inline void ReadElements(uint32_t offset, uint32_t count, ElementContainer<T, U, K>& container)
+		{
+			ReadElements(CountOffsetPair{count, offset}, container);
+		}
+
 		void ReadEntireFile();
 		void ReadHeader();
 		void ReadModels();

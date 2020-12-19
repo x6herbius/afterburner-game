@@ -71,6 +71,47 @@ static inline void DumpItems(const std::string& itemName,
 	}
 }
 
+template<typename T, typename U, typename K, typename OFFSETFUNC>
+static inline void DumpItems(const std::string& itemName,
+							 const std::string& itemNamePlural,
+							 const NFMDL::ElementContainer<T, U, K>& elementContainer,
+							 const OFFSETFUNC& offsetFunc)
+{
+	using ContainerType = NFMDL::ElementContainer<T, U, K>;
+
+	std::cout << elementContainer.Count() << " " << itemNamePlural << ":" << std::endl;
+
+	for ( const ContainerType::ConstIteratorData& it : elementContainer )
+	{
+		const uint32_t itemOffset = offsetFunc(it.index);
+
+		if ( itemOffset > 0 )
+		{
+			std::cout
+				<< itemName << " " << it.index
+				<< " (file offset " << itemOffset
+				<< "/0x" << std::hex << std::setw(8) << std::setfill('0') << itemOffset << std::dec
+				<< "):\n" << *(it.element) << std::endl;
+		}
+		else
+		{
+			std::cout << itemName << " " << it.index << ":\n" << *(it.element) << std::endl;
+		}
+	}
+}
+
+template<typename T, typename U, typename K>
+static inline void DumpItems(const std::string& itemName,
+							 const std::string& itemNamePlural,
+							 const NFMDL::ElementContainer<T, U, K>& elementContainer,
+							 uint32_t baseOffset)
+{
+	DumpItems(itemName, itemNamePlural, elementContainer, [baseOffset](uint32_t index)
+	{
+		return baseOffset + (index * sizeof(T));
+	});
+}
+
 void DumpMDLFileItems(const AppOptions& options, const NFMDL::NightfireModelFile& modelFile)
 {
 	if ( options.dumpHeader )
