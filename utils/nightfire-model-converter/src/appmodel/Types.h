@@ -13,17 +13,35 @@ namespace NFMDL
 {
 	struct AnimationDataCollectionKey
 	{
-		uint32_t sequenceIndex = 0;
-		uint32_t blendIndex = 0;
-		uint32_t boneIndex = 0;
-		uint32_t componentIndex = 0;
+		size_t sequenceIndex = INVALID_CONTAINER_INDEX;
+		size_t blendIndex = INVALID_CONTAINER_INDEX;
+		size_t boneIndex = INVALID_CONTAINER_INDEX;
+		size_t componentIndex = INVALID_CONTAINER_INDEX;
+
+		inline operator bool() const
+		{
+			return sequenceIndex != INVALID_CONTAINER_INDEX &&
+				   blendIndex != INVALID_CONTAINER_INDEX &&
+				   boneIndex != INVALID_CONTAINER_INDEX &&
+				   componentIndex != INVALID_CONTAINER_INDEX;
+		}
 
 		inline bool operator ==(const AnimationDataCollectionKey& other) const
 		{
+			if ( static_cast<bool>(*this) != static_cast<bool>(other) )
+			{
+				return false;
+			}
+
+			if ( !static_cast<bool>(*this) && !static_cast<bool>(other) )
+			{
+				return true;
+			}
+
 			return sequenceIndex == other.sequenceIndex &&
-					blendIndex == other.blendIndex &&
-					boneIndex == other.boneIndex &&
-					componentIndex == other.componentIndex;
+				   blendIndex == other.blendIndex &&
+				   boneIndex == other.boneIndex &&
+				   componentIndex == other.componentIndex;
 		}
 
 		inline bool operator !=(const AnimationDataCollectionKey& other) const
@@ -55,10 +73,10 @@ namespace NFMDL
 		{
 			inline std::size_t operator()(const AnimationDataCollectionKey& key) const noexcept
 			{
-				size_t hash = std::hash<uint32_t>{}(key.sequenceIndex);
-				hash = std::hash<uint32_t>{}(key.blendIndex) ^ (hash << 1);
-				hash = std::hash<uint32_t>{}(key.boneIndex) ^ (hash << 1);
-				hash = std::hash<uint32_t>{}(key.componentIndex) ^ (hash << 1);
+				size_t hash = std::hash<size_t>{}(key.sequenceIndex);
+				hash = std::hash<size_t>{}(key.blendIndex) ^ (hash << 1);
+				hash = std::hash<size_t>{}(key.boneIndex) ^ (hash << 1);
+				hash = std::hash<size_t>{}(key.componentIndex) ^ (hash << 1);
 
 				return hash;
 			}
@@ -67,13 +85,29 @@ namespace NFMDL
 
 	struct SkinCollectionKey
 	{
-		uint32_t skinFamily = 0;
-		uint32_t skinReference = 0;
+		size_t skinFamily = INVALID_CONTAINER_INDEX;
+		size_t skinReference = INVALID_CONTAINER_INDEX;
+
+		inline operator bool() const
+		{
+			return skinFamily != INVALID_CONTAINER_INDEX &&
+				   skinReference != INVALID_CONTAINER_INDEX;
+		}
 
 		inline bool operator ==(const SkinCollectionKey& other) const
 		{
+			if ( static_cast<bool>(*this) != static_cast<bool>(other) )
+			{
+				return false;
+			}
+
+			if ( !static_cast<bool>(*this) && !static_cast<bool>(other) )
+			{
+				return true;
+			}
+
 			return skinFamily == other.skinFamily &&
-					skinReference == other.skinReference;
+				   skinReference == other.skinReference;
 		}
 
 		inline bool operator !=(const SkinCollectionKey& other) const
@@ -95,8 +129,8 @@ namespace NFMDL
 		{
 			inline std::size_t operator()(const SkinCollectionKey& key) const noexcept
 			{
-				size_t hash = std::hash<uint32_t>{}(key.skinFamily);
-				hash = std::hash<uint32_t>{}(key.skinReference) ^ (hash << 1);
+				size_t hash = std::hash<size_t>{}(key.skinFamily);
+				hash = std::hash<size_t>{}(key.skinReference) ^ (hash << 1);
 
 				return hash;
 			}
@@ -105,15 +139,32 @@ namespace NFMDL
 
 	struct MeshCollectionKeyV14
 	{
-		uint32_t modelIndex = 0;
-		uint32_t modelInfoIndex = 0;
-		uint32_t meshIndex = 0;
+		size_t modelIndex = INVALID_CONTAINER_INDEX;
+		size_t modelInfoIndex = INVALID_CONTAINER_INDEX;
+		size_t meshIndex = INVALID_CONTAINER_INDEX;
+
+		inline operator bool() const
+		{
+			return modelIndex != INVALID_CONTAINER_INDEX &&
+				   modelInfoIndex != INVALID_CONTAINER_INDEX &&
+				   meshIndex != INVALID_CONTAINER_INDEX;
+		}
 
 		inline bool operator ==(const MeshCollectionKeyV14& other) const
 		{
+			if ( static_cast<bool>(*this) != static_cast<bool>(other) )
+			{
+				return false;
+			}
+
+			if ( !static_cast<bool>(*this) && !static_cast<bool>(other) )
+			{
+				return true;
+			}
+
 			return modelIndex == other.modelIndex &&
-					modelInfoIndex == other.modelInfoIndex &&
-					meshIndex == other.meshIndex;
+				   modelInfoIndex == other.modelInfoIndex &&
+				   meshIndex == other.meshIndex;
 		}
 
 		inline bool operator !=(const MeshCollectionKeyV14& other) const
@@ -140,9 +191,9 @@ namespace NFMDL
 		{
 			inline std::size_t operator()(const MeshCollectionKeyV14& key) const noexcept
 			{
-				size_t hash = std::hash<uint32_t>{}(key.modelIndex);
-				hash = std::hash<uint32_t>{}(key.modelInfoIndex) ^ (hash << 1);
-				hash = std::hash<uint32_t>{}(key.meshIndex) ^ (hash << 1);
+				size_t hash = std::hash<size_t>{}(key.modelIndex);
+				hash = std::hash<size_t>{}(key.modelInfoIndex) ^ (hash << 1);
+				hash = std::hash<size_t>{}(key.meshIndex) ^ (hash << 1);
 
 				return hash;
 			}
@@ -151,15 +202,32 @@ namespace NFMDL
 
 	struct MeshCollectionKeyV10Xash
 	{
-		uint32_t bodyGroupIndex = 0;
-		uint32_t modelIndex = 0;
-		uint32_t meshIndex = 0;
+		size_t bodyGroupIndex = INVALID_CONTAINER_INDEX;
+		size_t modelIndex = INVALID_CONTAINER_INDEX;
+		size_t meshIndex = INVALID_CONTAINER_INDEX;
+
+		inline operator bool() const
+		{
+			return bodyGroupIndex != INVALID_CONTAINER_INDEX &&
+				   modelIndex != INVALID_CONTAINER_INDEX &&
+				   meshIndex != INVALID_CONTAINER_INDEX;
+		}
 
 		inline bool operator ==(const MeshCollectionKeyV10Xash& other) const
 		{
+			if ( static_cast<bool>(*this) != static_cast<bool>(other) )
+			{
+				return false;
+			}
+
+			if ( !static_cast<bool>(*this) && !static_cast<bool>(other) )
+			{
+				return true;
+			}
+
 			return bodyGroupIndex == other.bodyGroupIndex &&
-					modelIndex == other.modelIndex &&
-					meshIndex == other.meshIndex;
+				   modelIndex == other.modelIndex &&
+				   meshIndex == other.meshIndex;
 		}
 
 		inline bool operator !=(const MeshCollectionKeyV10Xash& other) const
@@ -186,9 +254,9 @@ namespace NFMDL
 		{
 			inline std::size_t operator()(const MeshCollectionKeyV10Xash& key) const noexcept
 			{
-				size_t hash = std::hash<uint32_t>{}(key.bodyGroupIndex);
-				hash = std::hash<uint32_t>{}(key.modelIndex) ^ (hash << 1);
-				hash = std::hash<uint32_t>{}(key.meshIndex) ^ (hash << 1);
+				size_t hash = std::hash<size_t>{}(key.bodyGroupIndex);
+				hash = std::hash<size_t>{}(key.modelIndex) ^ (hash << 1);
+				hash = std::hash<size_t>{}(key.meshIndex) ^ (hash << 1);
 
 				return hash;
 			}
@@ -202,7 +270,8 @@ namespace NFMDL
 
 		inline operator bool() const
 		{
-			return ownerIndex != INVALID_CONTAINER_INDEX && itemIndex != INVALID_CONTAINER_INDEX;
+			return ownerIndex != INVALID_CONTAINER_INDEX &&
+				   itemIndex != INVALID_CONTAINER_INDEX;
 		}
 
 		inline bool operator ==(const OwnedItemKey& other) const
@@ -240,8 +309,8 @@ namespace NFMDL
 		{
 			inline std::size_t operator()(const OwnedItemKey& key) const noexcept
 			{
-				size_t hash = std::hash<uint32_t>{}(key.ownerIndex);
-				hash = std::hash<uint32_t>{}(key.itemIndex) ^ (hash << 1);
+				size_t hash = std::hash<size_t>{}(key.ownerIndex);
+				hash = std::hash<size_t>{}(key.itemIndex) ^ (hash << 1);
 
 				return hash;
 			}
