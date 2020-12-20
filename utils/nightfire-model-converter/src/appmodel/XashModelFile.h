@@ -33,21 +33,21 @@ namespace NFMDL
 
 		HeaderV10Xash Header;
 
-		ElementArray<Bone> Bones;
+		ElementContainer<Bone> Bones;
 		ElementContainer<BoneController> BoneControllers;
-		ElementArray<HitBox> HitBoxes;
+		ElementContainer<HitBox> HitBoxes;
 		ElementContainer<SequenceV10Xash> Sequences;
-		ElementArray<SequenceGroup> SequenceGroups;
-		ElementArray<TextureV10Xash> Textures;
-		ElementArray<Attachment> Attachments;
+		ElementContainer<SequenceGroup> SequenceGroups;
+		ElementContainer<TextureV10Xash> Textures;
+		ElementContainer<Attachment> Attachments;
 		ElementArray<BodyGroup> BodyGroups;
 
-		SkinCollection Skins;
+		ElementContainer<Skin, NullElementUserData, SkinCollectionKey> Skins;
 
 		// Owned by sequences:
-		EventCollection Events;
+		ElementContainer<Event, NullElementUserData, TOwnedItemKey<Event>> Events;
 		ElementContainer<FootPivot, NullElementUserData, TOwnedItemKey<FootPivot>> FootPivots;
-		AnimationDataCollection AnimationData;
+		ElementContainer<AnimationDataValueList, NullElementUserData, AnimationDataCollectionKey> AnimationData;
 
 		// Owned by body groups:
 		ModelCollection Models;

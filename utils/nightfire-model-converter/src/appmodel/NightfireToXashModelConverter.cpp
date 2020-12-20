@@ -99,17 +99,17 @@ namespace NFMDL
 	{
 		NFMDL::Convert(m_InModelFile->Header, m_OutModelFile->Header);
 
-		CopyElementArray(m_InModelFile->Bones, m_OutModelFile->Bones);
+		CopyContainer(m_InModelFile->Bones, m_OutModelFile->Bones);
 		CopyContainer(m_InModelFile->BoneControllers, m_OutModelFile->BoneControllers);
-		CopyElementArray(m_InModelFile->HitBoxes, m_OutModelFile->HitBoxes);
+		CopyContainer(m_InModelFile->HitBoxes, m_OutModelFile->HitBoxes);
 		CopyContainerElements(m_InModelFile->Sequences, m_OutModelFile->Sequences);
-		CopyElementArray(m_InModelFile->SequenceGroups, m_OutModelFile->SequenceGroups);
-		CopyElementArray(m_InModelFile->Attachments, m_OutModelFile->Attachments);
+		CopyContainer(m_InModelFile->SequenceGroups, m_OutModelFile->SequenceGroups);
+		CopyContainer(m_InModelFile->Attachments, m_OutModelFile->Attachments);
 
-		m_OutModelFile->Skins = m_InModelFile->Skins;
-		m_OutModelFile->Events = m_InModelFile->Events;
+		CopyContainer(m_InModelFile->Skins, m_OutModelFile->Skins);
+		CopyContainer(m_InModelFile->Events, m_OutModelFile->Events);
 		CopyContainer(m_InModelFile->FootPivots, m_OutModelFile->FootPivots);
-		m_OutModelFile->AnimationData = m_InModelFile->AnimationData;
+		CopyContainer(m_InModelFile->AnimationData, m_OutModelFile->AnimationData);
 
 		ConstructHLBodyGroups();
 

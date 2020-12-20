@@ -74,32 +74,32 @@ namespace NFMDL
 		const NFMDL::HeaderV14& header = file.Header;
 
 		ReadElements(header.boneControllers, file.BoneControllers);
-		ReadElementArray(header.hitBoxes, file.HitBoxes);
+		ReadElements(header.hitBoxes, file.HitBoxes);
 		ReadElements(header.sequences, file.Sequences);
-		ReadElementArray(header.sequenceGroups, file.SequenceGroups);
-		ReadElementArray(header.textures, file.Textures);
-		ReadElementArray(header.attachments, file.Attachments);
+		ReadElements(header.sequenceGroups, file.SequenceGroups);
+		ReadElements(header.textures, file.Textures);
+		ReadElements(header.attachments, file.Attachments);
 		ReadLevelsOfDetail();
 		ReadElementArray(header.bodyGroups, file.BodyGroups);
 		ReadSkins();
 
 		// Sound data
-		ReadElementArray(header.soundGroups, file.SoundGroups);
+		ReadElements(header.soundGroups, file.SoundGroups);
 		ReadSounds();
 
 		// Triangle data
-		ReadElementArray(header.triangleMapOffset, header.triangleCount, file.TriangleMaps);
+		ReadElements(header.triangleMapOffset, header.triangleCount, file.TriangleMaps);
 
 		// Vertex data
-		ReadElementArray(header.vertexOffset, header.vertexCount, file.Vertices);
-		ReadElementArray(header.normalOffset, header.vertexCount, file.Normals);
-		ReadElementArray(header.textureCoOrdOffset, header.vertexCount, file.TextureCoOrdinates);
-		ReadElementArray(header.vertexBlendScaleOffset, header.vertexCount, file.VertexBlendScales);
-		ReadElementArray(header.vertexBlendOffset, header.vertexCount, file.VertexBlends);
+		ReadElements(header.vertexOffset, header.vertexCount, file.Vertices);
+		ReadElements(header.normalOffset, header.vertexCount, file.Normals);
+		ReadElements(header.textureCoOrdOffset, header.vertexCount, file.TextureCoOrdinates);
+		ReadElements(header.vertexBlendScaleOffset, header.vertexCount, file.VertexBlendScales);
+		ReadElements(header.vertexBlendOffset, header.vertexCount, file.VertexBlends);
 
 		// Bone data
-		ReadElementArray(header.bones, file.Bones);
-		ReadElementArray(header.boneFixUpOffset, header.bones.count, file.BoneFixUps);
+		ReadElements(header.bones, file.Bones);
+		ReadElements(header.boneFixUpOffset, header.bones.count, file.BoneFixUps);
 
 		// Model data
 		ReadModels();
@@ -171,14 +171,17 @@ namespace NFMDL
 
 		m_ModelFile->LODOffset = AlignTo16Bytes(m_ModelFile->LODOffset);
 
-		ReadElementArray(m_ModelFile->LODOffset, lodCount, m_ModelFile->LevelsOfDetail);
+		ReadElements(m_ModelFile->LODOffset, lodCount, m_ModelFile->LevelsOfDetail);
 	}
 
 	void NightfireModelFileReader::ReadSkins()
 	{
-		m_ModelFile->Skins.clear();
+		m_ModelFile->Skins.Clear();
 
 		const uint32_t skinCount = m_ModelFile->Header.skinReferenceCount * m_ModelFile->Header.skinFamilyCount;
+		m_ModelFile->Skins.AllocateDefault(skinCount);
+		size_t currentSkinIndex = 0;
+
 		const Skin* skinElements = GetElement<Skin>(m_ModelFile->Header.skinDataOffset, skinCount);
 
 		for ( uint32_t family = 0; family < m_ModelFile->Header.skinFamilyCount; ++family )
@@ -189,7 +192,7 @@ namespace NFMDL
 				key.skinFamily = family;
 				key.skinReference = reference;
 
-				m_ModelFile->Skins.emplace(key, *(skinElements++));
+				m_ModelFile->Skins.AssignMappingAndValue(key, currentSkinIndex++, *(skinElements++));
 			}
 		}
 	}
@@ -264,27 +267,28 @@ namespace NFMDL
 
 	void NightfireModelFileReader::ReadSounds()
 	{
-		m_ModelFile->Sounds.clear();
+		m_ModelFile->Sounds.Clear();
 
 		const size_t soundGroupCount = m_ModelFile->SoundGroups.Count();
 		const uint32_t soundsOffset = m_ModelFile->Header.soundGroups.offset + (m_ModelFile->Header.soundGroups.count * sizeof(SoundGroupV14));
 
 		for ( uint32_t soundGroupIndex = 0; soundGroupIndex < soundGroupCount; ++soundGroupIndex )
 		{
-			const SoundGroupV14& soundGroup = m_ModelFile->SoundGroups[soundGroupIndex];
+			const SoundGroupV14* soundGroup = m_ModelFile->SoundGroups.ElementAt(soundGroupIndex);
 
 			TOwnedItemKey<SoundV14> key;
 			key.itemIndex = 0;
 			key.ownerIndex = soundGroupIndex;
 
-			m_ModelFile->Sounds.emplace(key, *GetElement<SoundV14>(soundsOffset + soundGroup.offset));
+			const size_t soundElementIndex = m_ModelFile->Sounds.Count();
+			m_ModelFile->Sounds.AppendDefault();
+			m_ModelFile->Sounds.AssignMappingAndValue(key, soundElementIndex, *GetElement<SoundV14>(soundsOffset + soundGroup->offset));
 		}
 	}
 
 	void NightfireModelFileReader::ReadEvents()
 	{
-		m_ModelFile->Events.clear();
-
+		m_ModelFile->Events.Clear();
 		const size_t sequenceCount = m_ModelFile->Sequences.Count();
 
 		for ( uint32_t sequenceIndex = 0; sequenceIndex < sequenceCount; ++sequenceIndex )
@@ -292,13 +296,16 @@ namespace NFMDL
 			const SequenceV14* sequence = m_ModelFile->Sequences.ElementAt(sequenceIndex);
 			const Event* events = GetElement<Event>(sequence->events.offset, sequence->events.count);
 
+			const size_t eventBaseIndex = m_ModelFile->Events.Count();
+			m_ModelFile->Events.AppendDefault(sequence->events.count);
+
 			for ( uint32_t eventIndex = 0; eventIndex < sequence->events.count; ++eventIndex )
 			{
 				TOwnedItemKey<Event> key;
 				key.ownerIndex = sequenceIndex;
 				key.itemIndex = eventIndex;
 
-				m_ModelFile->Events.emplace(key, events[eventIndex]);
+				m_ModelFile->Events.AssignMappingAndValue(key, eventBaseIndex + eventIndex, events[eventIndex]);
 			}
 		}
 	}
@@ -329,7 +336,7 @@ namespace NFMDL
 
 	void NightfireModelFileReader::ReadSequenceAnimationData()
 	{
-		m_ModelFile->AnimationData.clear();
+		m_ModelFile->AnimationData.Clear();
 
 		const size_t sequenceCount = m_ModelFile->Sequences.Count();
 		const size_t boneCount = m_ModelFile->Bones.Count();
@@ -405,14 +412,16 @@ namespace NFMDL
 						key.boneIndex = boneIndex;
 						key.componentIndex = componentIndex;
 
-						m_ModelFile->AnimationData[key] = AnimationDataValueList();
+						const size_t animationDataElementIndex = m_ModelFile->AnimationData.Count();
+						m_ModelFile->AnimationData.AppendDefault();
+						m_ModelFile->AnimationData.AssignMappingAndValue(key, animationDataElementIndex, AnimationDataValueList());
 
 						// Locate the raw data.
 						const uint32_t rawDataOffset = rawDataOffsetBase + currentDataOffsets.dataOffsetForComponent[componentIndex];
 
 						try
 						{
-							ReadRLEAnimationData(m_ModelFile->AnimationData[key], rawDataOffset, sequence->frameCount);
+							ReadRLEAnimationData(*m_ModelFile->AnimationData.ElementAt(animationDataElementIndex), rawDataOffset, sequence->frameCount);
 						}
 						catch ( const std::runtime_error& ex )
 						{

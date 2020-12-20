@@ -168,10 +168,12 @@ void DumpMDLFileItems(const AppOptions& options, const NFMDL::NightfireModelFile
 
 	if ( options.dumpSounds )
 	{
-		DumpItems("Sound", "sounds", modelFile.Sounds, [&modelFile](const NFMDL::NightfireModelFile::SoundCollection::const_iterator& it) -> uint32_t
+		DumpItems("Sound", "sounds", modelFile.Sounds, [&modelFile](size_t index) -> size_t
 		{
-			return it->first.ownerIndex < modelFile.SoundGroups.Count()
-				? modelFile.SoundGroups[it->first.ownerIndex].offset
+			const NFMDL::TOwnedItemKey<NFMDL::SoundV14>& key = modelFile.Sounds.KeyFor(index);
+
+			return key.ownerIndex < modelFile.SoundGroups.Count()
+				? modelFile.SoundGroups.ElementAt(key.ownerIndex)->offset
 				: 0;
 		});
 	}
@@ -223,16 +225,17 @@ void DumpMDLFileItems(const AppOptions& options, const NFMDL::NightfireModelFile
 
 	if ( options.dumpSkins )
 	{
-		DumpItems("Skin", "skins", modelFile.Skins, [&modelFile](const NFMDL::NightfireModelFile::SkinCollection::const_iterator& it) -> uint32_t
+		DumpItems("Skin", "skins", modelFile.Skins, [&modelFile](size_t index) -> size_t
 		{
-			const uint32_t skinIndex = (it->first.skinFamily * modelFile.Header.skinReferenceCount) + it->first.skinReference;
+			const NFMDL::SkinCollectionKey& key = modelFile.Skins.KeyFor(index);
+			const uint32_t skinIndex = (key.skinFamily * modelFile.Header.skinReferenceCount) + key.skinReference;
 			return modelFile.Header.skinDataOffset + (skinIndex * sizeof(NFMDL::Skin));
 		});
 	}
 
 	if ( options.dumpModels )
 	{
-		DumpItems("Model", "models", modelFile.Models, [&modelFile](uint32_t index) -> uint32_t
+		DumpItems("Model", "models", modelFile.Models, [&modelFile](uint32_t index) -> size_t
 		{
 			return index < ArraySize(modelFile.Header.modelOffset)
 				? modelFile.Header.modelOffset[index]
@@ -242,7 +245,7 @@ void DumpMDLFileItems(const AppOptions& options, const NFMDL::NightfireModelFile
 
 	if ( options.dumpModelInfos )
 	{
-		DumpItems("Model info", "model infos", modelFile.ModelInfos, [&modelFile](const NFMDL::NightfireModelFile::ModelInfoCollection::const_iterator& it) -> uint32_t
+		DumpItems("Model info", "model infos", modelFile.ModelInfos, [&modelFile](const NFMDL::NightfireModelFile::ModelInfoCollection::const_iterator& it) -> size_t
 		{
 			if ( it->first.ownerIndex >= modelFile.Models.Count() )
 			{
@@ -259,7 +262,7 @@ void DumpMDLFileItems(const AppOptions& options, const NFMDL::NightfireModelFile
 
 	if ( options.dumpMeshes )
 	{
-		DumpItems("Mesh", "meshes", modelFile.Meshes, [&modelFile](const NFMDL::NightfireModelFile::MeshCollection::const_iterator& it) -> uint32_t
+		DumpItems("Mesh", "meshes", modelFile.Meshes, [&modelFile](const NFMDL::NightfireModelFile::MeshCollection::const_iterator& it) -> size_t
 		{
 			NFMDL::TOwnedItemKey<NFMDL::AugmentedModelInfoV14> modelInfoKey;
 			modelInfoKey.ownerIndex = it->first.modelIndex;
@@ -279,7 +282,7 @@ void DumpMDLFileItems(const AppOptions& options, const NFMDL::NightfireModelFile
 	if ( options.dumpAnimationData )
 	{
 		DumpItems("Animation data", "animation data items", modelFile.AnimationData,
-		[](const NFMDL::NightfireModelFile::AnimationDataCollection::const_iterator&) -> uint32_t
+		[](size_t) -> size_t
 		{
 			return 0;
 		});
@@ -287,27 +290,29 @@ void DumpMDLFileItems(const AppOptions& options, const NFMDL::NightfireModelFile
 
 	if ( options.dumpEvents )
 	{
-		DumpItems("Event", "events", modelFile.Events, [&modelFile](const NFMDL::NightfireModelFile::EventCollection::const_iterator& it) -> uint32_t
+		DumpItems("Event", "events", modelFile.Events, [&modelFile](size_t index) -> size_t
 		{
-			if ( it->first.ownerIndex >= modelFile.Sequences.Count() )
+			const NFMDL::TOwnedItemKey<NFMDL::Event>& key = modelFile.Events.KeyFor(index);
+
+			if ( key.ownerIndex >= modelFile.Sequences.Count() )
 			{
 				return 0;
 			}
 
-			const NFMDL::SequenceV14* const ownerSequence = modelFile.Sequences.ElementAt(it->first.ownerIndex);
+			const NFMDL::SequenceV14* const ownerSequence = modelFile.Sequences.ElementAt(key.ownerIndex);
 
 			if ( !ownerSequence )
 			{
 				return 0;
 			}
 
-			return ownerSequence->events.offset + (it->first.itemIndex * sizeof(NFMDL::Event));
+			return ownerSequence->events.offset + (key.itemIndex * sizeof(NFMDL::Event));
 		});
 	}
 
 	if ( options.dumpFootPivots )
 	{
-		DumpItems("Foot pivot", "foot pivots", modelFile.FootPivots, [&modelFile](size_t index) -> uint32_t
+		DumpItems("Foot pivot", "foot pivots", modelFile.FootPivots, [&modelFile](size_t index) -> size_t
 		{
 			const NFMDL::TOwnedItemKey<NFMDL::FootPivot>& key = modelFile.FootPivots.KeyFor(index);
 

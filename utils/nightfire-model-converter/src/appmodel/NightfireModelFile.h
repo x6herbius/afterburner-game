@@ -49,40 +49,40 @@ namespace NFMDL
 
 		HeaderV14 Header;
 
-		ElementArray<Bone> Bones;
+		ElementContainer<Bone> Bones;
 		ElementContainer<BoneController> BoneControllers;
-		ElementArray<HitBox> HitBoxes;
+		ElementContainer<HitBox> HitBoxes;
 		ElementContainer<SequenceV14> Sequences;
-		ElementArray<SequenceGroup> SequenceGroups;
-		ElementArray<TextureV14> Textures;
-		ElementArray<Attachment> Attachments;
-		ElementArray<SoundGroupV14> SoundGroups;
-		ElementArray<TriangleMapV14> TriangleMaps;
-		ElementArray<VertexV14> Vertices;
-		ElementArray<NormalV14> Normals;
-		ElementArray<TextureCoOrdinateV14> TextureCoOrdinates;
-		ElementArray<VertexBlendScaleV14> VertexBlendScales;
-		ElementArray<VertexBlendV14> VertexBlends;
-		ElementArray<BoneFixUpV14> BoneFixUps;
+		ElementContainer<SequenceGroup> SequenceGroups;
+		ElementContainer<TextureV14> Textures;
+		ElementContainer<Attachment> Attachments;
+		ElementContainer<SoundGroupV14> SoundGroups;
+		ElementContainer<TriangleMapV14> TriangleMaps;
+		ElementContainer<VertexV14> Vertices;
+		ElementContainer<NormalV14> Normals;
+		ElementContainer<TextureCoOrdinateV14> TextureCoOrdinates;
+		ElementContainer<VertexBlendScaleV14> VertexBlendScales;
+		ElementContainer<VertexBlendV14> VertexBlends;
+		ElementContainer<BoneFixUpV14> BoneFixUps;
 		ElementArray<AugmentedModelV14> Models;
-		ElementArray<LevelOfDetailV14> LevelsOfDetail;
+		ElementContainer<LevelOfDetailV14> LevelsOfDetail;
 		ElementArray<BodyGroup> BodyGroups;
 
-		SkinCollection Skins;
+		ElementContainer<Skin, NullElementUserData, SkinCollectionKey> Skins;
 
 		// Owned by sequences:
-		EventCollection Events;
+		ElementContainer<Event, NullElementUserData, TOwnedItemKey<Event>> Events;
 		ElementContainer<FootPivot, NullElementUserData, TOwnedItemKey<FootPivot>> FootPivots;
-		AnimationDataCollection AnimationData;
+		ElementContainer<AnimationDataValueList, NullElementUserData, AnimationDataCollectionKey> AnimationData;
 
 		// Owned by sound groups:
-		SoundCollection Sounds;
+		ElementContainer<SoundV14, NullElementUserData, TOwnedItemKey<SoundV14>> Sounds;
 
 		// Owned by models:
 		ModelInfoCollection ModelInfos;
 		MeshCollection Meshes;
 
-		// Other related information, useful for dumping later.
+		// Other related information, useful for dumping later:
 		uint32_t LODOffset = 0;
 	};
 }

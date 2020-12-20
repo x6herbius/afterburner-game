@@ -1,10 +1,10 @@
 #pragma once
 
 #include <cassert>
-#include <type_traits>
 #include <vector>
 #include <map>
 #include <memory>
+#include <type_traits>
 
 namespace NFMDL
 {
@@ -31,6 +31,7 @@ namespace NFMDL
 		using KeyType = K;
 
 		static constexpr bool USES_KEYS = sizeof(KeyType) > 0;
+		static constexpr bool ELEMENT_IS_POD = std::is_pod<ElementType>::value;
 
 		class BaseIterator;
 		class ConstIterator;
@@ -68,7 +69,7 @@ namespace NFMDL
 			ConstructItems(itemCount, true);
 		}
 
-		inline void AppendDefault(size_t itemCount)
+		inline void AppendDefault(size_t itemCount = 1)
 		{
 			ConstructItems(itemCount, false);
 		}
@@ -107,6 +108,17 @@ namespace NFMDL
 
 			AssignMapping(key, index);
 			m_Items[index].element = element;
+		}
+
+		inline void AssignMappingAndValue(const KeyType& key, size_t index, ElementType&& element)
+		{
+			if ( !key || index < m_Items.size() )
+			{
+				return;
+			}
+
+			AssignMapping(key, index);
+			m_Items[index].element = std::move(element);
 		}
 
 		inline void RemoveMapping(const KeyType& key)
@@ -257,10 +269,9 @@ namespace NFMDL
 
 		inline Item() :
 			key(),
-			element{},
+			element(),
 			userData()
 		{
-			static_assert(std::is_pod<ElementType>::value, "Element type must be POD.");
 		}
 
 		inline Item(Item&& other)
