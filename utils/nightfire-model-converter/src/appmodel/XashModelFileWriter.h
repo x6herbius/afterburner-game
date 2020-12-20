@@ -71,12 +71,6 @@ namespace NFMDL
 			}
 		}
 
-		template<typename T>
-		void WriteElementArray(const ElementArray<T>& array)
-		{
-			WriteElement(array.ConstData(), array.Count());
-		}
-
 		void ConvertSourceFile();
 		void WriteEntireFile();
 

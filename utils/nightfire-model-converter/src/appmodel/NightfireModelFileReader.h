@@ -80,25 +80,6 @@ namespace NFMDL
 			return reinterpret_cast<const T*>(m_InputFileData->data() + offset);
 		}
 
-		template<typename T>
-		inline void ReadElementArray(const CountOffsetPair& cop, ElementArray<T>& array)
-		{
-			if ( cop.count > 0 )
-			{
-				array.AllocateFrom(GetElement<T>(cop.offset, cop.count), cop.count);
-			}
-			else
-			{
-				array.Clear();
-			}
-		}
-
-		template<typename T>
-		inline void ReadElementArray(uint32_t offset, uint32_t count, ElementArray<T>& array)
-		{
-			ReadElementArray(CountOffsetPair{count, offset}, array);
-		}
-
 		template<typename T, typename U, typename K>
 		inline void ReadElements(const CountOffsetPair& cop, ElementContainer<T, U, K>& container)
 		{

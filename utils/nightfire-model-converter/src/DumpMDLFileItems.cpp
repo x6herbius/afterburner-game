@@ -5,45 +5,6 @@
 #include "elements/DumpElements.h"
 #include "Utils.h"
 
-template<typename T, typename OFFSETFUNC>
-static inline void DumpItems(const std::string& itemName,
-							 const std::string& itemNamePlural,
-							 const NFMDL::ElementArray<T>& elementArray,
-							 const OFFSETFUNC& offsetFunc)
-{
-	std::cout << elementArray.Count() << " " << itemNamePlural << ":" << std::endl;
-
-	elementArray.ForEach([itemName, offsetFunc](uint32_t index, const T& item)
-	{
-		const uint32_t itemOffset = offsetFunc(index);
-
-		if ( itemOffset > 0 )
-		{
-			std::cout
-				<< itemName << " " << index
-				<< " (file offset " << itemOffset
-				<< "/0x" << std::hex << std::setw(8) << std::setfill('0') << itemOffset << std::dec
-				<< "):\n" << item << std::endl;
-		}
-		else
-		{
-			std::cout << itemName << " " << index << ":\n" << item << std::endl;
-		}
-	});
-}
-
-template<typename T>
-static inline void DumpItems(const std::string& itemName,
-							 const std::string& itemNamePlural,
-							 const NFMDL::ElementArray<T>& elementArray,
-							 uint32_t baseOffset)
-{
-	DumpItems(itemName, itemNamePlural, elementArray, [baseOffset](uint32_t index)
-	{
-		return baseOffset + (index * sizeof(T));
-	});
-}
-
 template<typename K, typename V, typename OFFSETFUNC>
 static inline void DumpItems(const std::string& itemName,
 							 const std::string& itemNamePlural,

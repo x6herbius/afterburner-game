@@ -1,6 +1,5 @@
 #pragma once
 
-#include "containers/ElementArray.h"
 #include "containers/ElementContainer.h"
 #include "Types.h"
 
@@ -40,14 +39,6 @@ namespace NFMDL
 	class NightfireModelFile
 	{
 	public:
-		using AnimationDataCollection = std::map<AnimationDataCollectionKey, AnimationDataValueList>;
-		using SkinCollection = std::map<SkinCollectionKey, Skin>;
-		using EventCollection = OwnedItemCollection<Event>;
-		using FootPivotCollection = OwnedItemCollection<FootPivot>;
-		using SoundCollection = OwnedItemCollection<SoundV14>;
-		using ModelInfoCollection = OwnedItemCollection<ModelInfoV14>;
-		using MeshCollection = std::map<MeshCollectionKeyV14, MeshV14>;
-
 		HeaderV14 Header;
 
 		ElementContainer<Bone> Bones;

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "containers/ElementArray.h"
 #include "containers/ElementContainer.h"
 #include "Types.h"
 
@@ -24,13 +23,6 @@ namespace NFMDL
 	class XashModelFile
 	{
 	public:
-		using AnimationDataCollection = std::map<AnimationDataCollectionKey, AnimationDataValueList>;
-		using EventCollection = OwnedItemCollection<Event>;
-		using FootPivotCollection = OwnedItemCollection<FootPivot>;
-		using SkinCollection = std::map<SkinCollectionKey, Skin>;
-		using ModelCollection = OwnedItemCollection<ModelV10Xash>;
-		using MeshCollection = std::map<MeshCollectionKeyV10Xash, MeshV10Xash>;
-
 		HeaderV10Xash Header;
 
 		ElementContainer<Bone> Bones;
