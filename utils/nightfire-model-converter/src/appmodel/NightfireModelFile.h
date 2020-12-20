@@ -4,6 +4,7 @@
 #include "containers/ElementContainer.h"
 #include "Types.h"
 
+#include "elements/BaseElementUserData.h"
 #include "elements/HeaderV14.h"
 #include "elements/Bone.h"
 #include "elements/BoneController.h"
@@ -21,13 +22,13 @@
 #include "elements/VertexBlendScaleV14.h"
 #include "elements/VertexBlendV14.h"
 #include "elements/BoneFixUpV14.h"
-#include "elements/AugmentedModelV14.h"
+#include "elements/ModelV14.h"
 #include "elements/LevelOfDetailV14.h"
 #include "elements/Event.h"
 #include "elements/FootPivot.h"
 #include "elements/AnimationValue.h"
 #include "elements/TriangleMapV14.h"
-#include "elements/AugmentedModelInfoV14.h"
+#include "elements/ModelInfoV14.h"
 #include "elements/MeshV14.h"
 #include "elements/SoundV14.h"
 #include "elements/Skin.h"
@@ -44,7 +45,7 @@ namespace NFMDL
 		using EventCollection = OwnedItemCollection<Event>;
 		using FootPivotCollection = OwnedItemCollection<FootPivot>;
 		using SoundCollection = OwnedItemCollection<SoundV14>;
-		using ModelInfoCollection = OwnedItemCollection<AugmentedModelInfoV14>;
+		using ModelInfoCollection = OwnedItemCollection<ModelInfoV14>;
 		using MeshCollection = std::map<MeshCollectionKeyV14, MeshV14>;
 
 		HeaderV14 Header;
@@ -64,9 +65,9 @@ namespace NFMDL
 		ElementContainer<VertexBlendScaleV14> VertexBlendScales;
 		ElementContainer<VertexBlendV14> VertexBlends;
 		ElementContainer<BoneFixUpV14> BoneFixUps;
-		ElementArray<AugmentedModelV14> Models;
+		ElementContainer<ModelV14, BaseElementUserData> Models;
 		ElementContainer<LevelOfDetailV14> LevelsOfDetail;
-		ElementArray<BodyGroup> BodyGroups;
+		ElementContainer<BodyGroup> BodyGroups;
 
 		ElementContainer<Skin, NullElementUserData, SkinCollectionKey> Skins;
 
@@ -79,8 +80,8 @@ namespace NFMDL
 		ElementContainer<SoundV14, NullElementUserData, TOwnedItemKey<SoundV14>> Sounds;
 
 		// Owned by models:
-		ModelInfoCollection ModelInfos;
-		MeshCollection Meshes;
+		ElementContainer<ModelInfoV14, BaseElementUserData, TOwnedItemKey<ModelInfoV14>> ModelInfos;
+		ElementContainer<MeshV14, BaseElementUserData, MeshCollectionKeyV14> Meshes;
 
 		// Other related information, useful for dumping later:
 		uint32_t LODOffset = 0;

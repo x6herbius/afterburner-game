@@ -237,45 +237,29 @@ void DumpMDLFileItems(const AppOptions& options, const NFMDL::NightfireModelFile
 	{
 		DumpItems("Model", "models", modelFile.Models, [&modelFile](uint32_t index) -> size_t
 		{
-			return index < ArraySize(modelFile.Header.modelOffset)
-				? modelFile.Header.modelOffset[index]
+			return index < modelFile.Models.Count()
+				? modelFile.Models.UserDataAt(index)->FileOffset()
 				: 0;
 		});
 	}
 
 	if ( options.dumpModelInfos )
 	{
-		DumpItems("Model info", "model infos", modelFile.ModelInfos, [&modelFile](const NFMDL::NightfireModelFile::ModelInfoCollection::const_iterator& it) -> size_t
+		DumpItems("Model info", "model infos", modelFile.ModelInfos, [&modelFile](size_t index) -> size_t
 		{
-			if ( it->first.ownerIndex >= modelFile.Models.Count() )
-			{
-				return 0;
-			}
-
-			const NFMDL::ModelV14& model = modelFile.Models[it->first.ownerIndex];
-
-			return it->first.itemIndex < ArraySize(model.modelInfoOffset)
-				? model.modelInfoOffset[it->first.itemIndex]
+			return index < modelFile.ModelInfos.Count()
+				? modelFile.ModelInfos.UserDataAt(index)->FileOffset()
 				: 0;
 		});
 	}
 
 	if ( options.dumpMeshes )
 	{
-		DumpItems("Mesh", "meshes", modelFile.Meshes, [&modelFile](const NFMDL::NightfireModelFile::MeshCollection::const_iterator& it) -> size_t
+		DumpItems("Mesh", "meshes", modelFile.Meshes, [&modelFile](size_t index) -> size_t
 		{
-			NFMDL::TOwnedItemKey<NFMDL::AugmentedModelInfoV14> modelInfoKey;
-			modelInfoKey.ownerIndex = it->first.modelIndex;
-			modelInfoKey.itemIndex = it->first.modelInfoIndex;
-
-			const NFMDL::NightfireModelFile::ModelInfoCollection::const_iterator modelInfoIt = modelFile.ModelInfos.find(modelInfoKey);
-
-			if ( modelInfoIt == modelFile.ModelInfos.cend() )
-			{
-				return 0;
-			}
-
-			return modelInfoIt->second.meshes.offset + (it->first.meshIndex * sizeof(NFMDL::MeshV14));
+			return index < modelFile.Meshes.Count()
+				? modelFile.Meshes.UserDataAt(index)->FileOffset()
+				: 0;
 		});
 	}
 

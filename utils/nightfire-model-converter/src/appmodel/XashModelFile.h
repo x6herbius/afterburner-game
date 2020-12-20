@@ -40,7 +40,7 @@ namespace NFMDL
 		ElementContainer<SequenceGroup> SequenceGroups;
 		ElementContainer<TextureV10Xash> Textures;
 		ElementContainer<Attachment> Attachments;
-		ElementArray<BodyGroup> BodyGroups;
+		ElementContainer<BodyGroup> BodyGroups;
 
 		ElementContainer<Skin, NullElementUserData, SkinCollectionKey> Skins;
 
@@ -50,9 +50,9 @@ namespace NFMDL
 		ElementContainer<AnimationDataValueList, NullElementUserData, AnimationDataCollectionKey> AnimationData;
 
 		// Owned by body groups:
-		ModelCollection Models;
+		ElementContainer<ModelV10Xash, NullElementUserData, TOwnedItemKey<ModelV10Xash>> Models;
 
 		// Owned by models:
-		MeshCollection Meshes;
+		ElementContainer<MeshV10Xash, NullElementUserData, MeshCollectionKeyV10Xash> Meshes;
 	};
 }

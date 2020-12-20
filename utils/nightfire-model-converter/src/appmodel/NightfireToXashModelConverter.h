@@ -19,8 +19,6 @@ namespace NFMDL
 	private:
 		void ConvertInternal();
 		void ConstructHLBodyGroups();
-		void ConstructBodyGroup(uint32_t inIndex, const BodyGroup& in, BodyGroup& out);
-		void ConstructModel(uint32_t inBodyGroupIndex, uint32_t inModelIndex, const AugmentedModelV14& in, ModelV10Xash& out);
 
 		std::shared_ptr<const NightfireModelFile> m_InModelFile;
 		std::shared_ptr<XashModelFile> m_OutModelFile;

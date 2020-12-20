@@ -80,7 +80,7 @@ namespace NFMDL
 		ReadElements(header.textures, file.Textures);
 		ReadElements(header.attachments, file.Attachments);
 		ReadLevelsOfDetail();
-		ReadElementArray(header.bodyGroups, file.BodyGroups);
+		ReadElements(header.bodyGroups, file.BodyGroups);
 		ReadSkins();
 
 		// Sound data
@@ -150,10 +150,8 @@ namespace NFMDL
 		for ( uint32_t index = 0; index < modelCount; ++index )
 		{
 			const uint32_t offset = m_ModelFile->Header.modelOffset[index];
-			AugmentedModelV14& model = m_ModelFile->Models[index];
-
-			model = *GetElement<ModelV14>(offset);
-			model.SetFileOffset(offset);
+			*m_ModelFile->Models.ElementAt(index) = *GetElement<ModelV14>(offset);
+			m_ModelFile->Models.UserDataAt(index)->SetFileOffset(offset);
 		}
 	}
 
@@ -199,29 +197,31 @@ namespace NFMDL
 
 	void NightfireModelFileReader::ReadModelInfos()
 	{
-		m_ModelFile->ModelInfos.clear();
+		m_ModelFile->ModelInfos.Clear();
 
 		const size_t modelCount = m_ModelFile->Models.Count();
 
 		for ( uint32_t modelIndex = 0; modelIndex < modelCount; ++modelIndex )
 		{
-			const ModelV14& model = m_ModelFile->Models[modelIndex];
+			const ModelV14* model = m_ModelFile->Models.ElementAt(modelIndex);
 
-			for ( uint32_t modelInfoIndex = 0; modelInfoIndex < ArraySize(model.modelInfoOffset); ++modelInfoIndex )
+			for ( uint32_t modelInfoIndex = 0; modelInfoIndex < ArraySize(model->modelInfoOffset); ++modelInfoIndex )
 			{
-				const uint32_t modelInfoOffset = model.modelInfoOffset[modelInfoIndex];
+				const uint32_t modelInfoOffset = model->modelInfoOffset[modelInfoIndex];
 
 				if ( modelInfoOffset < 1 )
 				{
 					continue;
 				}
 
-				TOwnedItemKey<AugmentedModelInfoV14> key;
+				TOwnedItemKey<ModelInfoV14> key;
 				key.ownerIndex = modelIndex;
 				key.itemIndex = modelInfoIndex;
 
-				m_ModelFile->ModelInfos.emplace(key, *GetElement<ModelInfoV14>(modelInfoOffset));
-				m_ModelFile->ModelInfos[key].SetFileOffset(modelInfoOffset);
+				const size_t modelInfoElementIndex = m_ModelFile->ModelInfos.Count();
+				m_ModelFile->ModelInfos.AppendDefault();
+				m_ModelFile->ModelInfos.AssignMappingAndValue(key, modelInfoElementIndex, *GetElement<ModelInfoV14>(modelInfoOffset));
+				m_ModelFile->ModelInfos.UserDataAt(modelInfoElementIndex)->SetFileOffset(modelInfoOffset);
 			}
 		}
 	}
@@ -229,28 +229,28 @@ namespace NFMDL
 	// TODO: Combine with above function?
 	void NightfireModelFileReader::ReadMeshes()
 	{
-		m_ModelFile->Meshes.clear();
+		m_ModelFile->Meshes.Clear();
 
 		const size_t modelCount = m_ModelFile->Models.Count();
 
 		for ( uint32_t modelIndex = 0; modelIndex < modelCount; ++modelIndex )
 		{
-			const ModelV14& model = m_ModelFile->Models[modelIndex];
+			const ModelV14* model = m_ModelFile->Models.ElementAt(modelIndex);
 
-			for ( uint32_t modelInfoIndex = 0; modelInfoIndex < ArraySize(model.modelInfoOffset); ++modelInfoIndex )
+			for ( uint32_t modelInfoIndex = 0; modelInfoIndex < ArraySize(model->modelInfoOffset); ++modelInfoIndex )
 			{
-				if ( model.modelInfoOffset[modelInfoIndex] < 1 )
+				if ( model->modelInfoOffset[modelInfoIndex] < 1 )
 				{
 					continue;
 				}
 
-				TOwnedItemKey<AugmentedModelInfoV14> key;
+				TOwnedItemKey<ModelInfoV14> key;
 				key.ownerIndex = modelIndex;
 				key.itemIndex = modelInfoIndex;
 
-				const AugmentedModelInfoV14& modelInfo = m_ModelFile->ModelInfos[key];
-				const uint32_t meshCount = modelInfo.meshes.count;
-				const MeshV14* meshElements = GetElement<MeshV14>(modelInfo.meshes.offset, modelInfo.meshes.count);
+				const ModelInfoV14* modelInfo = m_ModelFile->ModelInfos.ElementAt(modelInfoIndex);
+				const uint32_t meshCount = modelInfo->meshes.count;
+				const MeshV14* meshElements = GetElement<MeshV14>(modelInfo->meshes.offset, modelInfo->meshes.count);
 
 				for ( uint32_t meshIndex = 0; meshIndex < meshCount; ++meshIndex )
 				{
@@ -259,7 +259,10 @@ namespace NFMDL
 					meshKey.modelInfoIndex = modelInfoIndex;
 					meshKey.meshIndex = meshIndex;
 
-					m_ModelFile->Meshes.emplace(meshKey, meshElements[meshIndex]);
+					const size_t meshElementIndex = m_ModelFile->Meshes.Count();
+					m_ModelFile->Meshes.AppendDefault();
+					m_ModelFile->Meshes.AssignMappingAndValue(meshKey, meshElementIndex, meshElements[meshIndex]);
+					m_ModelFile->Meshes.UserDataAt(meshElementIndex)->SetFileOffset(modelInfo->meshes.offset + (meshIndex * sizeof(MeshV14)));
 				}
 			}
 		}

@@ -640,8 +640,3 @@ std::ostream& operator <<(std::ostream& stream, const NFMDL::TOwnedItemKey<NFMDL
 {
 	return WriteOwnedItemKey(stream, key, "Parent sequence", "Foot pivot");
 }
-
-std::ostream& operator <<(std::ostream& stream, const NFMDL::TOwnedItemKey<NFMDL::AugmentedModelInfoV14>& key)
-{
-	return WriteOwnedItemKey(stream, key, "Parent model", "Model info");
-}

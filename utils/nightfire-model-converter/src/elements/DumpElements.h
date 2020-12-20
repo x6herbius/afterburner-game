@@ -62,5 +62,3 @@ std::ostream& operator <<(std::ostream& stream, const NFMDL::TOwnedItemKey<NFMDL
 std::ostream& operator <<(std::ostream& stream, const NFMDL::AnimationDataCollectionKey& key);
 std::ostream& operator <<(std::ostream& stream, const NFMDL::TOwnedItemKey<NFMDL::Event>& key);
 std::ostream& operator <<(std::ostream& stream, const NFMDL::TOwnedItemKey<NFMDL::FootPivot>& key);
-std::ostream& operator <<(std::ostream& stream, const NFMDL::TOwnedItemKey<NFMDL::AugmentedModelInfoV14>& key);
-std::ostream& operator <<(std::ostream& stream, const NFMDL::TOwnedItemKey<NFMDL::AugmentedModelV14>& key);

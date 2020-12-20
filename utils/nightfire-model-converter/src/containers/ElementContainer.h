@@ -186,6 +186,16 @@ namespace NFMDL
 			return Iterator();
 		}
 
+		inline ConstIterator ConstIteratorFor(size_t index) const
+		{
+			return index < m_Items.size() ? ConstIterator(this, index) : ConstIterator();
+		}
+
+		inline Iterator IteratorFor(size_t index)
+		{
+			return index < m_Items.size() ? Iterator(this, index) : Iterator();
+		}
+
 		inline void Clone(ElementContainer<ElementType, UserDataType, KeyType>& dest) const
 		{
 			dest.AllocateDefault(Count());

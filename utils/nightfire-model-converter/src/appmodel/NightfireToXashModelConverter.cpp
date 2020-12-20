@@ -4,7 +4,7 @@
 #include "NightfireToXashModelConverter.h"
 #include "Utils.h"
 #include "elements/Conversions.h"
-#include "elements/AugmentedModelV14.h"
+#include "elements/ModelV14.h"
 #include "elements/ModelV10Xash.h"
 
 namespace NFMDL
@@ -110,6 +110,7 @@ namespace NFMDL
 		CopyContainer(m_InModelFile->Events, m_OutModelFile->Events);
 		CopyContainer(m_InModelFile->FootPivots, m_OutModelFile->FootPivots);
 		CopyContainer(m_InModelFile->AnimationData, m_OutModelFile->AnimationData);
+		CopyContainer(m_InModelFile->BodyGroups, m_OutModelFile->BodyGroups);
 
 		ConstructHLBodyGroups();
 
@@ -146,80 +147,6 @@ namespace NFMDL
 			We also need to generate the relevant vertex/normal/etc. lists from the Nightfire vertex objects.
 		*/
 
-		CopyElementArray(m_InModelFile->BodyGroups, m_OutModelFile->BodyGroups);
-
-		m_OutModelFile->BodyGroups.MutateEach([this](uint32_t index, BodyGroup& bodyGroup)
-		{
-			ConstructBodyGroup(index, m_InModelFile->BodyGroups[index], bodyGroup);
-		});
-	}
-
-	void NightfireToXashModelConverter::ConstructBodyGroup(uint32_t inIndex, const BodyGroup& in, BodyGroup& out)
-	{
-		// Most things should already have been constructed from the input body group,
-		// but the model offset should be zeroed for now.
-		out.modelOffset = 0;
-
-		// Construct one mstudiomodel_t from each model listed in this input body group.
-		for ( uint32_t modelIndex = 0; modelIndex < out.modelCount; ++modelIndex )
-		{
-			TOwnedItemKey<ModelV10Xash> key;
-			key.ownerIndex = inIndex;
-			key.itemIndex = modelIndex;
-
-			const uint32_t inModelOffset = in.modelOffset + (modelIndex * sizeof(ModelV14));
-			const AugmentedModelV14* inModel = m_InModelFile->Models.FindFirstMatching([inModelOffset](uint32_t index, const AugmentedModelV14& item)
-			{
-				return item.FileOffset() == inModelOffset;
-			});
-
-			if ( !inModel )
-			{
-				throw std::logic_error("NightfireToXashModelConverter: Could not find Nightfire model at expected offset " +
-									   std::to_string(inModelOffset));
-			}
-
-			ModelV10Xash& outModel = m_OutModelFile->Models[key];
-			ConstructModel(inIndex, modelIndex, *inModel, outModel);
-		}
-	}
-
-	void NightfireToXashModelConverter::ConstructModel(uint32_t inBodyGroupIndex, uint32_t inModelIndex, const AugmentedModelV14& in, ModelV10Xash& out)
-	{
-		// Construct one Xash Mesh per Nightfire ModelInfo.
-		for ( uint32_t modelInfoIndex = 0; modelInfoIndex < ArraySize(in.modelInfoOffset); ++modelInfoIndex )
-		{
-			const uint32_t modelInfoOffset = in.modelInfoOffset[modelInfoIndex];
-
-			if ( modelInfoOffset < 1 )
-			{
-				continue;
-			}
-
-			++out.meshes.count;
-
-			TOwnedItemKey<AugmentedModelInfoV14> inModelInfoKey;
-			inModelInfoKey.ownerIndex = inModelIndex;
-			inModelInfoKey.itemIndex = modelInfoIndex;
-
-			NightfireModelFile::ModelInfoCollection::const_iterator inModelInfoIt = m_InModelFile->ModelInfos.find(inModelInfoKey);
-
-			if ( inModelInfoIt == m_InModelFile->ModelInfos.cend() )
-			{
-				throw std::logic_error("NightfireToXashModelConverter: Could not find Nightfire model info " +
-									   std::to_string(modelInfoIndex) + " for model " + std::to_string(inModelIndex) +
-									   " (offset " + std::to_string(modelInfoOffset) + ")");
-			}
-
-			MeshCollectionKeyV10Xash outMeshKey;
-			outMeshKey.bodyGroupIndex = inBodyGroupIndex;
-			outMeshKey.modelIndex = inModelIndex;
-			outMeshKey.meshIndex = modelInfoIndex;
-
-			MeshV10Xash& outMesh = m_OutModelFile->Meshes[outMeshKey];
-			outMesh.skinref = inModelInfoIt->second.skinReference;
-
-			// TODO: Continue from here.
-		}
+		// TODO: Continue
 	}
 }
