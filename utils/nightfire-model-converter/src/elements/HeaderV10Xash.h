@@ -4,6 +4,7 @@
 #include <cstddef>
 #include "Types.h"
 #include "HeaderV10XashFormatTraits.h"
+#include "elements/ElementTraits.h"
 
 namespace NFMDL
 {
@@ -40,4 +41,10 @@ namespace NFMDL
 		CountOffsetPair transitions;
 	};
 #pragma pack(pop)
+
+	template<>
+	struct ElementTraits<HeaderV10Xash>
+	{
+		static constexpr const char* ELEMENT_NAME = "HeaderV10Xash";
+	};
 }

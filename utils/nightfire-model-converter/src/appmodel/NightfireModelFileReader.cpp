@@ -39,7 +39,7 @@ namespace NFMDL
 			throw std::runtime_error("Input file was not valid.");
 		}
 
-		m_InputFileData = std::make_unique<FileBuffer>(std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>());
+		m_InputFileData = CreateStreamBuffer(input);
 
 		try
 		{
