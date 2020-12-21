@@ -40,5 +40,19 @@ namespace NFMDL
 	void XashModelFileHeaderReader::ReadHeader()
 	{
 		m_Header = *GetElementsFromStreamBuffer<HeaderV10Xash>(*m_InputFileData);
+
+		if ( m_Header.ident != HeaderIdentifier(FormatTraits<HeaderV10Xash>::TARGET_IDENTIFIER) )
+		{
+			throw std::runtime_error("Input file header identifier did not match expected value.");
+		}
+
+		if ( m_Header.version != FormatTraits<HeaderV10Xash>::TARGET_VERSION )
+		{
+			throw std::runtime_error("Input file header version " +
+									 std::to_string(m_Header.version) +
+									 " did not match expected version " +
+									 std::to_string(FormatTraits<HeaderV10Xash>::TARGET_VERSION) +
+									 ".");
+		}
 	}
 }

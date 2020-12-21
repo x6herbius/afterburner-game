@@ -151,6 +151,6 @@ namespace NFMDL
 	{
 	};
 
-	static constexpr const char* const MDL_IDENTIFIER_HALFLIFE = "IDST";
-	static constexpr const char* const MDL_IDENTIFIER_NIGHTFIRE = "MDLZ";
+	static constexpr const char MDL_IDENTIFIER_HALFLIFE[] = "IDST";
+	static constexpr const char MDL_IDENTIFIER_NIGHTFIRE[] = "MDLZ";
 }

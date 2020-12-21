@@ -178,6 +178,42 @@ std::ostream& operator <<(std::ostream& stream, const HeaderV14& header)
 	return stream;
 }
 
+std::ostream& operator <<(std::ostream& stream, const NFMDL::HeaderV10Xash& header)
+{
+	const HeaderIdentifier& ident = header.ident;
+
+	stream
+		<< CLASS_INFO(HeaderV14) << "\n"
+		<< "[\n"
+		<< "    Ident: " << ident.ident[0] << ident.ident[1] << ident.ident[2] << ident.ident[3] << "\n"
+		<< "    Version: " << header.version << "\n"
+		<< "    Name: " << header.name << "\n"
+		<< "    Length: " << header.length << "\n"
+		<< "    Eye position: " << header.eyePosition << "\n"
+		<< "    Movement hull: " << header.movementHull << "\n"
+		<< "    Clipping hull: " << header.clippingHull << "\n"
+		<< "    Flags: " << AS_HEX(header.flags) << "\n"
+		<< "    Bones: " << header.bones << "\n"
+		<< "    Bone controllers: " << header.boneControllers << "\n"
+		<< "    Hitboxes: " << header.hitBoxes << "\n"
+		<< "    Sequences: " << header.sequences << "\n"
+		<< "    Sequence groups: " << header.sequenceGroups << "\n"
+		<< "    Textures: " << header.textures << "\n"
+		<< "    Texture data offset: " << header.textureDataOffset << "\n"
+		<< "    Skin reference count: " << header.skinReferenceCount << "\n"
+		<< "    Skin family count: " << header.skinFamilyCount << "\n"
+		<< "    Skin data offset: " << header.skinOffset << "\n"
+		<< "    Body groups: " << header.bodyGroups << "\n"
+		<< "    Attachments: " << header.attachments << "\n"
+		<< "    Studiohdr2 offset: " << header.studiohdr2Offset << "\n"
+		<< "    Sounds offset: " << header.soundsOffset << "\n"
+		<< "    Sound groups: " << header.soundGroups << "\n"
+		<< "    Transitions: " << header.transitions << "\n"
+		<< "]";
+
+	return stream;
+}
+
 std::ostream& operator <<(std::ostream& stream, const NFMDL::Bone& bone)
 {
 	stream

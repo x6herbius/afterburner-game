@@ -125,7 +125,7 @@ namespace NFMDL
 		{
 			throw std::runtime_error("Input file header version " +
 									 std::to_string(m_ModelFile->Header.version) +
-									 "did not match expected version " +
+									 " did not match expected version " +
 									 std::to_string(FormatTraits<HeaderV14>::TARGET_VERSION) +
 									 ".");
 		}

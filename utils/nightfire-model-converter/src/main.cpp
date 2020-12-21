@@ -10,8 +10,11 @@
 #include "appmodel/NightfireModelFileReader.h"
 #include "appmodel/XashModelFile.h"
 #include "appmodel/XashModelFileWriter.h"
+#include "appmodel/XashModelFileHeaderReader.h"
 #include "appmodel/NightfireToXashModelConverter.h"
+#include "appmodel/FileIdentifier.h"
 #include "elements/DumpElements.h"
+#include "elements/HeaderV10Xash.h"
 #include "Utils.h"
 #include "DumpMDLFileItems.h"
 
@@ -179,6 +182,17 @@ static bool ConvertAndWriteModelFile(const AppOptions& options, const NFModelPtr
 	return true;
 }
 
+static void ReadXashHeader(const AppOptions& options)
+{
+	std::cout << "Input file was a Xash model file, dumping header for information." << std::endl;
+
+	NFMDL::HeaderV10Xash xashHeader{};
+	NFMDL::XashModelFileHeaderReader reader(xashHeader);
+	reader.ReadFromFile(options.inputFile);
+
+	std::cout << xashHeader << std::endl;
+}
+
 int main(int argc, const char** argv)
 {
 	AppOptions options;
@@ -188,6 +202,14 @@ int main(int argc, const char** argv)
 		if ( !ParseCommandLineOptions(argc, argv, options) )
 		{
 			return 1;
+		}
+
+		NFMDL::FileIdentifier::Type fileType = NFMDL::FileIdentifier::IdentifyFile(options.inputFile);
+
+		if ( fileType == NFMDL::FileIdentifier::Type::Xash )
+		{
+			ReadXashHeader(options);
+			return 0;
 		}
 
 		std::shared_ptr<NFMDL::NightfireModelFile> inModelFile = ReadNightfireModelFile(options);

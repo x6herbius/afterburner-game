@@ -3,6 +3,7 @@
 #include <ostream>
 #include "appmodel/NightfireModelFile.h"
 #include "HeaderV14.h"
+#include "HeaderV10Xash.h"
 #include "Bone.h"
 #include "BoneController.h"
 #include "SequenceV14.h"
@@ -28,6 +29,7 @@
 
 // Elements
 std::ostream& operator <<(std::ostream& stream, const NFMDL::HeaderV14& header);
+std::ostream& operator <<(std::ostream& stream, const NFMDL::HeaderV10Xash& header);
 std::ostream& operator <<(std::ostream& stream, const NFMDL::Bone& bone);
 std::ostream& operator <<(std::ostream& stream, const NFMDL::BoneController& boneController);
 std::ostream& operator <<(std::ostream& stream, const NFMDL::SequenceV14& sequence);
