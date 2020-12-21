@@ -30,7 +30,6 @@ namespace NFMDL
 		using UserDataType = U;
 		using KeyType = K;
 
-		static constexpr bool USES_KEYS = sizeof(KeyType) > 0;
 		static constexpr bool ELEMENT_IS_POD = std::is_pod<ElementType>::value;
 
 		class BaseIterator;

@@ -319,6 +319,8 @@ namespace NFMDL
 
 	class AnimationDataValueList : public std::vector<decltype(AnimationValue::value)>
 	{
+	public:
+		using ValueType = decltype(AnimationValue::value);
 	};
 
 	template<>

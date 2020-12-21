@@ -1,11 +1,13 @@
 #pragma once
 
 #include <memory>
-#include <fstream>
+#include <ostream>
 #include <sstream>
 #include <type_traits>
+#include <functional>
 #include "NightfireModelFile.h"
 #include "XashModelFile.h"
+#include "containers/ElementContainer.h"
 
 namespace NFMDL
 {
@@ -14,68 +16,49 @@ namespace NFMDL
 	public:
 		explicit XashModelFileWriter(const std::shared_ptr<XashModelFile>& outModelFile);
 
-		void SetSourceModelFile(const std::shared_ptr<const NightfireModelFile>& inModelFile);
-		void WriteToFile(const std::string& filePath);
+		void SetOutputStream(const std::shared_ptr<std::ostream>& stream);
+		void Write();
 
 	private:
-		// Function used for types that are not arithmetic (ie. structs/classes).
-		template<typename T>
-		inline typename std::enable_if<!std::is_arithmetic<T>::value, void>::type
-		WriteElement(const T* element, size_t count = 0) const
+		struct AdditionalOffsets
 		{
-			WriteElementInternal<T>(element, count, std::string("'") + ElementTraits<T>::ELEMENT_NAME + std::string("'"));
-		}
+			uint32_t eventsOffset;
+			uint32_t footPivotsOffset;
+			uint32_t modelsOffset;
+			uint32_t meshesOffset;
+			uint32_t animationDataOffset;
+		};
 
-		// Function used for types that are arithmetic (ie. integers).
-		template<typename T>
-		inline typename std::enable_if<std::is_arithmetic<T>::value, void>::type
-		WriteElement(const T* element, size_t count = 0) const
-		{
-			WriteElementInternal<T>(element, count, "arithmetic");
-		}
-
-		template<typename T>
-		inline void WriteElementInternal(const T* element, size_t count, const std::string& typeName)
-		{
-			if ( !element )
-			{
-				throw std::runtime_error("Could not write null " + typeName + " element to output file.");
-			}
-
-			if ( count < 1 )
-			{
-				count = 1;
-			}
-
-			const size_t totalBytes = count * sizeof(element);
-			m_OutStream->write(reinterpret_cast<const char*>(element), totalBytes);
-
-			if ( !m_OutStream->good() )
-			{
-				std::stringstream stream;
-
-				stream
-					<< "Failed to write "
-					<< totalBytes
-					<< " bytes to output file at position "
-					<< m_OutStream->tellp()
-					<< ". (Attempt was made to write "
-					<< count
-					<< " "
-					<< typeName
-					<< " elements at "
-					<< sizeof(T)
-					<< " bytes each.)";
-
-				throw std::runtime_error(stream.str());
-			}
-		}
-
-		void ConvertSourceFile();
 		void WriteEntireFile();
+		void CalculateBlockOffsets();
+		void WriteHeader();
 
-		std::shared_ptr<const NightfireModelFile> m_InModelFile;
+		template<typename T, typename U, typename K>
+		inline uint32_t SetOffsetForBlock(CountOffsetPair& cop,
+										  const ElementContainer<T, U, K>& container,
+										  uint32_t currentOffset)
+		{
+			static_assert(ElementContainer<T, U, K>::ELEMENT_IS_POD, "Only permitted for POD elements.");
+
+			cop.count = container.Count();
+
+			if ( cop.count > 0 )
+			{
+				cop.offset = currentOffset;
+				return currentOffset + (cop.count * sizeof(T));
+			}
+			else
+			{
+				cop.offset = 0;
+				return currentOffset;
+			}
+		}
+
 		std::shared_ptr<XashModelFile> m_OutModelFile;
-		std::unique_ptr<std::ofstream> m_OutStream;
+		std::shared_ptr<std::ostream> m_OutStream;
+
+		AdditionalOffsets m_AdditionalOffsets;
+		size_t m_TotalFileSize = 0;
+		uint32_t m_FileBeginOffset = 0;
 	};
 }

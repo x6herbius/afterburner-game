@@ -2,12 +2,14 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <fstream>
 
 #include "thirdparty/cxxopts.hpp"
 #include "AppOptions.h"
 #include "appmodel/NightfireModelFile.h"
 #include "appmodel/NightfireModelFileReader.h"
 #include "appmodel/XashModelFile.h"
+#include "appmodel/XashModelFileWriter.h"
 #include "elements/DumpElements.h"
 #include "Utils.h"
 #include "DumpMDLFileItems.h"
@@ -146,6 +148,17 @@ static bool ConvertFile(const AppOptions& options)
 	if ( !options.outputFile.empty() )
 	{
 		std::shared_ptr<NFMDL::XashModelFile> outModelFile = std::make_shared<NFMDL::XashModelFile>();
+
+		// TODO: Convert
+
+		NFMDL::XashModelFileWriter writer(outModelFile);
+
+		std::shared_ptr<std::ofstream> outFile = std::make_shared<std::ofstream>(options.outputFile);
+		writer.SetOutputStream(outFile);
+
+		std::cout << "Writing: " << options.outputFile << std::endl;
+		writer.Write();
+		std::cout << "Writing complete." << std::endl;
 	}
 
 	return true;
