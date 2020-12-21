@@ -69,6 +69,7 @@ namespace NFMDL
 		try
 		{
 			ConvertInternal();
+			success = true;
 		}
 		catch ( const std::exception& ex )
 		{

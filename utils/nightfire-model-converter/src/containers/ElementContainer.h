@@ -201,7 +201,6 @@ namespace NFMDL
 
 			for ( const ConstIteratorData& it : *this )
 			{
-				assert(*it.key);
 				assert(it.index < dest.Count());
 
 				Item& destItem = dest.m_Items[it.index];
@@ -209,7 +208,10 @@ namespace NFMDL
 				destItem.element = *it.element;
 				destItem.userData = *it.userData;
 
-				dest.AssignMapping(*it.key, it.index);
+				if ( it.key )
+				{
+					dest.AssignMapping(*it.key, it.index);
+				}
 			}
 		}
 

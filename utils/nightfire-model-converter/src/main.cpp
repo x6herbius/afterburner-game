@@ -10,6 +10,7 @@
 #include "appmodel/NightfireModelFileReader.h"
 #include "appmodel/XashModelFile.h"
 #include "appmodel/XashModelFileWriter.h"
+#include "appmodel/NightfireToXashModelConverter.h"
 #include "elements/DumpElements.h"
 #include "Utils.h"
 #include "DumpMDLFileItems.h"
@@ -149,7 +150,17 @@ static bool ConvertFile(const AppOptions& options)
 	{
 		std::shared_ptr<NFMDL::XashModelFile> outModelFile = std::make_shared<NFMDL::XashModelFile>();
 
-		// TODO: Convert
+		NFMDL::NightfireToXashModelConverter converter;
+		converter.SetInputFile(inModelFile);
+		converter.SetOutputFile(outModelFile);
+
+		std::cout << "Converting input file..." << std::endl;
+
+		if ( !converter.Convert() )
+		{
+			std::cerr << "Failed to convert Nightfire model file to Xash model file. " << converter.GetConversionError() << std::endl;
+			return false;
+		}
 
 		NFMDL::XashModelFileWriter writer(outModelFile);
 
