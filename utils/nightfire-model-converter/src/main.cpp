@@ -15,6 +15,9 @@
 #include "Utils.h"
 #include "DumpMDLFileItems.h"
 
+using NFModelPtr = std::shared_ptr<NFMDL::NightfireModelFile>;
+using XashModelPtr = std::shared_ptr<NFMDL::XashModelFile>;
+
 static constexpr const char* const ARG_HELP = "help";
 
 static constexpr const char* const ARG_INPUT = "input";
@@ -86,11 +89,10 @@ bool ParseCommandLineOptions(int argc, const char** argv, AppOptions& options)
 						 std::string("Dump information about MDL file ") + itemName + std::string(" to stdout"));
 	}
 
-	// Booooo, cxxopts developers...
-	char** badMutableArguments = const_cast<char**>(argv);
-
 	try
 	{
+		// Booooo, cxxopts developers...
+		char** badMutableArguments = const_cast<char**>(argv);
 		cxxopts::ParseResult result = launchOptions.parse(argc, badMutableArguments);
 
 		if ( result.count(ARG_HELP) || result.count(ARG_INPUT) < 1 )
@@ -124,53 +126,55 @@ bool ParseCommandLineOptions(int argc, const char** argv, AppOptions& options)
 	return true;
 }
 
-static bool ConvertFile(const AppOptions& options)
+static NFModelPtr ReadNightfireModelFile(const AppOptions& options)
 {
 	std::cout << "Reading " << options.inputFile << std::endl;
 
-	std::shared_ptr<NFMDL::NightfireModelFile> inModelFile = std::make_shared<NFMDL::NightfireModelFile>();
-	NFMDL::NightfireModelFileReader reader(inModelFile);
+	NFModelPtr inModelFile = std::make_shared<NFMDL::NightfireModelFile>();
 
 	try
 	{
+		NFMDL::NightfireModelFileReader reader(inModelFile);
 		reader.SetReadHeaderOnly(options.readHeaderOnly);
 		reader.ReadFromFile(options.inputFile);
+
+		std::cout << "Read successfully." << std::endl;
 	}
 	catch ( const std::exception& ex )
 	{
+		// TODO: re-throw this as an exception?
 		std::cerr << "Failed to read input file " << options.inputFile << " Error: " << ex.what() << std::endl;
+		inModelFile.reset();
+	}
+
+	return inModelFile;
+}
+
+static bool ConvertAndWriteModelFile(const AppOptions& options, const NFModelPtr& inModelFile)
+{
+	XashModelPtr outModelFile = std::make_shared<NFMDL::XashModelFile>();
+
+	NFMDL::NightfireToXashModelConverter converter;
+	converter.SetInputFile(inModelFile);
+	converter.SetOutputFile(outModelFile);
+
+	std::cout << "Converting input file..." << std::endl;
+
+	if ( !converter.Convert() )
+	{
+		// TODO: Have converter throw exceptions instead?
+		std::cerr << "Failed to convert Nightfire model file to Xash model file. " << converter.GetConversionError() << std::endl;
 		return false;
 	}
 
-	std::cout << "Read successfully." << std::endl;
+	NFMDL::XashModelFileWriter writer(outModelFile);
 
-	DumpMDLFileItems(options, *inModelFile);
+	std::shared_ptr<std::ofstream> outFile = std::make_shared<std::ofstream>(options.outputFile);
+	writer.SetOutputStream(outFile);
 
-	if ( !options.outputFile.empty() )
-	{
-		std::shared_ptr<NFMDL::XashModelFile> outModelFile = std::make_shared<NFMDL::XashModelFile>();
-
-		NFMDL::NightfireToXashModelConverter converter;
-		converter.SetInputFile(inModelFile);
-		converter.SetOutputFile(outModelFile);
-
-		std::cout << "Converting input file..." << std::endl;
-
-		if ( !converter.Convert() )
-		{
-			std::cerr << "Failed to convert Nightfire model file to Xash model file. " << converter.GetConversionError() << std::endl;
-			return false;
-		}
-
-		NFMDL::XashModelFileWriter writer(outModelFile);
-
-		std::shared_ptr<std::ofstream> outFile = std::make_shared<std::ofstream>(options.outputFile);
-		writer.SetOutputStream(outFile);
-
-		std::cout << "Writing: " << options.outputFile << std::endl;
-		writer.Write();
-		std::cout << "Writing complete." << std::endl;
-	}
+	std::cout << "Writing: " << options.outputFile << std::endl;
+	writer.Write();
+	std::cout << "Writing complete." << std::endl;
 
 	return true;
 }
@@ -181,7 +185,21 @@ int main(int argc, const char** argv)
 
 	try
 	{
-		if ( !ParseCommandLineOptions(argc, argv, options) || !ConvertFile(options) )
+		if ( !ParseCommandLineOptions(argc, argv, options) )
+		{
+			return 1;
+		}
+
+		std::shared_ptr<NFMDL::NightfireModelFile> inModelFile = ReadNightfireModelFile(options);
+
+		if ( !inModelFile )
+		{
+			return 1;
+		}
+
+		DumpMDLFileItems(options, *inModelFile);
+
+		if ( !ConvertAndWriteModelFile(options, inModelFile) )
 		{
 			return 1;
 		}
