@@ -5,6 +5,7 @@
 #include <sstream>
 #include <type_traits>
 #include <functional>
+#include <cassert>
 #include "NightfireModelFile.h"
 #include "XashModelFile.h"
 #include "containers/ElementContainer.h"
@@ -51,6 +52,22 @@ namespace NFMDL
 			{
 				cop.offset = 0;
 				return currentOffset;
+			}
+		}
+
+		template<typename T, typename U, typename K>
+		inline void WriteAllElements(uint32_t targetOffset, const ElementContainer<T, U, K>& container)
+		{
+			if ( targetOffset < 1 )
+			{
+				return;
+			}
+
+			assert(m_OutStream && static_cast<uint32_t>(m_OutStream->tellp()) == targetOffset);
+
+			for ( auto it : container )
+			{
+				m_OutStream->write(reinterpret_cast<const char*>(it.element), sizeof(*(it.element)));
 			}
 		}
 

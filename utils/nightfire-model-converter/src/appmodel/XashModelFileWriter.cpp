@@ -35,6 +35,7 @@ namespace NFMDL
 
 	void XashModelFileWriter::WriteEntireFile()
 	{
+		// TODO: Innards of these are quite rough and could be refactored.
 		CalculateBlockOffsets();
 		WriteHeader();
 	}
@@ -91,7 +92,30 @@ namespace NFMDL
 
 	void XashModelFileWriter::WriteHeader()
 	{
+		HeaderV10Xash& header = m_OutModelFile->Header;
 		m_FileBeginOffset = m_OutStream->tellp();
-		m_OutStream->write(reinterpret_cast<const char*>(&m_OutModelFile->Header), sizeof(m_OutModelFile->Header));
+
+		m_OutStream->write(reinterpret_cast<const char*>(&header), sizeof(header));
+
+		WriteAllElements(header.bones.offset, m_OutModelFile->Bones);
+		WriteAllElements(header.boneControllers.offset, m_OutModelFile->BoneControllers);
+		WriteAllElements(header.hitBoxes.offset, m_OutModelFile->HitBoxes);
+		WriteAllElements(header.sequences.offset, m_OutModelFile->Sequences);
+		WriteAllElements(header.sequenceGroups.offset, m_OutModelFile->SequenceGroups);
+		WriteAllElements(header.textures.offset, m_OutModelFile->Textures);
+		WriteAllElements(header.skinOffset, m_OutModelFile->Skins);
+		WriteAllElements(header.bodyGroups.offset, m_OutModelFile->BodyGroups);
+		WriteAllElements(header.attachments.offset, m_OutModelFile->Attachments);
+		WriteAllElements(m_AdditionalOffsets.eventsOffset, m_OutModelFile->Events);
+		WriteAllElements(m_AdditionalOffsets.footPivotsOffset, m_OutModelFile->FootPivots);
+		WriteAllElements(m_AdditionalOffsets.modelsOffset, m_OutModelFile->Models);
+		WriteAllElements(m_AdditionalOffsets.meshesOffset, m_OutModelFile->Meshes);
+
+		assert(static_cast<uint32_t>(m_OutStream->tellp()) == m_AdditionalOffsets.animationDataOffset);
+
+		for ( auto& it : m_OutModelFile->AnimationData )
+		{
+			m_OutStream->write(reinterpret_cast<const char*>(it.element->data()), it.element->size());
+		}
 	}
 }

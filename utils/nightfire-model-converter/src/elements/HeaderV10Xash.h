@@ -21,6 +21,7 @@ namespace NFMDL
 		BoundingBox movementHull;
 		BoundingBox clippingHull;
 
+		// See "client-side model flags" in engine's studio.h
 		uint32_t flags;
 
 		CountOffsetPair bones;
