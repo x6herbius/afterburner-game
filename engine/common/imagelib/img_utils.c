@@ -114,7 +114,6 @@ static const loadpixformat_t load_game[] =
 { "%s%s.%s", "lmp", Image_LoadLMP, IL_HINT_NO },	// hl menu images (cached.wad etc)
 { "%s%s.%s", "fnt", Image_LoadFNT, IL_HINT_HL },	// hl console font (fonts.wad etc)
 { "%s%s.%s", "pal", Image_LoadPAL, IL_HINT_NO },	// install studio\sprite palette
-{ "%s%s.%s", "png", Image_LoadPNG, IL_HINT_NO },	// PNGs for Nightfire
 { NULL, NULL, NULL, IL_HINT_NO }
 };
 

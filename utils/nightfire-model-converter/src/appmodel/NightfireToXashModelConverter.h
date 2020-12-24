@@ -19,6 +19,7 @@ namespace NFMDL
 	private:
 		void ConvertInternal();
 		void ConstructHLBodyGroups();
+		void ConstructModelsFromBodyGroups();
 
 		std::shared_ptr<const NightfireModelFile> m_InModelFile;
 		std::shared_ptr<XashModelFile> m_OutModelFile;

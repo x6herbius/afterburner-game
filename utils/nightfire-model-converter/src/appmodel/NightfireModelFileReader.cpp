@@ -150,8 +150,15 @@ namespace NFMDL
 		for ( uint32_t index = 0; index < modelCount; ++index )
 		{
 			const uint32_t offset = m_ModelFile->Header.modelOffset[index];
+
+			if ( offset < 1 )
+			{
+				continue;
+			}
+
 			*m_ModelFile->Models.ElementAt(index) = *GetElement<ModelV14>(offset);
 			m_ModelFile->Models.UserDataAt(index)->SetFileOffset(offset);
+			m_ModelFile->Models.AssignMapping(BodyGroupReferencingModelAtOffset(offset), index);
 		}
 	}
 
@@ -204,6 +211,8 @@ namespace NFMDL
 		for ( uint32_t modelIndex = 0; modelIndex < modelCount; ++modelIndex )
 		{
 			const ModelV14* model = m_ModelFile->Models.ElementAt(modelIndex);
+			const TOwnedItemKey<ModelV14>& modelKey = m_ModelFile->Models.KeyFor(modelIndex);
+			assert(modelKey);
 
 			for ( uint32_t modelInfoIndex = 0; modelInfoIndex < ArraySize(model->modelInfoOffset); ++modelInfoIndex )
 			{
@@ -214,9 +223,10 @@ namespace NFMDL
 					continue;
 				}
 
-				TOwnedItemKey<ModelInfoV14> key;
-				key.ownerIndex = modelIndex;
-				key.itemIndex = modelInfoIndex;
+				ModelInfoCollectionKeyV14 key;
+				key.bodyGroupIndex = modelKey.ownerIndex;
+				key.modelIndex = modelIndex;
+				key.modelIndex = modelInfoIndex;
 
 				const size_t modelInfoElementIndex = m_ModelFile->ModelInfos.Count();
 				m_ModelFile->ModelInfos.AppendDefault();
@@ -236,6 +246,8 @@ namespace NFMDL
 		for ( uint32_t modelIndex = 0; modelIndex < modelCount; ++modelIndex )
 		{
 			const ModelV14* model = m_ModelFile->Models.ElementAt(modelIndex);
+			const TOwnedItemKey<ModelV14>& modelKey = m_ModelFile->Models.KeyFor(modelIndex);
+			assert(modelKey);
 
 			for ( uint32_t modelInfoIndex = 0; modelInfoIndex < ArraySize(model->modelInfoOffset); ++modelInfoIndex )
 			{
@@ -244,10 +256,6 @@ namespace NFMDL
 					continue;
 				}
 
-				TOwnedItemKey<ModelInfoV14> key;
-				key.ownerIndex = modelIndex;
-				key.itemIndex = modelInfoIndex;
-
 				const ModelInfoV14* modelInfo = m_ModelFile->ModelInfos.ElementAt(modelInfoIndex);
 				const uint32_t meshCount = modelInfo->meshes.count;
 				const MeshV14* meshElements = GetElement<MeshV14>(modelInfo->meshes.offset, modelInfo->meshes.count);
@@ -255,6 +263,7 @@ namespace NFMDL
 				for ( uint32_t meshIndex = 0; meshIndex < meshCount; ++meshIndex )
 				{
 					MeshCollectionKeyV14 meshKey;
+					meshKey.bodyGroupIndex = modelKey.ownerIndex;
 					meshKey.modelIndex = modelIndex;
 					meshKey.modelInfoIndex = modelInfoIndex;
 					meshKey.meshIndex = meshIndex;
@@ -527,6 +536,74 @@ namespace NFMDL
 									 std::to_string(numFramesRead) +
 									 " frames.");
 		}
+	}
+
+	TOwnedItemKey<ModelV14> NightfireModelFileReader::BodyGroupReferencingModelAtOffset(uint32_t modelOffset) const
+	{
+		if ( modelOffset < 1 )
+		{
+			throw std::runtime_error("Cannot find bodygroup referencing model: model offset " +
+									 std::to_string(modelOffset) +
+									 " is invalid.");
+		}
+
+		TOwnedItemKey<ModelV14> key;
+
+		for ( auto it : m_ModelFile->BodyGroups )
+		{
+			for ( uint32_t modelIndex = 0; modelIndex < it.element->modelCount; ++modelIndex )
+			{
+				const uint32_t checkModelOffset = it.element->modelOffset + (modelIndex * sizeof(ModelV14));
+
+				if ( checkModelOffset == modelOffset )
+				{
+					// Check that no other body group also referenced this model.
+					if ( key )
+					{
+						throw std::runtime_error("Cannot find bodygroup referencing model: body group " +
+												 std::to_string(it.index) +
+												 " references model at offset " +
+												 std::to_string(modelOffset) +
+												 " when this model is already referenced by body group " +
+												 std::to_string(key.ownerIndex) +
+												 ".");
+					}
+					else
+					{
+						key.ownerIndex = it.index;
+						key.itemIndex = modelIndex;
+					}
+				}
+			}
+		}
+
+		if ( !key )
+		{
+			throw std::runtime_error("Cannot find bodygroup referencing model: model at offset " +
+									 std::to_string(modelOffset) +
+									 " is not owned by any body group.");
+		}
+
+		return key;
+	}
+
+	TOwnedItemKey<ModelV14> NightfireModelFileReader::BodyGroupReferencingModel(size_t index) const
+	{
+		if ( index >= ArraySize(m_ModelFile->Header.modelOffset) )
+		{
+			throw std::runtime_error("Cannot find bodygroup referencing model: model at index " +
+									 std::to_string(index) +
+									 " does not exist.");
+		}
+
+		if ( m_ModelFile->Header.modelOffset[index] == 0 )
+		{
+			throw std::runtime_error("Cannot find bodygroup referencing model: model at index " +
+									 std::to_string(index) +
+									 " has invalid offset.");
+		}
+
+		return BodyGroupReferencingModelAtOffset(m_ModelFile->Header.modelOffset[index]);
 	}
 
 	uint32_t NightfireModelFileReader::AlignTo16Bytes(uint32_t offset)

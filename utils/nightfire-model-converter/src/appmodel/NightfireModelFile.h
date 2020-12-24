@@ -56,7 +56,7 @@ namespace NFMDL
 		ElementContainer<VertexBlendScaleV14> VertexBlendScales;
 		ElementContainer<VertexBlendV14> VertexBlends;
 		ElementContainer<BoneFixUpV14> BoneFixUps;
-		ElementContainer<ModelV14, BaseElementUserData> Models;
+		ElementContainer<ModelV14, BaseElementUserData, TOwnedItemKey<ModelV14>> Models;
 		ElementContainer<LevelOfDetailV14> LevelsOfDetail;
 		ElementContainer<BodyGroup> BodyGroups;
 
@@ -71,7 +71,7 @@ namespace NFMDL
 		ElementContainer<SoundV14, NullElementUserData, TOwnedItemKey<SoundV14>> Sounds;
 
 		// Owned by models:
-		ElementContainer<ModelInfoV14, BaseElementUserData, TOwnedItemKey<ModelInfoV14>> ModelInfos;
+		ElementContainer<ModelInfoV14, BaseElementUserData, ModelInfoCollectionKeyV14> ModelInfos;
 		ElementContainer<MeshV14, BaseElementUserData, MeshCollectionKeyV14> Meshes;
 
 		// Other related information, useful for dumping later:

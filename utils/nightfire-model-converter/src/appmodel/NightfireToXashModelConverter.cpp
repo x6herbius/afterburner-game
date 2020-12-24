@@ -131,6 +131,38 @@ namespace NFMDL
 			We also need to generate the relevant vertex/normal/etc. lists from the Nightfire vertex objects.
 		*/
 
-		// TODO: Continue
+		for ( auto it : m_OutModelFile->BodyGroups )
+		{
+			// Zero out model offsets for now.
+			it.element->modelOffset = 0;
+		}
+
+		ConstructModelsFromBodyGroups();
+	}
+
+	void NightfireToXashModelConverter::ConstructModelsFromBodyGroups()
+	{
+		for ( auto it : m_OutModelFile->BodyGroups )
+		{
+			// Create one ModelV10Xash per ModelV14.
+			for ( size_t modelIndex = 0; modelIndex < it.element->modelCount; ++modelIndex )
+			{
+				TOwnedItemKey<ModelV14> inModelKey;
+				inModelKey.ownerIndex = it.index;
+				inModelKey.itemIndex = modelIndex;
+
+				const ModelV14* inModel = m_InModelFile->Models.ElementAt(inModelKey);
+				assert(inModel);
+
+				const size_t outModelIndex = m_OutModelFile->Models.Count();
+				m_OutModelFile->Models.AppendDefault();
+
+				TOwnedItemKey<ModelV10Xash> outModelKey;
+				outModelKey.ownerIndex = it.index;
+				outModelKey.itemIndex = outModelIndex;
+
+				m_OutModelFile->Models.AssignMapping(outModelKey, outModelIndex);
+			}
+		}
 	}
 }

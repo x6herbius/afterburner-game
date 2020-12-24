@@ -67,6 +67,9 @@ namespace NFMDL
 								  uint32_t dataOffset,
 								  uint32_t frameCount);
 
+		TOwnedItemKey<ModelV14> BodyGroupReferencingModelAtOffset(uint32_t modelOffset) const;
+		TOwnedItemKey<ModelV14> BodyGroupReferencingModel(size_t index) const;
+
 		std::shared_ptr<NightfireModelFile> m_ModelFile;
 		std::unique_ptr<StreamBuffer> m_InputFileData;
 		bool m_ReadHeaderOnly = false;

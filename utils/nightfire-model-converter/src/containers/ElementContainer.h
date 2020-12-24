@@ -87,7 +87,7 @@ namespace NFMDL
 
 		inline void AssignMapping(const KeyType& key, size_t index)
 		{
-			if ( !key || index < m_Items.size() )
+			if ( !key || index >= m_Items.size() )
 			{
 				return;
 			}
@@ -100,7 +100,7 @@ namespace NFMDL
 
 		inline void AssignMappingAndValue(const KeyType& key, size_t index, const ElementType& element)
 		{
-			if ( !key || index < m_Items.size() )
+			if ( !key || index >= m_Items.size() )
 			{
 				return;
 			}
@@ -111,7 +111,7 @@ namespace NFMDL
 
 		inline void AssignMappingAndValue(const KeyType& key, size_t index, ElementType&& element)
 		{
-			if ( !key || index < m_Items.size() )
+			if ( !key || index >= m_Items.size() )
 			{
 				return;
 			}
@@ -148,6 +148,18 @@ namespace NFMDL
 			return index < m_Items.size() ? &m_Items[index].element : nullptr;
 		}
 
+		inline const ElementType* ElementAt(const KeyType& key) const
+		{
+			const KeyToItemIndexMap::const_iterator it = m_KeyToItemIndex.find(key);
+			return it != m_KeyToItemIndex.end() ? ElementAt(it->second) : nullptr;
+		}
+
+		inline ElementType* ElementAt(const KeyType& key)
+		{
+			const KeyToItemIndexMap::iterator it = m_KeyToItemIndex.find(key);
+			return it != m_KeyToItemIndex.end() ? ElementAt(it->second) : nullptr;
+		}
+
 		inline const UserDataType* UserDataAt(size_t index) const
 		{
 			return index < m_Items.size() ? &m_Items[index].userData : nullptr;
@@ -156,6 +168,18 @@ namespace NFMDL
 		inline UserDataType* UserDataAt(size_t index)
 		{
 			return index < m_Items.size() ? &m_Items[index].userData : nullptr;
+		}
+
+		inline const UserDataType* UserDataAt(const KeyType& key) const
+		{
+			const KeyToItemIndexMap::const_iterator it = m_KeyToItemIndex.find(key);
+			return it != m_KeyToItemIndex.end() ? UserDataAt(it->second) : nullptr;
+		}
+
+		inline UserDataType* UserDataAt(const KeyType& key)
+		{
+			const KeyToItemIndexMap::iterator it = m_KeyToItemIndex.find(key);
+			return it != m_KeyToItemIndex.end() ? UserDataAt(it->second) : nullptr;
 		}
 
 		inline const KeyType& KeyFor(size_t index) const
