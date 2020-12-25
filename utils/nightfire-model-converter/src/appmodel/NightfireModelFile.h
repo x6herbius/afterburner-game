@@ -1,8 +1,6 @@
 #pragma once
 
 #include "containers/ElementContainer.h"
-#include "Types.h"
-
 #include "elements/BaseElementUserData.h"
 #include "elements/HeaderV14.h"
 #include "elements/Bone.h"
@@ -31,8 +29,10 @@
 #include "elements/MeshV14.h"
 #include "elements/SoundV14.h"
 #include "elements/Skin.h"
+#include "elements/AnimationDataValueList.h"
 
 #include "elements/ElementTraits.h"
+#include "elements/OwnedItemKey.h"
 
 namespace NFMDL
 {

@@ -2,7 +2,6 @@
 #include <iterator>
 #include <iostream>
 
-#include "Types.h"
 #include "NightfireModelFileReader.h"
 #include "elements/HeaderV14.h"
 #include "elements/BoneAnimationDataOffsets.h"
