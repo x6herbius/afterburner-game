@@ -22,6 +22,9 @@ namespace NFMDL
 		bool ReadHeaderOnly() const;
 		void SetReadHeaderOnly(bool headerOnly);
 
+		bool Verbose() const;
+		void SetVerbose(bool verbose);
+
 	private:
 		static uint32_t AlignTo16Bytes(uint32_t offset);
 
@@ -35,6 +38,11 @@ namespace NFMDL
 		template<typename T, typename U, typename K>
 		inline void ReadElements(const CountOffsetPair& cop, ElementContainer<T, U, K>& container)
 		{
+			if ( m_Verbose )
+			{
+				LogElementsToRead(cop, ElementTraits<T>::ELEMENT_NAME, sizeof(T));
+			}
+
 			if ( cop.count > 0 )
 			{
 				container.AllocateFrom(GetElement<T>(cop.offset, cop.count), cop.count);
@@ -70,8 +78,11 @@ namespace NFMDL
 		TOwnedItemKey<ModelV14> BodyGroupReferencingModelAtOffset(uint32_t modelOffset) const;
 		TOwnedItemKey<ModelV14> BodyGroupReferencingModel(size_t index) const;
 
+		void LogElementsToRead(const CountOffsetPair& cop, const std::string& elementName, size_t elementSize);
+
 		std::shared_ptr<NightfireModelFile> m_ModelFile;
 		std::unique_ptr<StreamBuffer> m_InputFileData;
 		bool m_ReadHeaderOnly = false;
+		bool m_Verbose = false;
 	};
 }

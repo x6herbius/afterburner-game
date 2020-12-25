@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <string>
+#include <sstream>
 
 namespace NFMDL
 {
@@ -98,6 +99,11 @@ namespace NFMDL
 					ident[index] = 0;
 				}
 			}
+		}
+
+		inline std::string ToString() const
+		{
+			return (std::stringstream() << ident[0] << ident[1] << ident[2] << ident[3]).str();
 		}
 
 		inline bool operator ==(const HeaderIdentifier& other) const

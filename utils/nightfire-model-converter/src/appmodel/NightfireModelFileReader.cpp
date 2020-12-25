@@ -1,5 +1,6 @@
 #include <fstream>
 #include <iterator>
+#include <iostream>
 
 #include "Types.h"
 #include "NightfireModelFileReader.h"
@@ -23,6 +24,16 @@ namespace NFMDL
 	void NightfireModelFileReader::SetReadHeaderOnly(bool headerOnly)
 	{
 		m_ReadHeaderOnly = headerOnly;
+	}
+
+	bool NightfireModelFileReader::Verbose() const
+	{
+		return m_Verbose;
+	}
+
+	void NightfireModelFileReader::SetVerbose(bool verbose)
+	{
+		m_Verbose = verbose;
 	}
 
 	void NightfireModelFileReader::ReadFromFile(const std::string& filePath)
@@ -129,6 +140,27 @@ namespace NFMDL
 									 std::to_string(FormatTraits<HeaderV14>::TARGET_VERSION) +
 									 ".");
 		}
+
+		if ( m_InputFileData->size() != m_ModelFile->Header.length )
+		{
+			throw std::runtime_error("Input file header specified length of " +
+									 std::to_string(m_ModelFile->Header.length) +
+									 " bytes when file was actually " +
+									 std::to_string(m_InputFileData->size()) +
+									 "bytes long.");
+		}
+
+		if ( m_Verbose )
+		{
+			const HeaderV14& header = m_ModelFile->Header;
+
+			std::cout
+				<< "Header: "
+				<< header.ident.ToString()
+				<< " version " << header.version
+				<< ", file length: " << header.length << " bytes."
+				<< std::endl;
+		}
 	}
 
 	void NightfireModelFileReader::ReadModels()
@@ -145,9 +177,7 @@ namespace NFMDL
 									 ".");
 		}
 
-		m_ModelFile->Models.AllocateDefault(modelCount);
-
-		for ( uint32_t index = 0; index < modelCount; ++index )
+		for ( uint32_t index = 0; index < ArraySize(m_ModelFile->Header.modelOffset); ++index )
 		{
 			const uint32_t offset = m_ModelFile->Header.modelOffset[index];
 
@@ -156,9 +186,43 @@ namespace NFMDL
 				continue;
 			}
 
-			*m_ModelFile->Models.ElementAt(index) = *GetElement<ModelV14>(offset);
-			m_ModelFile->Models.UserDataAt(index)->SetFileOffset(offset);
-			m_ModelFile->Models.AssignMapping(BodyGroupReferencingModelAtOffset(offset), index);
+			const TOwnedItemKey<ModelV14> modelKey = BodyGroupReferencingModelAtOffset(offset);
+			const size_t modelIndex = m_ModelFile->Models.Count();
+
+			if ( m_Verbose )
+			{
+				std::cout
+					<< "Reading model ("
+					<< sizeof(ModelV14)
+					<< " bytes) from offset "
+					<< offset
+					<< " (index "
+					<< modelIndex				// Index in models collection
+					<< ", header index "
+					<< index					// Index in models array in header
+					<< ", item "
+					<< modelKey.itemIndex		// Child number in owner body group
+					<< " owned by body group "
+					<< modelKey.ownerIndex		// Index of owner body group
+					<< ")"
+					<< std::endl;
+			}
+
+			m_ModelFile->Models.AppendFrom(GetElement<ModelV14>(offset), 1);
+			m_ModelFile->Models.AssignMapping(modelKey, modelIndex);
+
+			ModelUserDataV14* userData = m_ModelFile->Models.UserDataAt(modelIndex);
+			userData->SetFileOffset(offset);
+			userData->SetIndexInHeader(index);
+		}
+
+		if ( m_ModelFile->Models.Count() != modelCount )
+		{
+			throw std::runtime_error("Header provided model count of " +
+									 std::to_string(modelCount) +
+									 " when number of valid models was " +
+									 std::to_string(m_ModelFile->Models.Count()) +
+									 ".");
 		}
 	}
 
@@ -197,6 +261,24 @@ namespace NFMDL
 				key.skinFamily = family;
 				key.skinReference = reference;
 
+				if ( m_Verbose )
+				{
+					uint32_t offset = m_ModelFile->Header.skinDataOffset;
+					offset += (family * m_ModelFile->Header.skinReferenceCount) * sizeof(Skin);
+					offset += reference * sizeof(Skin);
+
+					std::cout
+						<< "Reading skin ("
+						<< sizeof(Skin)
+						<< " bytes from offset "
+						<< offset
+						<< ") for family "
+						<< family
+						<< ", reference "
+						<< reference
+						<< std::endl;
+				}
+
 				m_ModelFile->Skins.AssignMappingAndValue(key, currentSkinIndex++, *(skinElements++));
 			}
 		}
@@ -226,9 +308,29 @@ namespace NFMDL
 				ModelInfoCollectionKeyV14 key;
 				key.bodyGroupIndex = modelKey.ownerIndex;
 				key.modelIndex = modelIndex;
-				key.modelIndex = modelInfoIndex;
+				key.modelInfoIndex = modelInfoIndex;
 
 				const size_t modelInfoElementIndex = m_ModelFile->ModelInfos.Count();
+
+				if ( m_Verbose )
+				{
+					std::cout
+						<< "Reading model info ("
+						<< sizeof(ModelInfoV14)
+						<< " bytes) from offset "
+						<< modelInfoOffset
+						<< " (global index "
+						<< modelInfoElementIndex
+						<< ", local index "
+						<< modelInfoIndex
+						<< ", owned by body group "
+						<< key.bodyGroupIndex
+						<< " and model "
+						<< key.modelIndex
+						<< ")"
+						<< std::endl;
+				}
+
 				m_ModelFile->ModelInfos.AppendDefault();
 				m_ModelFile->ModelInfos.AssignMappingAndValue(key, modelInfoElementIndex, *GetElement<ModelInfoV14>(modelInfoOffset));
 				m_ModelFile->ModelInfos.UserDataAt(modelInfoElementIndex)->SetFileOffset(modelInfoOffset);
@@ -236,7 +338,6 @@ namespace NFMDL
 		}
 	}
 
-	// TODO: Combine with above function?
 	void NightfireModelFileReader::ReadMeshes()
 	{
 		m_ModelFile->Meshes.Clear();
@@ -269,6 +370,28 @@ namespace NFMDL
 					meshKey.meshIndex = meshIndex;
 
 					const size_t meshElementIndex = m_ModelFile->Meshes.Count();
+
+					if ( m_Verbose )
+					{
+						std::cout
+							<< "Reading mesh ("
+							<< sizeof(MeshV14)
+							<< " bytes) from offset "
+							<< modelInfo->meshes.offset + (meshIndex * sizeof(MeshV14))
+							<< " (global index "
+							<< meshElementIndex
+							<< ", local index "
+							<< meshIndex
+							<< ", owned by body group "
+							<< meshKey.bodyGroupIndex
+							<< ", model "
+							<< meshKey.modelIndex
+							<< ", and model info "
+							<< meshKey.modelInfoIndex
+							<< ")"
+							<< std::endl;
+					}
+
 					m_ModelFile->Meshes.AppendDefault();
 					m_ModelFile->Meshes.AssignMappingAndValue(meshKey, meshElementIndex, meshElements[meshIndex]);
 					m_ModelFile->Meshes.UserDataAt(meshElementIndex)->SetFileOffset(modelInfo->meshes.offset + (meshIndex * sizeof(MeshV14)));
@@ -293,6 +416,22 @@ namespace NFMDL
 			key.ownerIndex = soundGroupIndex;
 
 			const size_t soundElementIndex = m_ModelFile->Sounds.Count();
+
+			if ( m_Verbose )
+			{
+				std::cout
+					<< "Reading model ("
+					<< sizeof(SoundV14)
+					<< " bytes) from offset "
+					<< soundsOffset + soundGroup->offset
+					<< " (global index "
+					<< soundElementIndex
+					<< ", owned by sound group "
+					<< soundGroupIndex
+					<< ")"
+					<< std::endl;
+			}
+
 			m_ModelFile->Sounds.AppendDefault();
 			m_ModelFile->Sounds.AssignMappingAndValue(key, soundElementIndex, *GetElement<SoundV14>(soundsOffset + soundGroup->offset));
 		}
@@ -313,6 +452,21 @@ namespace NFMDL
 
 			for ( uint32_t eventIndex = 0; eventIndex < sequence->events.count; ++eventIndex )
 			{
+				if ( m_Verbose )
+				{
+					std::cout
+						<< "Reading event ("
+						<< sizeof(Event)
+						<< " bytes) from offset "
+						<< sequence->events.offset + (eventIndex * sizeof(Event))
+						<< " (global index "
+						<< eventBaseIndex + eventIndex
+						<< ", owned by sequence "
+						<< sequenceIndex
+						<< ")"
+						<< std::endl;
+				}
+
 				TOwnedItemKey<Event> key;
 				key.ownerIndex = sequenceIndex;
 				key.itemIndex = eventIndex;
@@ -337,6 +491,21 @@ namespace NFMDL
 
 			for ( uint32_t footPivotIndex = 0; footPivotIndex < sequence->footPivots.count; ++footPivotIndex )
 			{
+				if ( m_Verbose )
+				{
+					std::cout
+						<< "Reading foot pivot ("
+						<< sizeof(FootPivot)
+						<< " bytes) from offset "
+						<< sequence->footPivots.offset + (footPivotIndex * sizeof(FootPivot))
+						<< " (global index "
+						<< footPivotsBaseIndex + footPivotIndex
+						<< ", owned by sequence "
+						<< sequenceIndex
+						<< ")"
+						<< std::endl;
+				}
+
 				TOwnedItemKey<FootPivot> key;
 				key.ownerIndex = sequenceIndex;
 				key.itemIndex = footPivotIndex;
@@ -430,6 +599,25 @@ namespace NFMDL
 
 						// Locate the raw data.
 						const uint32_t rawDataOffset = rawDataOffsetBase + currentDataOffsets.dataOffsetForComponent[componentIndex];
+
+						if ( m_Verbose )
+						{
+							std::cout
+								<< "Reading animation data ("
+								<< sequence->frameCount
+								<< " frames) from offset "
+								<< rawDataOffset
+								<< " (owned by sequence "
+								<< sequenceIndex
+								<< ", blend "
+								<< blendIndex
+								<< ", bone "
+								<< boneIndex
+								<< ", component "
+								<< componentIndex
+								<< ")"
+								<< std::endl;
+						}
 
 						try
 						{
@@ -604,6 +792,20 @@ namespace NFMDL
 		}
 
 		return BodyGroupReferencingModelAtOffset(m_ModelFile->Header.modelOffset[index]);
+	}
+
+	void NightfireModelFileReader::LogElementsToRead(const CountOffsetPair& cop, const std::string& elementName, size_t elementSize)
+	{
+		std::cout
+			<< "Reading "
+			<< cop.count
+			<< " "
+			<< elementName
+			<< " elements at "
+			<< elementSize
+			<< " bytes each from offset "
+			<< cop.offset
+			<< std::endl;
 	}
 
 	uint32_t NightfireModelFileReader::AlignTo16Bytes(uint32_t offset)

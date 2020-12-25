@@ -26,6 +26,7 @@ static constexpr const char* const ARG_HELP = "help";
 static constexpr const char* const ARG_INPUT = "input";
 static constexpr const char* const ARG_OUTPUT = "output";
 static constexpr const char* const ARG_HEADER_ONLY = "header-only";
+static constexpr const char* const ARG_VERBOSE = "verbose";
 
 struct DumpOption
 {
@@ -77,6 +78,7 @@ bool ParseCommandLineOptions(int argc, const char** argv, AppOptions& options)
 		(ARG_INPUT, "Input file", cxxopts::value<std::string>())
 		(ARG_OUTPUT, "Output file", cxxopts::value<std::string>())
 		(ARG_HEADER_ONLY, "Read header only - ignore file contents")
+		(ARG_VERBOSE, "Enable verbose logging of conversion process")
 	;
 
 	cxxopts::OptionAdder dumpOptionsAdder = launchOptions.add_options("Element dumping");
@@ -112,6 +114,7 @@ bool ParseCommandLineOptions(int argc, const char** argv, AppOptions& options)
 		}
 
 		options.readHeaderOnly = result[ARG_HEADER_ONLY].as<bool>();
+		options.verbose = result[ARG_VERBOSE].as<bool>();
 
 		for ( uint32_t index = 0; index < ArraySize(DumpOptionsList); ++index )
 		{
@@ -139,6 +142,7 @@ static NFModelPtr ReadNightfireModelFile(const AppOptions& options)
 	{
 		NFMDL::NightfireModelFileReader reader(inModelFile);
 		reader.SetReadHeaderOnly(options.readHeaderOnly);
+		reader.SetVerbose(options.verbose);
 		reader.ReadFromFile(options.inputFile);
 
 		std::cout << "Read successfully." << std::endl;

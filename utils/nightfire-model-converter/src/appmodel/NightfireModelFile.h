@@ -56,7 +56,7 @@ namespace NFMDL
 		ElementContainer<VertexBlendScaleV14> VertexBlendScales;
 		ElementContainer<VertexBlendV14> VertexBlends;
 		ElementContainer<BoneFixUpV14> BoneFixUps;
-		ElementContainer<ModelV14, BaseElementUserData, TOwnedItemKey<ModelV14>> Models;
+		ElementContainer<ModelV14, ModelUserDataV14, TOwnedItemKey<ModelV14>> Models;
 		ElementContainer<LevelOfDetailV14> LevelsOfDetail;
 		ElementContainer<BodyGroup> BodyGroups;
 
