@@ -92,6 +92,8 @@ static DLL_FUNCTIONS gFunctionTable =
 	CreateInstancedBaselines,   //pfnCreateInstancedBaselines
 	InconsistentFile,			//pfnInconsistentFile
 	AllowLagCompensation,		//pfnAllowLagCompensation
+
+	GetRandomWaterTransitionSound, //pfnGetRandomWaterTransitionSound
 };
 
 static void SetObjectCollisionBox( entvars_t *pev );
