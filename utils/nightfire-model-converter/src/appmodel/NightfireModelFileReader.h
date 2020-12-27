@@ -61,11 +61,11 @@ namespace NFMDL
 
 		void ReadEntireFile();
 		void ReadHeader();
-		void ReadModels();
+		void ReadModelsAndChildElements();
 		void ReadLevelsOfDetail();
 		void ReadSkins();
-		void ReadModelInfos();
-		void ReadMeshes();
+		void ReadModelInfos(size_t bodyGroupGlobalIndex, size_t modelGlobalIndex);
+		void ReadMeshes(size_t bodyGroupGlobalIndex, size_t modelGlobalIndex, size_t modelInfoGlobalIndex);
 		void ReadSounds();
 		void ReadSequenceAnimationData();
 		void ReadEvents();
@@ -77,6 +77,7 @@ namespace NFMDL
 
 		TOwnedItemKey<ModelV14> BodyGroupReferencingModelAtOffset(uint32_t modelOffset) const;
 		TOwnedItemKey<ModelV14> BodyGroupReferencingModel(size_t index) const;
+		size_t ModelIndexForOffset(uint32_t offset) const;
 
 		void LogElementsToRead(const CountOffsetPair& cop, const std::string& elementName, size_t elementSize);
 

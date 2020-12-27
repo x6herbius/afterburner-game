@@ -112,9 +112,7 @@ namespace NFMDL
 		ReadElements(header.boneFixUpOffset, header.bones.count, file.BoneFixUps);
 
 		// Model data
-		ReadModels();
-		ReadModelInfos();
-		ReadMeshes();
+		ReadModelsAndChildElements();
 
 		// Sequence data
 		ReadEvents();
@@ -162,63 +160,68 @@ namespace NFMDL
 		}
 	}
 
-	void NightfireModelFileReader::ReadModels()
+	void NightfireModelFileReader::ReadModelsAndChildElements()
 	{
-		const uint32_t modelCount = m_ModelFile->Header.modelCount;
-		const size_t maxModelCount = ArraySize(m_ModelFile->Header.modelOffset);
+		m_ModelFile->Models.Clear();
+		m_ModelFile->ModelInfos.Clear();
+		m_ModelFile->Meshes.Clear();
 
-		if ( modelCount > maxModelCount )
+		for ( auto it : m_ModelFile->BodyGroups )
 		{
-			throw std::runtime_error("Header provided model count of " +
-									 std::to_string(modelCount) +
-									 " when maximum allowed is " +
-									 std::to_string(maxModelCount) +
-									 ".");
+			for ( size_t bodyGroupModelIndex = 0; bodyGroupModelIndex < it.element->modelCount; ++bodyGroupModelIndex )
+			{
+				const uint32_t modelOffset = it.element->modelOffset + (bodyGroupModelIndex * sizeof(ModelV14));
+				const size_t headerModelIndex = ModelIndexForOffset(modelOffset);
+
+				TOwnedItemKey<ModelV14> modelKey;
+				modelKey.ownerIndex = it.index;
+				modelKey.itemIndex = bodyGroupModelIndex;
+
+				const size_t modelIndex = m_ModelFile->Models.Count();
+
+				if ( m_Verbose )
+				{
+					std::cout
+						<< "Reading model ("
+						<< sizeof(ModelV14)
+						<< " bytes) from offset "
+						<< modelOffset
+						<< " (index "
+						<< modelIndex				// Index in models collection
+						<< ", header index "
+						<< headerModelIndex			// Index in models array in header
+						<< ", item "
+						<< modelKey.itemIndex		// Child number in owner body group
+						<< " owned by body group "
+						<< modelKey.ownerIndex		// Index of owner body group
+						<< ")"
+						<< std::endl;
+				}
+
+				m_ModelFile->Models.AppendFrom(GetElement<ModelV14>(modelOffset), 1);
+				m_ModelFile->Models.AssignMapping(modelKey, modelIndex);
+
+				ModelUserDataV14* const userData = m_ModelFile->Models.UserDataAt(modelIndex);
+				userData->SetFileOffset(modelOffset);
+				userData->SetIndexInHeader(headerModelIndex);
+
+				BodyGroupUserDataV14* const bodyGroupUserData = it.userData;
+
+				if ( bodyGroupUserData->ChildModelsBeginIndex() == INVALID_CONTAINER_INDEX )
+				{
+					bodyGroupUserData->SetChildModelsBeginIndex(modelIndex);
+				}
+
+				bodyGroupUserData->IncrementChildModelsCount();
+
+				ReadModelInfos(it.index, modelIndex);
+			}
 		}
 
-		for ( uint32_t index = 0; index < ArraySize(m_ModelFile->Header.modelOffset); ++index )
-		{
-			const uint32_t offset = m_ModelFile->Header.modelOffset[index];
-
-			if ( offset < 1 )
-			{
-				continue;
-			}
-
-			const TOwnedItemKey<ModelV14> modelKey = BodyGroupReferencingModelAtOffset(offset);
-			const size_t modelIndex = m_ModelFile->Models.Count();
-
-			if ( m_Verbose )
-			{
-				std::cout
-					<< "Reading model ("
-					<< sizeof(ModelV14)
-					<< " bytes) from offset "
-					<< offset
-					<< " (index "
-					<< modelIndex				// Index in models collection
-					<< ", header index "
-					<< index					// Index in models array in header
-					<< ", item "
-					<< modelKey.itemIndex		// Child number in owner body group
-					<< " owned by body group "
-					<< modelKey.ownerIndex		// Index of owner body group
-					<< ")"
-					<< std::endl;
-			}
-
-			m_ModelFile->Models.AppendFrom(GetElement<ModelV14>(offset), 1);
-			m_ModelFile->Models.AssignMapping(modelKey, modelIndex);
-
-			ModelUserDataV14* userData = m_ModelFile->Models.UserDataAt(modelIndex);
-			userData->SetFileOffset(offset);
-			userData->SetIndexInHeader(index);
-		}
-
-		if ( m_ModelFile->Models.Count() != modelCount )
+		if ( m_ModelFile->Models.Count() != m_ModelFile->Header.modelCount )
 		{
 			throw std::runtime_error("Header provided model count of " +
-									 std::to_string(modelCount) +
+									 std::to_string(m_ModelFile->Header.modelCount) +
 									 " when number of valid models was " +
 									 std::to_string(m_ModelFile->Models.Count()) +
 									 ".");
@@ -283,119 +286,115 @@ namespace NFMDL
 		}
 	}
 
-	void NightfireModelFileReader::ReadModelInfos()
+	void NightfireModelFileReader::ReadModelInfos(size_t bodyGroupGlobalIndex, size_t modelGlobalIndex)
 	{
-		m_ModelFile->ModelInfos.Clear();
+		const ModelV14* const model = m_ModelFile->Models.ElementAt(modelGlobalIndex);
+		ModelUserDataV14* const modelUserData = m_ModelFile->Models.UserDataAt(modelGlobalIndex);
+		assert(model);
+		assert(modelUserData);
 
-		const size_t modelCount = m_ModelFile->Models.Count();
+		const size_t modelInfoElementBase = m_ModelFile->ModelInfos.Count();
 
-		for ( uint32_t modelIndex = 0; modelIndex < modelCount; ++modelIndex )
+		for ( size_t modelInfoArrayIndex = 0; modelInfoArrayIndex < ArraySize(model->modelInfoOffset); ++modelInfoArrayIndex )
 		{
-			const ModelV14* model = m_ModelFile->Models.ElementAt(modelIndex);
-			const TOwnedItemKey<ModelV14>& modelKey = m_ModelFile->Models.KeyFor(modelIndex);
-			assert(modelKey);
+			const uint32_t modelInfoOffset = model->modelInfoOffset[modelInfoArrayIndex];
 
-			for ( uint32_t modelInfoIndex = 0; modelInfoIndex < ArraySize(model->modelInfoOffset); ++modelInfoIndex )
+			if ( modelInfoOffset < 1 )
 			{
-				const uint32_t modelInfoOffset = model->modelInfoOffset[modelInfoIndex];
-
-				if ( modelInfoOffset < 1 )
-				{
-					continue;
-				}
-
-				ModelInfoCollectionKeyV14 key;
-				key.bodyGroupIndex = modelKey.ownerIndex;
-				key.modelIndex = modelIndex;
-				key.modelInfoIndex = modelInfoIndex;
-
-				const size_t modelInfoElementIndex = m_ModelFile->ModelInfos.Count();
-
-				if ( m_Verbose )
-				{
-					std::cout
-						<< "Reading model info ("
-						<< sizeof(ModelInfoV14)
-						<< " bytes) from offset "
-						<< modelInfoOffset
-						<< " (global index "
-						<< modelInfoElementIndex
-						<< ", local index "
-						<< modelInfoIndex
-						<< ", owned by body group "
-						<< key.bodyGroupIndex
-						<< " and model "
-						<< key.modelIndex
-						<< ")"
-						<< std::endl;
-				}
-
-				m_ModelFile->ModelInfos.AppendDefault();
-				m_ModelFile->ModelInfos.AssignMappingAndValue(key, modelInfoElementIndex, *GetElement<ModelInfoV14>(modelInfoOffset));
-				m_ModelFile->ModelInfos.UserDataAt(modelInfoElementIndex)->SetFileOffset(modelInfoOffset);
+				continue;
 			}
+
+			ModelInfoCollectionKeyV14 key;
+			key.bodyGroupIndex = bodyGroupGlobalIndex;
+			key.modelIndex = m_ModelFile->Models.KeyFor(modelGlobalIndex).itemIndex;
+			key.modelInfoIndex = m_ModelFile->ModelInfos.Count() - modelInfoElementBase;
+
+			const size_t modelInfoElementIndex = m_ModelFile->ModelInfos.Count();
+
+			if ( m_Verbose )
+			{
+				std::cout
+					<< "Reading model info ("
+					<< sizeof(ModelInfoV14)
+					<< " bytes) from offset "
+					<< modelInfoOffset
+					<< " (global index "
+					<< modelInfoElementIndex
+					<< ", local index "
+					<< key.modelInfoIndex
+					<< ", owned by body group "
+					<< key.bodyGroupIndex
+					<< " and model "
+					<< key.modelIndex
+					<< ")"
+					<< std::endl;
+			}
+
+			m_ModelFile->ModelInfos.AppendDefault();
+			m_ModelFile->ModelInfos.AssignMappingAndValue(key, modelInfoElementIndex, *GetElement<ModelInfoV14>(modelInfoOffset));
+			m_ModelFile->ModelInfos.UserDataAt(modelInfoElementIndex)->SetFileOffset(modelInfoOffset);
+
+			if ( modelUserData->ChildModelInfosBeginIndex() == INVALID_CONTAINER_INDEX )
+			{
+				modelUserData->SetChildModelInfosBeginIndex(modelInfoElementIndex);
+			}
+
+			modelUserData->IncrementChildModelInfosCount();
 		}
 	}
 
-	void NightfireModelFileReader::ReadMeshes()
+	void NightfireModelFileReader::ReadMeshes(size_t bodyGroupGlobalIndex, size_t modelGlobalIndex, size_t modelInfoGlobalIndex)
 	{
-		m_ModelFile->Meshes.Clear();
+		const ModelInfoV14* modelInfo = m_ModelFile->ModelInfos.ElementAt(modelInfoGlobalIndex);
+		ModelInfoUserDataV14* modelInfoUserData = m_ModelFile->ModelInfos.UserDataAt(modelInfoGlobalIndex);
+		assert(modelInfo);
+		assert(modelInfoUserData);
 
-		const size_t modelCount = m_ModelFile->Models.Count();
+		const size_t meshElementBase = m_ModelFile->Meshes.Count();
+		const uint32_t meshCount = modelInfo->meshes.count;
+		const MeshV14* meshElements = GetElement<MeshV14>(modelInfo->meshes.offset, modelInfo->meshes.count);
 
-		for ( uint32_t modelIndex = 0; modelIndex < modelCount; ++modelIndex )
+		for ( uint32_t meshIndex = 0; meshIndex < meshCount; ++meshIndex )
 		{
-			const ModelV14* model = m_ModelFile->Models.ElementAt(modelIndex);
-			const TOwnedItemKey<ModelV14>& modelKey = m_ModelFile->Models.KeyFor(modelIndex);
-			assert(modelKey);
+			MeshCollectionKeyV14 meshKey;
+			meshKey.bodyGroupIndex = bodyGroupGlobalIndex;
+			meshKey.modelIndex = m_ModelFile->Models.KeyFor(modelGlobalIndex).itemIndex;
+			meshKey.modelInfoIndex = m_ModelFile->ModelInfos.KeyFor(modelInfoGlobalIndex).modelInfoIndex;
+			meshKey.meshIndex = meshIndex;
 
-			for ( uint32_t modelInfoIndex = 0; modelInfoIndex < ArraySize(model->modelInfoOffset); ++modelInfoIndex )
+			const size_t meshElementIndex = m_ModelFile->Meshes.Count();
+
+			if ( m_Verbose )
 			{
-				if ( model->modelInfoOffset[modelInfoIndex] < 1 )
-				{
-					continue;
-				}
-
-				const ModelInfoV14* modelInfo = m_ModelFile->ModelInfos.ElementAt(modelInfoIndex);
-				const uint32_t meshCount = modelInfo->meshes.count;
-				const MeshV14* meshElements = GetElement<MeshV14>(modelInfo->meshes.offset, modelInfo->meshes.count);
-
-				for ( uint32_t meshIndex = 0; meshIndex < meshCount; ++meshIndex )
-				{
-					MeshCollectionKeyV14 meshKey;
-					meshKey.bodyGroupIndex = modelKey.ownerIndex;
-					meshKey.modelIndex = modelIndex;
-					meshKey.modelInfoIndex = modelInfoIndex;
-					meshKey.meshIndex = meshIndex;
-
-					const size_t meshElementIndex = m_ModelFile->Meshes.Count();
-
-					if ( m_Verbose )
-					{
-						std::cout
-							<< "Reading mesh ("
-							<< sizeof(MeshV14)
-							<< " bytes) from offset "
-							<< modelInfo->meshes.offset + (meshIndex * sizeof(MeshV14))
-							<< " (global index "
-							<< meshElementIndex
-							<< ", local index "
-							<< meshIndex
-							<< ", owned by body group "
-							<< meshKey.bodyGroupIndex
-							<< ", model "
-							<< meshKey.modelIndex
-							<< ", and model info "
-							<< meshKey.modelInfoIndex
-							<< ")"
-							<< std::endl;
-					}
-
-					m_ModelFile->Meshes.AppendDefault();
-					m_ModelFile->Meshes.AssignMappingAndValue(meshKey, meshElementIndex, meshElements[meshIndex]);
-					m_ModelFile->Meshes.UserDataAt(meshElementIndex)->SetFileOffset(modelInfo->meshes.offset + (meshIndex * sizeof(MeshV14)));
-				}
+				std::cout
+					<< "Reading mesh ("
+					<< sizeof(MeshV14)
+					<< " bytes) from offset "
+					<< modelInfo->meshes.offset + (meshIndex * sizeof(MeshV14))
+					<< " (global index "
+					<< meshElementIndex
+					<< ", local index "
+					<< meshIndex
+					<< ", owned by body group "
+					<< meshKey.bodyGroupIndex
+					<< ", model "
+					<< meshKey.modelIndex
+					<< ", and model info "
+					<< meshKey.modelInfoIndex
+					<< ")"
+					<< std::endl;
 			}
+
+			m_ModelFile->Meshes.AppendDefault();
+			m_ModelFile->Meshes.AssignMappingAndValue(meshKey, meshElementIndex, meshElements[meshIndex]);
+			m_ModelFile->Meshes.UserDataAt(meshElementIndex)->SetFileOffset(modelInfo->meshes.offset + (meshIndex * sizeof(MeshV14)));
+
+			if ( modelInfoUserData->ChildMeshesBeginIndex() == INVALID_CONTAINER_INDEX )
+			{
+				modelInfoUserData->SetChildMeshesBeginIndex(meshElementIndex);
+			}
+
+			modelInfoUserData->IncrementChildMeshesCount();
 		}
 	}
 
@@ -791,6 +790,19 @@ namespace NFMDL
 		}
 
 		return BodyGroupReferencingModelAtOffset(m_ModelFile->Header.modelOffset[index]);
+	}
+
+	size_t NightfireModelFileReader::ModelIndexForOffset(uint32_t offset) const
+	{
+		for ( size_t index = 0; index < ArraySize(m_ModelFile->Header.modelOffset); ++index )
+		{
+			if ( m_ModelFile->Header.modelOffset[index] == offset )
+			{
+				return index;
+			}
+		}
+
+		throw std::runtime_error("No model present at offset " + std::to_string(offset));
 	}
 
 	void NightfireModelFileReader::LogElementsToRead(const CountOffsetPair& cop, const std::string& elementName, size_t elementSize)

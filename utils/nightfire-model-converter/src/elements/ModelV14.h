@@ -28,8 +28,35 @@ namespace NFMDL
 			m_IndexInHeader = index;
 		}
 
+		inline size_t ChildModelInfosBeginIndex() const
+		{
+			return m_ChildModelInfosBeginIndex;
+		}
+
+		inline void SetChildModelInfosBeginIndex(size_t index)
+		{
+			m_ChildModelInfosBeginIndex = index;
+		}
+
+		inline size_t ChildModelInfosCount() const
+		{
+			return m_ChildModelInfosCount;
+		}
+
+		inline void SetChildModelInfosCount(size_t count)
+		{
+			m_ChildModelInfosCount = count;
+		}
+
+		inline void IncrementChildModelInfosCount()
+		{
+			++m_ChildModelInfosCount;
+		}
+
 	private:
 		size_t m_IndexInHeader = INVALID_CONTAINER_INDEX;
+		size_t m_ChildModelInfosBeginIndex = INVALID_CONTAINER_INDEX;
+		size_t m_ChildModelInfosCount = 0;
 	};
 
 	template<>

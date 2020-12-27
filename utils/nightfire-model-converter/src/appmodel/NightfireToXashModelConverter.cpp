@@ -33,6 +33,24 @@ namespace NFMDL
 		}
 	}
 
+	// Note that this does not copy user data or keys.
+	template<typename T, typename U1, typename K1, typename U2, typename K2>
+	static inline void CopyContainerElements(const ElementContainer<T, U1, K1>& src, ElementContainer<T, U2, K2>& dest)
+	{
+		using SourceContainerType = ElementContainer<T, U1, K1>;
+		using DestContainerType = ElementContainer<T, U2, K2>;
+
+		dest.AllocateDefault(src.Count());
+
+		for ( const DestContainerType::IteratorData& it : dest )
+		{
+			const SourceContainerType::ElementType* source = src.ElementAt(it.index);
+			assert(source);
+
+			*it.element = *source;
+		}
+	}
+
 	std::string NightfireToXashModelConverter::GetConversionError() const
 	{
 		return m_ConversionError;
@@ -94,7 +112,6 @@ namespace NFMDL
 		CopyContainer(m_InModelFile->Events, m_OutModelFile->Events);
 		CopyContainer(m_InModelFile->FootPivots, m_OutModelFile->FootPivots);
 		CopyContainer(m_InModelFile->AnimationData, m_OutModelFile->AnimationData);
-		CopyContainer(m_InModelFile->BodyGroups, m_OutModelFile->BodyGroups);
 
 		ConstructHLBodyGroups();
 
@@ -130,6 +147,8 @@ namespace NFMDL
 
 			We also need to generate the relevant vertex/normal/etc. lists from the Nightfire vertex objects.
 		*/
+
+		CopyContainerElements(m_InModelFile->BodyGroups, m_OutModelFile->BodyGroups);
 
 		for ( auto it : m_OutModelFile->BodyGroups )
 		{

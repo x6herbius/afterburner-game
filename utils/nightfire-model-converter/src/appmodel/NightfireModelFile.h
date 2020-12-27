@@ -58,7 +58,7 @@ namespace NFMDL
 		ElementContainer<BoneFixUpV14> BoneFixUps;
 		ElementContainer<ModelV14, ModelUserDataV14, TOwnedItemKey<ModelV14>> Models;
 		ElementContainer<LevelOfDetailV14> LevelsOfDetail;
-		ElementContainer<BodyGroup> BodyGroups;
+		ElementContainer<BodyGroup, BodyGroupUserDataV14> BodyGroups;
 
 		ElementContainer<Skin, NullElementUserData, SkinCollectionKey> Skins;
 
@@ -71,7 +71,7 @@ namespace NFMDL
 		ElementContainer<SoundV14, NullElementUserData, TOwnedItemKey<SoundV14>> Sounds;
 
 		// Owned by models:
-		ElementContainer<ModelInfoV14, BaseElementUserData, ModelInfoCollectionKeyV14> ModelInfos;
+		ElementContainer<ModelInfoV14, ModelInfoUserDataV14, ModelInfoCollectionKeyV14> ModelInfos;
 		ElementContainer<MeshV14, BaseElementUserData, MeshCollectionKeyV14> Meshes;
 
 		// Other related information, useful for dumping later:
