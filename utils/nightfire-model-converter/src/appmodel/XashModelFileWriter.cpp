@@ -1,5 +1,6 @@
 #include "XashModelFileWriter.h"
 #include "elements/Conversions.h"
+#include "elements/DumpElements.h"
 
 namespace NFMDL
 {
@@ -141,6 +142,11 @@ namespace NFMDL
 	{
 		HeaderV10Xash& header = m_OutModelFile->Header;
 		m_FileBeginOffset = m_OutStream->tellp();
+
+		if ( m_Verbose )
+		{
+			std::cout << "Writing header: " << m_OutModelFile->Header << std::endl;
+		}
 
 		m_OutStream->write(reinterpret_cast<const char*>(&header), sizeof(header));
 
