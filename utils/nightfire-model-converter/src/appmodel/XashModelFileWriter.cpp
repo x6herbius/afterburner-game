@@ -13,6 +13,16 @@ namespace NFMDL
 		m_OutStream = stream;
 	}
 
+	bool XashModelFileWriter::Verbose() const
+	{
+		return m_Verbose;
+	}
+
+	void XashModelFileWriter::SetVerbose(bool verbose)
+	{
+		m_Verbose = verbose;
+	}
+
 	void XashModelFileWriter::Write()
 	{
 		if ( !m_OutModelFile )
@@ -60,6 +70,11 @@ namespace NFMDL
 		header.skinOffset = offset;
 		offset += m_OutModelFile->Skins.Count() * sizeof(Skin);
 
+		if ( m_Verbose )
+		{
+			LogComputedOffset<Skin>(header.skinOffset, m_OutModelFile->Skins.Count());
+		}
+
 		offset = SetOffsetForBlock(header.bodyGroups, m_OutModelFile->BodyGroups, offset);
 		offset = SetOffsetForBlock(header.attachments, m_OutModelFile->Attachments, offset);
 
@@ -69,22 +84,54 @@ namespace NFMDL
 		header.transitions = CountOffsetPair(); // TODO: cater for transitions
 
 		// Other blocks not referenced directly in header:
-		m_AdditionalOffsets.eventsOffset = offset;
+		m_AdditionalOffsets.eventsOffset = m_OutModelFile->Events.Count() > 0 ? offset : 0;
 		offset += m_OutModelFile->Events.Count() * sizeof(Event);
 
-		m_AdditionalOffsets.footPivotsOffset = offset;
+		if ( m_Verbose )
+		{
+			LogComputedOffset<Event>(m_AdditionalOffsets.eventsOffset, m_OutModelFile->Events.Count());
+		}
+
+		m_AdditionalOffsets.footPivotsOffset = m_OutModelFile->FootPivots.Count() > 0 ? offset : 0;
 		offset += m_OutModelFile->FootPivots.Count() * sizeof(FootPivot);
 
-		m_AdditionalOffsets.modelsOffset = offset;
+		if ( m_Verbose )
+		{
+			LogComputedOffset<FootPivot>(m_AdditionalOffsets.footPivotsOffset, m_OutModelFile->FootPivots.Count());
+		}
+
+		m_AdditionalOffsets.modelsOffset = m_OutModelFile->Models.Count() > 0 ? offset : 0;
 		offset += m_OutModelFile->Models.Count() * sizeof(ModelV10Xash);
 
-		m_AdditionalOffsets.meshesOffset = offset;
+		if ( m_Verbose )
+		{
+			LogComputedOffset<ModelV10Xash>(m_AdditionalOffsets.modelsOffset, m_OutModelFile->Models.Count());
+		}
+
+		m_AdditionalOffsets.meshesOffset = m_OutModelFile->Meshes.Count() > 0 ? offset : 0;
 		offset += m_OutModelFile->Meshes.Count() * sizeof(MeshV10Xash);
+
+		if ( m_Verbose )
+		{
+			LogComputedOffset<MeshV10Xash>(m_AdditionalOffsets.meshesOffset, m_OutModelFile->Meshes.Count());
+		}
 
 		m_AdditionalOffsets.animationDataOffset = offset;
 		for ( auto& it : m_OutModelFile->AnimationData )
 		{
 			offset += it.element->size() * sizeof(AnimationDataValueList::ValueType);
+		}
+
+		if ( offset == m_AdditionalOffsets.animationDataOffset )
+		{
+			// No values.
+			m_AdditionalOffsets.animationDataOffset = 0;
+		}
+
+		if ( m_Verbose )
+		{
+			LogComputedOffset<AnimationValue>(m_AdditionalOffsets.animationDataOffset,
+											  (offset - m_AdditionalOffsets.animationDataOffset) / sizeof(AnimationDataValueList::ValueType));
 		}
 
 		m_TotalFileSize = offset;
@@ -113,8 +160,30 @@ namespace NFMDL
 
 		assert(static_cast<uint32_t>(m_OutStream->tellp()) == m_AdditionalOffsets.animationDataOffset);
 
+		if ( m_Verbose )
+		{
+			std::cout
+				<< "Beginning write of "
+				<< m_OutModelFile->AnimationData.Count()
+				<< " sets of animation data to file from offset "
+				<< m_OutStream->tellp()
+				<< std::endl;
+		}
+
 		for ( auto& it : m_OutModelFile->AnimationData )
 		{
+			if ( m_Verbose )
+			{
+				std::cout
+					<< "Writing "
+					<< it.element->size()
+					<< " "
+					<< ElementTraits<AnimationValue>::ELEMENT_NAME
+					<< " elements to file at offset "
+					<< m_OutStream->tellp()
+					<< std::endl;
+			}
+
 			m_OutStream->write(reinterpret_cast<const char*>(it.element->data()), it.element->size());
 		}
 	}

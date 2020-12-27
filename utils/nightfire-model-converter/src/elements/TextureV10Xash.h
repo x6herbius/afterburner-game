@@ -14,4 +14,10 @@ namespace NFMDL
 		uint32_t index;
 	};
 #pragma pack(pop)
+
+	template<>
+	struct ElementTraits<TextureV10Xash>
+	{
+		static constexpr const char* ELEMENT_NAME = "TextureV10Xash";
+	};
 }

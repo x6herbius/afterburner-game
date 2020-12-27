@@ -45,4 +45,10 @@ namespace NFMDL
 		int32_t nextSequenceIndex;
 	};
 #pragma pack(pop)
+
+	template<>
+	struct ElementTraits<SequenceV10Xash>
+	{
+		static constexpr const char* ELEMENT_NAME = "SequenceV10Xash";
+	};
 }

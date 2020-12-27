@@ -176,6 +176,7 @@ static bool ConvertAndWriteModelFile(const AppOptions& options, const NFModelPtr
 	}
 
 	NFMDL::XashModelFileWriter writer(outModelFile);
+	writer.SetVerbose(options.verbose);
 
 	std::shared_ptr<std::ofstream> outFile = std::make_shared<std::ofstream>(options.outputFile, std::ios_base::out | std::ios_base::binary);
 	writer.SetOutputStream(outFile);

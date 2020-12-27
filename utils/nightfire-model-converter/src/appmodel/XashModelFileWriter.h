@@ -6,6 +6,7 @@
 #include <type_traits>
 #include <functional>
 #include <cassert>
+#include <iostream>
 #include "NightfireModelFile.h"
 #include "XashModelFile.h"
 #include "containers/ElementContainer.h"
@@ -18,6 +19,9 @@ namespace NFMDL
 		explicit XashModelFileWriter(const std::shared_ptr<XashModelFile>& outModelFile);
 
 		void SetOutputStream(const std::shared_ptr<std::ostream>& stream);
+		bool Verbose() const;
+		void SetVerbose(bool verbose);
+
 		void Write();
 
 	private:
@@ -41,18 +45,15 @@ namespace NFMDL
 		{
 			static_assert(ElementContainer<T, U, K>::ELEMENT_IS_POD, "Only permitted for POD elements.");
 
-			cop.count = container.Count();
+			cop.count = static_cast<uint32_t>(container.Count());
+			cop.offset = cop.count > 0 ? currentOffset : 0;
 
-			if ( cop.count > 0 )
+			if ( m_Verbose )
 			{
-				cop.offset = currentOffset;
-				return currentOffset + (cop.count * sizeof(T));
+				LogComputedOffset<T>(cop);
 			}
-			else
-			{
-				cop.offset = 0;
-				return currentOffset;
-			}
+
+			return currentOffset + (cop.count * sizeof(T));
 		}
 
 		template<typename T, typename U, typename K>
@@ -65,14 +66,49 @@ namespace NFMDL
 
 			assert(m_OutStream && static_cast<uint32_t>(m_OutStream->tellp()) == targetOffset);
 
+			if ( m_Verbose )
+			{
+				std::cout
+					<< "Writing "
+					<< container.Count()
+					<< " "
+					<< ElementTraits<T>::ELEMENT_NAME
+					<< " elements to file at offset "
+					<< targetOffset
+					<< std::endl;
+			}
+
 			for ( auto it : container )
 			{
 				m_OutStream->write(reinterpret_cast<const char*>(it.element), sizeof(*(it.element)));
 			}
 		}
 
+		template<typename T>
+		inline void LogComputedOffset(const CountOffsetPair& cop)
+		{
+			std::cout
+				<< "Computed output file offset of "
+				<< cop.offset
+				<< " for "
+				<< cop.count
+				<< " "
+				<< ElementTraits<T>::ELEMENT_NAME
+				<< " elements @ "
+				<< sizeof(T)
+				<< " bytes each"
+				<< std::endl;
+		}
+
+		template<typename T>
+		inline void LogComputedOffset(uint32_t offset, size_t count)
+		{
+			LogComputedOffset<T>(CountOffsetPair{static_cast<uint32_t>(count), offset});
+		}
+
 		std::shared_ptr<XashModelFile> m_OutModelFile;
 		std::shared_ptr<std::ostream> m_OutStream;
+		bool m_Verbose = false;
 
 		AdditionalOffsets m_AdditionalOffsets;
 		size_t m_TotalFileSize = 0;
