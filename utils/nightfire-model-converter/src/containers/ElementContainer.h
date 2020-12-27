@@ -189,6 +189,12 @@ namespace NFMDL
 			return index < m_Items.size() ? m_Items[index].key : invalidKey;
 		}
 
+		inline size_t IndexForKey(const KeyType& key) const
+		{
+			const KeyToItemIndexMap::iterator it = m_KeyToItemIndex.find(key);
+			return it != m_KeyToItemIndex.end() ? it->second : INVALID_CONTAINER_INDEX;
+		}
+
 		inline ConstIterator begin() const
 		{
 			return ConstIterator(this, 0);

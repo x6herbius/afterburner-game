@@ -32,7 +32,7 @@ namespace NFMDL
 		ElementContainer<SequenceGroup> SequenceGroups;
 		ElementContainer<TextureV10Xash> Textures;
 		ElementContainer<Attachment> Attachments;
-		ElementContainer<BodyGroup> BodyGroups;
+		ElementContainer<BodyGroup, BodyGroupUserDataV10Xash> BodyGroups;
 
 		ElementContainer<Skin, NullElementUserData, SkinCollectionKey> Skins;
 
@@ -42,7 +42,7 @@ namespace NFMDL
 		ElementContainer<AnimationDataValueList, NullElementUserData, AnimationDataCollectionKey> AnimationData;
 
 		// Owned by body groups:
-		ElementContainer<ModelV10Xash, NullElementUserData, TOwnedItemKey<ModelV10Xash>> Models;
+		ElementContainer<ModelV10Xash, ModelUserDataV10Xash, TOwnedItemKey<ModelV10Xash>> Models;
 
 		// Owned by models:
 		ElementContainer<MeshV10Xash, NullElementUserData, MeshCollectionKeyV10Xash> Meshes;

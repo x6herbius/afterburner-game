@@ -164,6 +164,7 @@ static bool ConvertAndWriteModelFile(const AppOptions& options, const NFModelPtr
 	NFMDL::NightfireToXashModelConverter converter;
 	converter.SetInputFile(inModelFile);
 	converter.SetOutputFile(outModelFile);
+	converter.SetVerbose(options.verbose);
 
 	std::cout << "Converting input file..." << std::endl;
 

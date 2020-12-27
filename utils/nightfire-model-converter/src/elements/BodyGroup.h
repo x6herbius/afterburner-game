@@ -50,6 +50,39 @@ namespace NFMDL
 		size_t m_ChildModelsCount = 0;
 	};
 
+	class BodyGroupUserDataV10Xash
+	{
+	public:
+		inline size_t ChildModelsBeginIndex() const
+		{
+			return m_ChildModelsBeginIndex;
+		}
+
+		inline void SetChildModelsBeginIndex(size_t index)
+		{
+			m_ChildModelsBeginIndex = index;
+		}
+
+		inline size_t ChildModelsCount() const
+		{
+			return m_ChildModelsCount;
+		}
+
+		inline void SetChildModelsCount(size_t count)
+		{
+			m_ChildModelsCount = count;
+		}
+
+		inline void IncrementChildModelsCount()
+		{
+			++m_ChildModelsCount;
+		}
+
+	private:
+		size_t m_ChildModelsBeginIndex = INVALID_CONTAINER_INDEX;
+		size_t m_ChildModelsCount = 0;
+	};
+
 	template<>
 	struct ElementTraits<BodyGroup>
 	{
