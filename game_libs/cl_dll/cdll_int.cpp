@@ -77,6 +77,7 @@ int		DLLEXPORT Initialize( cl_enginefunc_t *pEnginefuncs, int iVersion );
 int		DLLEXPORT HUD_VidInit( void );
 void	DLLEXPORT HUD_Init( void );
 int		DLLEXPORT HUD_Redraw( float flTime, int intermission );
+int		DLLEXPORT HUD_DrawCrosshair( float flTime, int intermission );
 int		DLLEXPORT HUD_UpdateClientData( client_data_t *cdata, float flTime );
 void	DLLEXPORT HUD_Reset ( void );
 void	DLLEXPORT HUD_PlayerMove( struct playermove_s *ppmove, int server );
@@ -315,6 +316,12 @@ int DLLEXPORT HUD_Redraw( float time, int intermission )
 
 	gHUD.Redraw( time, intermission );
 
+	return 1;
+}
+
+int DLLEXPORT HUD_DrawCrosshair( float time, int intermission )
+{
+	// TODO
 	return 1;
 }
 

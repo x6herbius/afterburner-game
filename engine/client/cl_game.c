@@ -44,6 +44,7 @@ static dllfunc_t cdll_exports[] =
 { "HUD_Init", (void **)&clgame.dllFuncs.pfnInit },
 { "HUD_Shutdown", (void **)&clgame.dllFuncs.pfnShutdown },
 { "HUD_Redraw", (void **)&clgame.dllFuncs.pfnRedraw },
+{ "HUD_DrawCrosshair", (void **)&clgame.dllFuncs.pfnDrawCrosshair },
 { "HUD_UpdateClientData", (void **)&clgame.dllFuncs.pfnUpdateClientData },
 { "HUD_Reset", (void **)&clgame.dllFuncs.pfnReset },
 { "HUD_PlayerMove", (void **)&clgame.dllFuncs.pfnPlayerMove },
@@ -900,12 +901,27 @@ void CL_DrawCrosshair( void )
 	int	x, y, width, height;
 	float xscale, yscale;
 
-	if( !clgame.ds.pCrosshair || !cl_crosshair->value )
+	if ( !cl_crosshair->value )
+	{
 		return;
+	}
+
+	if ( clgame.dllFuncs.pfnDrawCrosshair )
+	{
+		clgame.dllFuncs.pfnDrawCrosshair(cl.time, cl.intermission);
+		return;
+	}
+
+	if( !clgame.ds.pCrosshair )
+	{
+		return;
+	}
 
 	// any camera on or client is died
 	if( cl.local.health <= 0 || cl.viewentity != ( cl.playernum + 1 ))
+	{
 		return;
+	}
 
 	// get crosshair dimension
 	width = clgame.ds.rcCrosshair.right - clgame.ds.rcCrosshair.left;

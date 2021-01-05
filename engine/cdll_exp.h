@@ -30,6 +30,7 @@ typedef struct cldll_func_s
 	void	(*pfnInit)( void );
 	int	(*pfnVidInit)( void );
 	int	(*pfnRedraw)( float flTime, int intermission );
+	int	(*pfnDrawCrosshair)( float flTime, int intermission );
 	int	(*pfnUpdateClientData)( client_data_t *cdata, float flTime );
 	void	(*pfnReset)( void );
 	void	(*pfnPlayerMove)( struct playermove_s *ppmove, int server );
