@@ -11,6 +11,7 @@
 #include "weaponatts_ammodef.h"
 #include "weaponatts_baseattack.h"
 #include "weaponatts_prediction.h"
+#include "weaponatts_crosshair.h"
 #include "utlvector.h"
 
 namespace WeaponAtts
@@ -31,6 +32,7 @@ namespace WeaponAtts
 		WAViewModel ViewModel;
 		WAPlayerModel PlayerModel;
 		WAPrediction Prediction;
+		WACrosshair Crosshair;
 
 		WACollection(const std::function<void(WACollection&)>& initialiser);
 

@@ -42,6 +42,7 @@ static const WeaponAtts::WACollection StaticWeaponAttributes([](WeaponAtts::WACo
 	WAPlayerModel& pm = obj.PlayerModel;
 	pm.PlayerAnimExtension = "crowbar";
 
+	obj.Crosshair.hasCrosshair = false;
 	obj.Prediction.SetUpPrediction<CWeaponFists>();
 
 	obj.SkillRecords.AddToTail(WASkillRecord("sk_plr_dmg_fists", &skilldata_t::plrDmgFists));
