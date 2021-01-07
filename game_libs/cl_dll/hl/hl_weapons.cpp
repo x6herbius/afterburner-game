@@ -811,7 +811,9 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 		pCurrent->m_fInSpecialReload = pfrom->m_fInSpecialReload;
 		pCurrent->m_iClip = pfrom->m_iClip;
 		pCurrent->m_flNextPrimaryAttack	= pfrom->m_flNextPrimaryAttack;
+		pCurrent->m_flLastPrimaryAttack	= pfrom->m_flLastPrimaryAttack;
 		pCurrent->m_flNextSecondaryAttack = pfrom->m_flNextSecondaryAttack;
+		pCurrent->m_flLastSecondaryAttack = pfrom->m_flLastSecondaryAttack;
 		pCurrent->m_flTimeWeaponIdle = pfrom->m_flTimeWeaponIdle;
 
 		pCurrent->ReadPredictionData(pfrom);
@@ -959,7 +961,9 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 		pto->m_fInSpecialReload = pCurrent->m_fInSpecialReload;
 		pto->m_iClip = pCurrent->m_iClip;
 		pto->m_flNextPrimaryAttack = pCurrent->m_flNextPrimaryAttack;
+		pto->m_flLastPrimaryAttack = pCurrent->m_flLastPrimaryAttack;
 		pto->m_flNextSecondaryAttack = pCurrent->m_flNextSecondaryAttack;
+		pto->m_flLastSecondaryAttack = pCurrent->m_flLastSecondaryAttack;
 		pto->m_flTimeWeaponIdle = pCurrent->m_flTimeWeaponIdle;
 
 		pCurrent->WritePredictionData(pto);
@@ -968,7 +972,9 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 		pto->m_flNextReload -= cmd->msec / 1000.0;
 		pto->m_fNextAimBonus -= cmd->msec / 1000.0;
 		pto->m_flNextPrimaryAttack -= cmd->msec / 1000.0;
+		pto->m_flLastPrimaryAttack -= cmd->msec / 1000.0;
 		pto->m_flNextSecondaryAttack -= cmd->msec / 1000.0;
+		pto->m_flLastSecondaryAttack -= cmd->msec / 1000.0;
 		pto->m_flTimeWeaponIdle -= cmd->msec / 1000.0;
 		pto->fuser1 -= cmd->msec / 1000.0;
 
@@ -987,9 +993,19 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 			pto->m_flNextPrimaryAttack = -1.0;
 		}
 
+		if( pto->m_flLastPrimaryAttack < -1.0 )
+		{
+			pto->m_flLastPrimaryAttack = -1.0;
+		}
+
 		if( pto->m_flNextSecondaryAttack < -0.001 )
 		{
 			pto->m_flNextSecondaryAttack = -0.001;
+		}
+
+		if( pto->m_flLastSecondaryAttack < -0.001 )
+		{
+			pto->m_flLastSecondaryAttack = -0.001;
 		}
 
 		if( pto->m_flTimeWeaponIdle < -0.001 )

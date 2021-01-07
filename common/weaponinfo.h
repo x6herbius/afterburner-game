@@ -23,7 +23,9 @@ typedef struct weapon_data_s
 	int		m_iClip;
 
 	float		m_flNextPrimaryAttack;
+	float		m_flLastPrimaryAttack;
 	float		m_flNextSecondaryAttack;
+	float		m_flLastSecondaryAttack;
 	float		m_flTimeWeaponIdle;
 
 	int		m_fInReload;

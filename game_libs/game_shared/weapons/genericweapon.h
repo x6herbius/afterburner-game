@@ -103,6 +103,11 @@ protected:
 		}
 	}
 
+	inline void RecordLastPrimaryAttack()
+	{
+		m_flLastPrimaryAttack = UTIL_WeaponTimeBase();
+	}
+
 	inline void SetNextSecondaryAttack(float secsInFuture, bool allowIfEarlier = false)
 	{
 		const float delay = UTIL_WeaponTimeBase() + secsInFuture;
@@ -110,6 +115,11 @@ protected:
 		{
 			m_flNextSecondaryAttack = delay;
 		}
+	}
+
+	inline void RecordLastSecondaryAttack()
+	{
+		m_flLastSecondaryAttack = UTIL_WeaponTimeBase();
 	}
 
 	inline void SetNextIdleTime(float secsInFuture, bool allowIfEarlier = false)

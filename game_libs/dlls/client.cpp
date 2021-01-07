@@ -1650,7 +1650,9 @@ int GetWeaponData( struct edict_s *player, struct weapon_data_s *info )
 
 						item->m_flTimeWeaponIdle	= Q_max( gun->m_flTimeWeaponIdle, -0.001 );
 						item->m_flNextPrimaryAttack	= Q_max( gun->m_flNextPrimaryAttack, -0.001 );
+						item->m_flLastPrimaryAttack	= Q_max( gun->m_flLastPrimaryAttack, -0.001 );
 						item->m_flNextSecondaryAttack	= Q_max( gun->m_flNextSecondaryAttack, -0.001 );
+						item->m_flLastSecondaryAttack	= Q_max( gun->m_flLastSecondaryAttack, -0.001 );
 						item->m_fInReload		= gun->m_fInReload;
 						item->m_fInSpecialReload	= gun->m_fInSpecialReload;
 
