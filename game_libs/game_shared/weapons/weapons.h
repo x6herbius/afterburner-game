@@ -19,6 +19,8 @@
 #include "effects.h"
 #include "cdll_dll.h"
 
+static constexpr float LAST_ATTACK_MIN_LIMIT = -10.0f;
+
 class CBasePlayer;
 typedef struct weapon_data_s weapon_data_t;
 extern int gmsgWeapPickup;

@@ -150,6 +150,7 @@ typedef struct clientdata_s
 
 	int		m_iId;
 	float		m_flNextAttack;
+	float		m_flLastAttack;
 
 	int		tfstate;
 	int		pushmsec;

@@ -41,7 +41,7 @@ extern globalvars_t *gpGlobals;
 extern int g_iUser1;
 
 // Pool of client side entities/entvars_t
-static entvars_t ev[32];
+static entvars_t ev[64];
 static int num_ents = 0;
 
 // The entity we'll use to represent the local client
@@ -50,7 +50,7 @@ static CBasePlayer player;
 // Local version of game .dll global variables ( time, etc. )
 static globalvars_t Globals;
 
-static CBasePlayerWeapon *g_pWpns[32];
+static CBasePlayerWeapon *g_pWpns[64];
 
 float g_flApplyVel = 0.0;
 int g_irunninggausspred = 0;
@@ -116,6 +116,8 @@ we set up the m_pPlayer field.
 */
 void HUD_PrepEntity( CBaseEntity *pEntity, CBasePlayer *pWeaponOwner )
 {
+	ASSERT(num_ents < 64);
+
 	memset( &ev[num_ents], 0, sizeof(entvars_t) );
 	pEntity->pev = &ev[num_ents++];
 
@@ -851,6 +853,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 	player.m_iWeaponScreenOverlay = ScreenOverlays::ToOverlayId(from->client.weaponScreenOverlay);
 	player.pev->viewmodel = from->client.viewmodel;
 	player.m_flNextAttack = from->client.m_flNextAttack;
+	player.m_flLastAttack = from->client.m_flLastAttack;
 	player.m_flNextAmmoBurn = from->client.fuser2;
 	player.m_flAmmoStartCharge = from->client.fuser3;
 
@@ -914,6 +917,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 	to->client.weaponanim = player.pev->weaponanim;
 	to->client.weaponScreenOverlay = player.m_iWeaponScreenOverlay;
 	to->client.m_flNextAttack = player.m_flNextAttack;
+	to->client.m_flLastAttack = player.m_flLastAttack;
 	to->client.fuser2 = player.m_flNextAmmoBurn;
 	to->client.fuser3 = player.m_flAmmoStartCharge;
 	to->client.maxspeed = player.pev->maxspeed;
@@ -1008,11 +1012,17 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 		}
 	}
 
-	// m_flNextAttack is now part of the weapons, but is part of the player instead
+	// m_flNextAttack is not part of the weapons, but is part of the player instead
 	to->client.m_flNextAttack -= cmd->msec / 1000.0;
 	if( to->client.m_flNextAttack < -0.001 )
 	{
 		to->client.m_flNextAttack = -0.001;
+	}
+
+	to->client.m_flLastAttack -= cmd->msec / 1000.0;
+	if( to->client.m_flLastAttack < LAST_ATTACK_MIN_LIMIT )
+	{
+		to->client.m_flLastAttack = LAST_ATTACK_MIN_LIMIT;
 	}
 
 	to->client.fuser2 -= cmd->msec / 1000.0;

@@ -1743,6 +1743,7 @@ void UpdateClientData( const struct edict_s *ent, int sendweapons, struct client
 		if( pl )
 		{
 			cd->m_flNextAttack = pl->m_flNextAttack;
+			cd->m_flLastAttack = pl->m_flLastAttack;
 			cd->fuser2 = pl->m_flNextAmmoBurn;
 			cd->fuser3 = pl->m_flAmmoStartCharge;
 

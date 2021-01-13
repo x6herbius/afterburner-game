@@ -562,6 +562,7 @@ void CGenericWeapon::DelayFiring(float secs, bool allowIfEarlier, WeaponAttackTy
 	if ( type == WeaponAttackType::None || type == WeaponAttackType::Primary )
 	{
 		SetNextPrimaryAttack(secs, allowIfEarlier);
+		m_pPlayer->m_flLastAttack = UTIL_WeaponTimeBase();
 	}
 
 	if ( type == WeaponAttackType::None || type == WeaponAttackType::Secondary )

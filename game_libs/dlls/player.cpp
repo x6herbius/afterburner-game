@@ -2602,6 +2602,10 @@ pt_end:
 	if( m_flNextAttack < -0.001 )
 		m_flNextAttack = -0.001;
 
+	m_flLastAttack -= gpGlobals->frametime;
+	if( m_flLastAttack < LAST_ATTACK_MIN_LIMIT )
+		m_flLastAttack = LAST_ATTACK_MIN_LIMIT;
+
 	if( m_flNextAmmoBurn != 1000 )
 	{
 		m_flNextAmmoBurn -= gpGlobals->frametime;
@@ -2688,6 +2692,7 @@ void CBasePlayer::Spawn( void )
 
 	m_bloodColor = BLOOD_COLOR_RED;
 	m_flNextAttack = UTIL_WeaponTimeBase();
+	m_flLastAttack = LAST_ATTACK_MIN_LIMIT;
 	StartSneaking();
 
 	m_iFlashBattery = 99;
