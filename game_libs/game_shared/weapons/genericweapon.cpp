@@ -562,13 +562,11 @@ void CGenericWeapon::DelayFiring(float secs, bool allowIfEarlier, WeaponAttackTy
 	if ( type == WeaponAttackType::None || type == WeaponAttackType::Primary )
 	{
 		SetNextPrimaryAttack(secs, allowIfEarlier);
-		RecordLastPrimaryAttack();
 	}
 
 	if ( type == WeaponAttackType::None || type == WeaponAttackType::Secondary )
 	{
 		SetNextSecondaryAttack(secs, allowIfEarlier);
-		RecordLastSecondaryAttack();
 	}
 }
 
