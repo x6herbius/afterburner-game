@@ -25,14 +25,7 @@ static constexpr int NextReloadState(int orig, int next)
 }
 
 static constexpr const char* FRINESI_COCK_SOUND = "weapons/weapon_frinesi/frinesi_cock.wav";
-
-static constexpr float FRINESI_BASE_DAMAGE_AUTO = 81.0f / static_cast<float>(FRINESI_PELLETS_PER_SHOT);
-static constexpr float FRINESI_BASE_SPREAD_AUTO = 0.05f;
-
-static constexpr float FRINESI_BASE_DAMAGE_PUMP = 159.0f / static_cast<float>(FRINESI_PELLETS_PER_SHOT);
-static constexpr float FRINESI_BASE_SPREAD_PUMP = 0.1f;
 static constexpr float FRINESI_PUMP_DELAY = 0.42f;
-
 static constexpr float PUMP_SOUND_OFFSET = 0.08f;
 static constexpr float RELOAD_SOUND_OFFSET = 0.1f;
 
