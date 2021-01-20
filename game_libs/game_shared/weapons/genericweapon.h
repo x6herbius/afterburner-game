@@ -33,6 +33,9 @@ public:
 	virtual int iItemSlot() override;
 	virtual void ItemPostFrame() override;
 
+	bool PrimaryAttackInvokedThisFrame() const;
+	bool SecondaryAttackInvokedThisFrame() const;
+
 	virtual const WeaponAtts::WACollection& WeaponAttributes() const = 0;
 
 #ifndef CLIENT_DLL
@@ -157,6 +160,8 @@ private:
 	int m_iWeaponSlotPosition;
 	bool m_bPrimaryAttackHeldDown;
 	bool m_bSecondaryAttackHeldDown;
+	bool m_bPrimaryAttackThisFrame;
+	bool m_bSecondaryAttackThisFrame;
 };
 
 class CGenericAmmo : public CBasePlayerAmmo

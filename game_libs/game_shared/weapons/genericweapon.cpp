@@ -17,7 +17,9 @@ CGenericWeapon::CGenericWeapon()
 	  m_iWeaponSlot(-1),
 	  m_iWeaponSlotPosition(-1),
 	  m_bPrimaryAttackHeldDown(false),
-	  m_bSecondaryAttackHeldDown(false)
+	  m_bSecondaryAttackHeldDown(false),
+	  m_bPrimaryAttackThisFrame(false),
+	  m_bSecondaryAttackThisFrame(false)
 {
 }
 
@@ -231,6 +233,26 @@ bool CGenericWeapon::InvokeWithAttackMode(WeaponAttackType type, const WeaponAtt
 		return false;
 	}
 
+	switch ( type )
+	{
+		case WeaponAttackType::Primary:
+		{
+			m_bPrimaryAttackThisFrame = true;
+			break;
+		}
+
+		case WeaponAttackType::Secondary:
+		{
+			m_bSecondaryAttackThisFrame = true;
+			break;
+		}
+
+		default:
+		{
+			break;
+		}
+	}
+
 	return true;
 }
 
@@ -288,6 +310,9 @@ void CGenericWeapon::Reload()
 // TODO: Refactor this!
 void CGenericWeapon::ItemPostFrame()
 {
+	m_bPrimaryAttackThisFrame = false;
+	m_bSecondaryAttackThisFrame = false;
+
 	WeaponTick();
 
 	if( ( m_fInReload ) && ( m_pPlayer->m_flNextAttack <= UTIL_WeaponTimeBase() ) )
@@ -666,6 +691,16 @@ bool CGenericWeapon::CanReload() const
 	}
 
 	return true;
+}
+
+bool CGenericWeapon::PrimaryAttackInvokedThisFrame() const
+{
+	return m_bPrimaryAttackThisFrame;
+}
+
+bool CGenericWeapon::SecondaryAttackInvokedThisFrame() const
+{
+	return m_bSecondaryAttackThisFrame;
 }
 
 const char* CGenericWeapon::PickupSound() const

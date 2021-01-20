@@ -17,13 +17,14 @@ namespace
 
 CWeaponInaccuracyModifier::CWeaponInaccuracyModifier()
 {
-	Clear();
+	Reset();
 }
 
-void CWeaponInaccuracyModifier::Clear()
+void CWeaponInaccuracyModifier::Reset()
 {
 	ResetInaccuracy();
 
+	m_InaccuracyCap = 1.0f;
 	m_WeaponFireImpulse = 0.0f;
 	m_WeaponFiredThisFrame = false;
 	m_WeaponFireTime = 0.0f;
@@ -35,7 +36,6 @@ void CWeaponInaccuracyModifier::Clear()
 void CWeaponInaccuracyModifier::ResetInaccuracy()
 {
 	m_Inaccuracy = 0.0f;
-	m_Time = 0.0f;
 }
 
 float CWeaponInaccuracyModifier::CurrentInaccuracy() const
@@ -43,17 +43,17 @@ float CWeaponInaccuracyModifier::CurrentInaccuracy() const
 	return m_Inaccuracy;
 }
 
-void CWeaponInaccuracyModifier::RecalculateInaccuracy(float trueInaccuracy, float dt)
+void CWeaponInaccuracyModifier::RecalculateInaccuracy(float trueInaccuracy, float currentTime)
 {
 	// Add impulse to current inaccuracy if the player's weapon was fired this frame.
 	if ( m_WeaponFiredThisFrame )
 	{
 		m_Inaccuracy += m_WeaponFireImpulse;
-		m_WeaponFireTime = m_Time;
+		m_WeaponFireTime = currentTime;
 		m_WeaponFiredThisFrame = false;
 	}
 
-	const float timeSinceWeaponFired = Max(0.0f, m_Time - m_WeaponFireTime);
+	const float timeSinceWeaponFired = Max(0.0f, currentTime - m_WeaponFireTime);
 
 	// Get interpolation value between both follow coefficients.
 	// If interp == 1, the weapon's follow coefficient is used.
@@ -74,10 +74,7 @@ void CWeaponInaccuracyModifier::RecalculateInaccuracy(float trueInaccuracy, floa
 	m_Inaccuracy += followCoefficient * (trueInaccuracy - m_Inaccuracy);
 
 	// Clamp inaccuracy to valid range.
-	m_Inaccuracy = Clamp(0.0f, m_InaccuracyCap, m_InaccuracyCap);
-
-	// Advance internal time counter.
-	m_Time += dt;
+	m_Inaccuracy = Clamp(0.0f, m_Inaccuracy, m_InaccuracyCap);
 }
 
 float CWeaponInaccuracyModifier::InaccuracyCap() const

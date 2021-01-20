@@ -46,6 +46,7 @@
 #include "screenOverlays/messageWriter.h"
 #include "com_model.h"
 #include "resources/SoundResources.h"
+#include "weapons/genericweapon.h"
 
 // #define DUCKFIX
 
@@ -1908,6 +1909,8 @@ void CBasePlayer::PreThink( void )
 	{
 		pev->velocity = g_vecZero;
 	}
+
+	m_ViewAngleVelocity.Update(pev->v_angle, gpGlobals->time);
 }
 /* Time based Damage works as follows:
 	1) There are several types of timebased damage:
@@ -2553,6 +2556,25 @@ void CBasePlayer::PostThink()
 	CheckPowerups( pev );
 
 	UpdatePlayerSound();
+
+	// REMOVE ME
+	static float lastVel = 0.0f;
+	if ( lastVel != m_ViewAngleVelocity.ViewAngleVelocity() )
+	{
+		ALERT(at_console, "Velocity: (%.2f %.2f %.2f) [%.2fu/s] Angles: (%.2f %.2f %.2f) [%.2fdeg/s] Inaccuracy: %.2f\n",
+			pev->velocity.x,
+			pev->velocity.y,
+			pev->velocity.z,
+			pev->velocity.Length(),
+			pev->v_angle.x,
+			pev->v_angle.y,
+			pev->v_angle.z,
+			m_ViewAngleVelocity.ViewAngleVelocity(),
+			m_WeaponInaccuracyModifier.CurrentInaccuracy());
+
+		lastVel = m_ViewAngleVelocity.ViewAngleVelocity();
+	}
+
 pt_end:
 	if( pev->deadflag == DEAD_NO )
 		m_vecLastViewAngles = pev->angles;
@@ -2639,6 +2661,11 @@ void CBasePlayer::SetScreenOverlay(ScreenOverlays::OverlayId id)
 	msgWriter.SetTargetClient(this);
 	msgWriter.SetId(m_iWeaponScreenOverlay);
 	msgWriter.WriteMessage();
+}
+
+float CBasePlayer::GetViewAngleFrameDelta() const
+{
+	return m_ViewAngleVelocity.ViewAngleVelocity();
 }
 
 void CBasePlayer::Spawn( void )
@@ -2743,6 +2770,14 @@ void CBasePlayer::Spawn( void )
 
 	m_flNextChatTime = gpGlobals->time;
 	m_flNextPainTime = gpGlobals->time;
+
+	m_ViewAngleVelocity.Reset(pev->v_angle, gpGlobals->time);
+
+	// TODO: Set these up properly.
+	m_WeaponInaccuracyModifier.Reset();
+	m_WeaponInaccuracyModifier.SetInaccuracyCap(1.0f);
+	m_WeaponInaccuracyModifier.SetWeaponFireImpulse(0.3f);
+	m_WeaponInaccuracyModifier.SetWeaponFollowCoefficient(0.05f);
 
 	g_pGameRules->PlayerSpawn( this );
 }
@@ -3670,9 +3705,20 @@ void CBasePlayer::ItemPostFrame()
 	ImpulseCommands();
 
 	if( !m_pActiveItem )
+	{
 		return;
+	}
 
 	m_pActiveItem->ItemPostFrame();
+
+	CGenericWeapon* weapon = dynamic_cast<CGenericWeapon*>(m_pActiveItem);
+
+	if ( weapon && weapon->PrimaryAttackInvokedThisFrame() )
+	{
+		m_WeaponInaccuracyModifier.SetWeaponFiredThisFrame();
+	}
+
+	m_WeaponInaccuracyModifier.RecalculateInaccuracy(0.0f /*TODO: Proper value*/, gpGlobals->time);
 }
 
 int CBasePlayer::AmmoInventory( int iAmmoIndex )

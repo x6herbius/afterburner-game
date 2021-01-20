@@ -10,7 +10,7 @@ public:
 	CWeaponInaccuracyModifier();
 
 	// Resets all properties and internal values.
-	void Clear();
+	void Reset();
 
 	// Resets inaccuracy and accumulated time, but leaves other properties unaffected.
 	void ResetInaccuracy();
@@ -24,7 +24,7 @@ public:
 	// rotation speed. The computed inaccuracy value will track this value across
 	// frames, based on the standard follow coefficient, and a weapon being fired
 	// will apply an impulse that temporarily increases the inaccuracy.
-	void RecalculateInaccuracy(float trueInaccuracy, float dt);
+	void RecalculateInaccuracy(float trueInaccuracy, float currentTime);
 
 	// The maximum value that the inaccuracy is allowed to reach.
 	// If it exceeds this value, it will be clamped.
@@ -70,8 +70,6 @@ private:
 
 	float m_Inaccuracy = 0.0f;
 	float m_InaccuracyCap = 1.0f;
-	float m_Time = 0.0f;
-
 	float m_WeaponFireImpulse = 0.0f;
 	bool m_WeaponFiredThisFrame = false;
 	float m_WeaponFireTime = 0.0f;

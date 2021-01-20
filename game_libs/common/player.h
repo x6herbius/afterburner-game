@@ -19,6 +19,8 @@
 #include "enginecallback.h"
 #include "screenOverlays/screenOverlayIds.h"
 #include "pm_materials.h"
+#include "gameplay/playerviewanglevelocity.h"
+#include "gameplay/weaponinaccuracymodifier.h"
 
 #define PLAYER_FATAL_FALL_SPEED		1024// approx 60 feet
 #define PLAYER_MAX_SAFE_FALL_SPEED	580// approx 20 feet
@@ -334,6 +336,12 @@ public:
 	float m_flNextPainTime;
 
 	bool m_bSentBhopcap; // If false, the player just joined and needs a bhopcap message.
+
+	float GetViewAngleFrameDelta() const;
+
+private:
+	CPlayerViewAngleVelocity m_ViewAngleVelocity;
+	CWeaponInaccuracyModifier m_WeaponInaccuracyModifier;
 };
 
 #define AUTOAIM_2DEGREES  0.0348994967025
