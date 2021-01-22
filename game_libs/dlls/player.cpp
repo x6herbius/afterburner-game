@@ -1910,7 +1910,8 @@ void CBasePlayer::PreThink( void )
 		pev->velocity = g_vecZero;
 	}
 
-	m_ViewAngleVelocity.Update(pev->v_angle, gpGlobals->time);
+	m_ViewAngleVelocityCalculator.Update(pev->v_angle, gpGlobals->time);
+	m_flViewAngleVelocity = m_ViewAngleVelocityCalculator.ViewAngleVelocity();
 }
 /* Time based Damage works as follows:
 	1) There are several types of timebased damage:
@@ -2557,24 +2558,6 @@ void CBasePlayer::PostThink()
 
 	UpdatePlayerSound();
 
-	// REMOVE ME
-	static float lastVel = 0.0f;
-	if ( lastVel != m_ViewAngleVelocity.ViewAngleVelocity() )
-	{
-		ALERT(at_console, "Velocity: (%.2f %.2f %.2f) [%.2fu/s] Angles: (%.2f %.2f %.2f) [%.2fdeg/s] Inaccuracy: %.2f\n",
-			pev->velocity.x,
-			pev->velocity.y,
-			pev->velocity.z,
-			pev->velocity.Length(),
-			pev->v_angle.x,
-			pev->v_angle.y,
-			pev->v_angle.z,
-			m_ViewAngleVelocity.ViewAngleVelocity(),
-			m_WeaponInaccuracyModifier.CurrentInaccuracy());
-
-		lastVel = m_ViewAngleVelocity.ViewAngleVelocity();
-	}
-
 pt_end:
 	if( pev->deadflag == DEAD_NO )
 		m_vecLastViewAngles = pev->angles;
@@ -2661,11 +2644,6 @@ void CBasePlayer::SetScreenOverlay(ScreenOverlays::OverlayId id)
 	msgWriter.SetTargetClient(this);
 	msgWriter.SetId(m_iWeaponScreenOverlay);
 	msgWriter.WriteMessage();
-}
-
-float CBasePlayer::GetViewAngleFrameDelta() const
-{
-	return m_ViewAngleVelocity.ViewAngleVelocity();
 }
 
 void CBasePlayer::Spawn( void )
@@ -2771,7 +2749,8 @@ void CBasePlayer::Spawn( void )
 	m_flNextChatTime = gpGlobals->time;
 	m_flNextPainTime = gpGlobals->time;
 
-	m_ViewAngleVelocity.Reset(pev->v_angle, gpGlobals->time);
+	m_ViewAngleVelocityCalculator.Reset(pev->v_angle, gpGlobals->time);
+	m_flViewAngleVelocity = m_ViewAngleVelocityCalculator.ViewAngleVelocity();
 
 	// TODO: Set these up properly.
 	m_WeaponInaccuracyModifier.Reset();

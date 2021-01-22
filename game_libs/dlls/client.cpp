@@ -1722,6 +1722,7 @@ void UpdateClientData( const struct edict_s *ent, int sendweapons, struct client
 	cd->fov			= pev->fov;
 	cd->weaponanim		= pev->weaponanim;
 	cd->weaponScreenOverlay = pl->m_iWeaponScreenOverlay;
+	cd->m_flViewAngleVelocity = pl->m_flViewAngleVelocity;
 
 	cd->pushmsec		= pev->pushmsec;
 

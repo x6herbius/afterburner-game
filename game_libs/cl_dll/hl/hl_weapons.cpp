@@ -41,7 +41,7 @@ extern globalvars_t *gpGlobals;
 extern int g_iUser1;
 
 // Pool of client side entities/entvars_t
-static entvars_t ev[64];
+static entvars_t ev[32];
 static int num_ents = 0;
 
 // The entity we'll use to represent the local client
@@ -116,7 +116,7 @@ we set up the m_pPlayer field.
 */
 void HUD_PrepEntity( CBaseEntity *pEntity, CBasePlayer *pWeaponOwner )
 {
-	ASSERT(num_ents < 64);
+	ASSERT(num_ents < 32);
 
 	memset( &ev[num_ents], 0, sizeof(entvars_t) );
 	pEntity->pev = &ev[num_ents++];
@@ -854,6 +854,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 	player.pev->viewmodel = from->client.viewmodel;
 	player.m_flNextAttack = from->client.m_flNextAttack;
 	player.m_flLastAttack = from->client.m_flLastAttack;
+	player.m_flViewAngleVelocity = from->client.m_flViewAngleVelocity;
 	player.m_flNextAmmoBurn = from->client.fuser2;
 	player.m_flAmmoStartCharge = from->client.fuser3;
 
@@ -918,6 +919,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 	to->client.weaponScreenOverlay = player.m_iWeaponScreenOverlay;
 	to->client.m_flNextAttack = player.m_flNextAttack;
 	to->client.m_flLastAttack = player.m_flLastAttack;
+	to->client.m_flViewAngleVelocity = player.m_flViewAngleVelocity;
 	to->client.fuser2 = player.m_flNextAmmoBurn;
 	to->client.fuser3 = player.m_flAmmoStartCharge;
 	to->client.maxspeed = player.pev->maxspeed;

@@ -304,7 +304,6 @@ int CBasePlayer::GiveAmmo( int iCount, const char *szName, int iMax ) { return 0
 void CBasePlayer::AddPoints( int score, BOOL bAllowNegativeScore ) { }
 void CBasePlayer::AddPointsToTeam( int score, BOOL bAllowNegativeScore ) { }
 void CBasePlayer::SetScreenOverlay(ScreenOverlays::OverlayId id) { }
-float CBasePlayer::GetViewAngleFrameDelta() const { return 0.0f; };
 
 void ClearMultiDamage( void ) { }
 void ApplyMultiDamage( entvars_t *pevInflictor, entvars_t *pevAttacker ) { }
