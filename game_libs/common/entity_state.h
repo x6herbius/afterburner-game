@@ -152,6 +152,7 @@ typedef struct clientdata_s
 	float		m_flNextAttack;
 	float		m_flLastAttack;
 	float		m_flViewAngleVelocity;
+	float		m_flDynamicWeaponSpread;
 
 	int		tfstate;
 	int		pushmsec;

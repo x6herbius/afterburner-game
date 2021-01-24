@@ -226,6 +226,7 @@ static const delta_field_t cd_fields[] =
 { CLDT_DEF( m_flNextAttack )	},
 { CLDT_DEF( m_flLastAttack )	},
 { CLDT_DEF( m_flViewAngleVelocity )	},
+{ CLDT_DEF( m_flDynamicWeaponSpread )	},
 { CLDT_DEF( tfstate )	},
 { CLDT_DEF( pushmsec )	},
 { CLDT_DEF( deadflag )	},

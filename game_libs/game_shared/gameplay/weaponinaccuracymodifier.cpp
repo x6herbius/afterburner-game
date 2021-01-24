@@ -30,6 +30,7 @@ void CWeaponInaccuracyModifier::Reset()
 	m_WeaponFireTime = 0.0f;
 	m_WeaponFollowCoefficient = 0.5f;
 	m_StandardFollowCoefficient = 0.95f;
+	m_InputInaccuracyScale = 1.0f;
 	m_FollowCoeffInterpFunc = FollowCoefficientInterpFunction();
 }
 
@@ -45,6 +46,9 @@ float CWeaponInaccuracyModifier::CurrentInaccuracy() const
 
 void CWeaponInaccuracyModifier::RecalculateInaccuracy(float trueInaccuracy, float currentTime)
 {
+	// Scale input as appropriate.
+	trueInaccuracy *= m_InputInaccuracyScale;
+
 	// Add impulse to current inaccuracy if the player's weapon was fired this frame.
 	if ( m_WeaponFiredThisFrame )
 	{
@@ -85,6 +89,16 @@ float CWeaponInaccuracyModifier::InaccuracyCap() const
 void CWeaponInaccuracyModifier::SetInaccuracyCap(float cap)
 {
 	m_InaccuracyCap = Max(cap, 0.0f);
+}
+
+float CWeaponInaccuracyModifier::InputInaccuracyScale() const
+{
+	return m_InputInaccuracyScale;
+}
+
+void CWeaponInaccuracyModifier::SetInputInaccuracyScale(float scale)
+{
+	m_InputInaccuracyScale = scale;
 }
 
 float CWeaponInaccuracyModifier::WeaponFireImpulse() const

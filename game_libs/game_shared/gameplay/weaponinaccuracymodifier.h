@@ -31,6 +31,12 @@ public:
 	float InaccuracyCap() const;
 	void SetInaccuracyCap(float cap);
 
+	// When inaccuracy is recalculated, the true inaccuracy value is scaled by this
+	// amount before it is used. The higher the value, the more the input affects
+	// the calculated inaccuracy.
+	float InputInaccuracyScale() const;
+	void SetInputInaccuracyScale(float scale);
+
 	// The absolute value added to the inaccuracy on the frame when a weapon is fired.
 	float WeaponFireImpulse() const;
 	void SetWeaponFireImpulse(float impulse);
@@ -75,5 +81,6 @@ private:
 	float m_WeaponFireTime = 0.0f;
 	float m_WeaponFollowCoefficient = 0.5f;
 	float m_StandardFollowCoefficient = 0.95f;
+	float m_InputInaccuracyScale = 1.0f;
 	FollowCoefficientInterpFunction m_FollowCoeffInterpFunc;
 };

@@ -184,6 +184,7 @@ public:
 	int			m_iClientFOV;	// client's known FOV
 	float		m_flLastAttack;
 	float		m_flViewAngleVelocity;
+	float		m_flDynamicWeaponSpread;
 
 	// usable player items
 	CBasePlayerItem	*m_rgpPlayerItems[MAX_ITEM_TYPES];
@@ -339,6 +340,8 @@ public:
 	bool m_bSentBhopcap; // If false, the player just joined and needs a bhopcap message.
 
 private:
+	float CalculateBaseInaccuracyValue() const;
+
 	CPlayerViewAngleVelocity m_ViewAngleVelocityCalculator;
 	CWeaponInaccuracyModifier m_WeaponInaccuracyModifier;
 };

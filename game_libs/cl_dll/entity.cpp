@@ -189,6 +189,7 @@ void DLLEXPORT HUD_TxferPredictionData( struct entity_state_s *ps, const struct 
 	pcd->m_flNextAttack			= ppcd->m_flNextAttack;
 	pcd->m_flLastAttack			= ppcd->m_flLastAttack;
 	pcd->m_flViewAngleVelocity	= ppcd->m_flViewAngleVelocity;
+	pcd->m_flDynamicWeaponSpread = ppcd->m_flDynamicWeaponSpread;
 	pcd->fov				= ppcd->fov;
 	pcd->weaponanim				= ppcd->weaponanim;
 	pcd->weaponScreenOverlay	= ppcd->weaponScreenOverlay;

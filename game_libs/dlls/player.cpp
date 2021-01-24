@@ -47,6 +47,7 @@
 #include "com_model.h"
 #include "resources/SoundResources.h"
 #include "weapons/genericweapon.h"
+#include "gameplay/gameplayCvars.h"
 
 // #define DUCKFIX
 
@@ -62,6 +63,11 @@ BOOL gInitHUD = TRUE;
 
 extern void respawn( entvars_t *pev, BOOL fCopyCorpse );
 extern Vector VecBModelOrigin( entvars_t *pevBModel );
+
+static inline float ClampNormalised(float val)
+{
+	return Max(0.0f, Min(val, 1.0f));
+}
 
 // the world node graph
 extern CGraph WorldGraph;
@@ -2755,8 +2761,10 @@ void CBasePlayer::Spawn( void )
 	// TODO: Set these up properly.
 	m_WeaponInaccuracyModifier.Reset();
 	m_WeaponInaccuracyModifier.SetInaccuracyCap(1.0f);
+	m_WeaponInaccuracyModifier.SetInputInaccuracyScale(0.5f);
 	m_WeaponInaccuracyModifier.SetWeaponFireImpulse(0.3f);
 	m_WeaponInaccuracyModifier.SetWeaponFollowCoefficient(0.05f);
+	m_flDynamicWeaponSpread = m_WeaponInaccuracyModifier.CurrentInaccuracy();
 
 	g_pGameRules->PlayerSpawn( this );
 }
@@ -3697,7 +3705,32 @@ void CBasePlayer::ItemPostFrame()
 		m_WeaponInaccuracyModifier.SetWeaponFiredThisFrame();
 	}
 
-	m_WeaponInaccuracyModifier.RecalculateInaccuracy(0.0f /*TODO: Proper value*/, gpGlobals->time);
+	m_WeaponInaccuracyModifier.RecalculateInaccuracy(CalculateBaseInaccuracyValue(), gpGlobals->time);
+	m_flDynamicWeaponSpread = m_WeaponInaccuracyModifier.CurrentInaccuracy();
+}
+
+float CBasePlayer::CalculateBaseInaccuracyValue() const
+{
+	float proportionOfMaxSpeed = 0.0f;
+	float proportionOfMaxViewAngleSpeed = 0.0f;
+
+	if ( mp_weaponspread_maxmovementvel.value > 0.0f )
+	{
+		const Vector velocity(pev->velocity[0], pev->velocity[1], pev->velocity[2]);
+		proportionOfMaxSpeed = ClampNormalised(velocity.Length() / mp_weaponspread_maxmovementvel.value);
+	}
+
+	if ( mp_weaponspread_maxangvel.value > 0.0f )
+	{
+		proportionOfMaxViewAngleSpeed = ClampNormalised(m_flViewAngleVelocity / mp_weaponspread_maxangvel.value);
+	}
+
+	const float movementWithBias = proportionOfMaxSpeed * ClampNormalised(mp_weaponspread_movementbias.value);
+	const float angleVelWithBias = proportionOfMaxViewAngleSpeed * ClampNormalised(mp_weaponspread_angvelbias.value);
+
+	// If at max speed, turning view has no effect.
+	// If at rest, turning view has full effect.
+	return movementWithBias + ((1.0f - proportionOfMaxSpeed) * angleVelWithBias);
 }
 
 int CBasePlayer::AmmoInventory( int iAmmoIndex )

@@ -14,6 +14,7 @@ clientdata_t none
 	DEFINE_DELTA( m_flNextAttack, DT_FLOAT | DT_SIGNED, 22, 1000.0 ),
 	DEFINE_DELTA( m_flLastAttack, DT_FLOAT | DT_SIGNED, 22, 1000.0 ),
 	DEFINE_DELTA( m_flViewAngleVelocity, DT_FLOAT, 16, 10.0 ),
+	DEFINE_DELTA( m_flDynamicWeaponSpread, DT_FLOAT, 16, 10.0 ),
 
 	DEFINE_DELTA( origin[2], DT_SIGNED | DT_FLOAT, 21, 128.0 ),
 	DEFINE_DELTA( velocity[2], DT_SIGNED | DT_FLOAT, 16, 8.0 ),

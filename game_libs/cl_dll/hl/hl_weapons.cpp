@@ -855,6 +855,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 	player.m_flNextAttack = from->client.m_flNextAttack;
 	player.m_flLastAttack = from->client.m_flLastAttack;
 	player.m_flViewAngleVelocity = from->client.m_flViewAngleVelocity;
+	player.m_flDynamicWeaponSpread = from->client.m_flDynamicWeaponSpread;
 	player.m_flNextAmmoBurn = from->client.fuser2;
 	player.m_flAmmoStartCharge = from->client.fuser3;
 
@@ -920,6 +921,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 	to->client.m_flNextAttack = player.m_flNextAttack;
 	to->client.m_flLastAttack = player.m_flLastAttack;
 	to->client.m_flViewAngleVelocity = player.m_flViewAngleVelocity;
+	to->client.m_flDynamicWeaponSpread = player.m_flDynamicWeaponSpread;
 	to->client.fuser2 = player.m_flNextAmmoBurn;
 	to->client.fuser3 = player.m_flAmmoStartCharge;
 	to->client.maxspeed = player.pev->maxspeed;
