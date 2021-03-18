@@ -319,6 +319,7 @@ public:
 	float m_flPlayAftershock;
 	float m_flNextAmmoBurn;// while charging, when to absorb another unit of player's ammo?
 	ScreenOverlays::OverlayId m_iWeaponScreenOverlay;
+	float m_flWeaponInaccuracy;
 
 	//Player ID
 	void InitStatusBar( void );

@@ -2,22 +2,25 @@
 #include "studio_utils_shared.h"
 #include "weaponslots.h"
 #include "gamerules.h"
+#include "gameplay/inaccuracymodifiers.h"
+#include "weaponinfo.h"
+#include "util/extramath.h"
+#include "util/cvarFuncs.h"
 
 #ifdef CLIENT_DLL
 #include "cl_dll.h"
 #include "cl_entity.h"
 #endif
 
+#ifndef CLIENT_DLL
+// Just randomly externing things like this is disgusting,
+// but it's consistent with how the rest of the HL code
+// is written. Fix this later.
+extern int gmsgCurWeaponPriAttackMode;
+#endif
+
 CGenericWeapon::CGenericWeapon()
-	: CBasePlayerWeapon(),
-	  m_pPrimaryAttackMode(nullptr),
-	  m_pSecondaryAttackMode(nullptr),
-	  m_iViewModelIndex(0),
-	  m_iViewModelBody(0),
-	  m_iWeaponSlot(-1),
-	  m_iWeaponSlotPosition(-1),
-	  m_bPrimaryAttackHeldDown(false),
-	  m_bSecondaryAttackHeldDown(false)
+	: CBasePlayerWeapon()
 {
 }
 
@@ -44,6 +47,9 @@ void CGenericWeapon::Spawn()
 	}
 
 	m_iDefaultAmmo = WeaponAttributes().Ammo.PrimaryAmmoOnFirstPickup;
+
+	m_InaccuracyCalculator.Clear();
+	m_flInaccuracy = 0.0f;
 
 	if ( !(pev->spawnflags & SF_DontDrop) )
 	{
@@ -195,12 +201,18 @@ BOOL CGenericWeapon::Deploy()
 
 void CGenericWeapon::PrimaryAttack()
 {
-	InvokeAttack(WeaponAttackType::Primary);
+	if ( InvokeAttack(WeaponAttackType::Primary) )
+	{
+		m_bPrimaryAttackThisFrame = true;
+	}
 }
 
 void CGenericWeapon::SecondaryAttack()
 {
-	InvokeAttack(WeaponAttackType::Secondary);
+	if ( InvokeAttack(WeaponAttackType::Secondary) )
+	{
+		m_bSecondaryAttackThisFrame = true;
+	}
 }
 
 bool CGenericWeapon::InvokeAttack(WeaponAttackType type)
@@ -285,27 +297,21 @@ void CGenericWeapon::Reload()
 	}
 }
 
-// TODO: Refactor this!
 void CGenericWeapon::ItemPostFrame()
 {
+	m_bPrimaryAttackThisFrame = false;
+	m_bSecondaryAttackThisFrame = false;
+
+	m_InaccuracyCalculator.SetLastSmoothedInaccuracy(m_flInaccuracy);
+	m_InaccuracyCalculator.SetAccuracyParams(GetWeaponAccuracyParams());
+	m_InaccuracyCalculator.SetPlayer(m_pPlayer);
+	m_InaccuracyCalculator.CalculateInaccuracy();
+
 	WeaponTick();
 
 	if( ( m_fInReload ) && ( m_pPlayer->m_flNextAttack <= UTIL_WeaponTimeBase() ) )
 	{
-		// TODO: Ammo needs to be sync'd to client for this to work.
-#ifndef CLIENT_DLL
-		// complete the reload.
-		int j = Q_min( iMaxClip() - m_iClip, m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]);
-
-		// Add them to the clip
-		m_iClip += j;
-		m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] -= j;
-#else
-		// No idea why this is so arbitrary, but Half Life had it in...
-		m_iClip += 10;
-#endif
-
-		m_fInReload = FALSE;
+		PerformReload();
 	}
 
 	if( !(m_pPlayer->pev->button & IN_ATTACK ) )
@@ -319,20 +325,13 @@ void CGenericWeapon::ItemPostFrame()
 		m_bSecondaryAttackHeldDown = false;
 	}
 
-	const bool priAttackIsContinuous = m_pPrimaryAttackMode && m_pPrimaryAttackMode->IsContinuous;
-	const bool secAttackIsContinuous = m_pSecondaryAttackMode && m_pSecondaryAttackMode->IsContinuous;
-
-	if( (m_pPlayer->pev->button & IN_ATTACK2) &&
-		CanAttack(m_flNextSecondaryAttack, gpGlobals->time, UseDecrement()) &&
-		(secAttackIsContinuous || !m_bSecondaryAttackHeldDown) )
+	if( ShouldSecondaryAttackThisFrame() )
 	{
 		SetFireOnEmptyState(m_pSecondaryAttackMode);
 		SecondaryAttack();
 		m_bSecondaryAttackHeldDown = true;
 	}
-	else if( (m_pPlayer->pev->button & IN_ATTACK) &&
-			 CanAttack(m_flNextPrimaryAttack, gpGlobals->time, UseDecrement()) &&
-			 (priAttackIsContinuous || !m_bPrimaryAttackHeldDown) )
+	else if( ShouldPrimaryAttackThisFrame() )
 	{
 		SetFireOnEmptyState(m_pPrimaryAttackMode);
 		PrimaryAttack();
@@ -348,36 +347,166 @@ void CGenericWeapon::ItemPostFrame()
 		// no fire buttons down
 		m_fFireOnEmpty = FALSE;
 
-#ifndef CLIENT_DLL
-		if( !IsUseable() && m_flNextPrimaryAttack < ( UseDecrement() ? 0.0 : gpGlobals->time ) )
+		HandleNoButtonsDown_Server();
+		HandleNoButtonsDown_Client();
+	}
+	else
+	{
+		// catch all
+		if( ShouldWeaponIdle() )
 		{
-			// weapon isn't useable, switch.
-			if( !( iFlags() & ITEM_FLAG_NOAUTOSWITCHEMPTY ) && g_pGameRules->GetNextBestWeapon( m_pPlayer, this ) )
-			{
-				m_flNextPrimaryAttack = ( UseDecrement() ? 0.0 : gpGlobals->time ) + 0.3;
-				return;
-			}
+			WeaponIdle();
 		}
-		else
-#endif
-		{
-			// weapon is useable. Reload if empty and weapon has waited as long as it has to after firing
-			if( m_iClip == 0 && !(iFlags() & ITEM_FLAG_NOAUTORELOAD ) && m_flNextPrimaryAttack < ( UseDecrement() ? 0.0 : gpGlobals->time ) )
-			{
-				Reload();
-				return;
-			}
-		}
+	}
 
-		WeaponIdle();
+	UpdateValuesPostFrame();
+}
+
+void CGenericWeapon::PerformReload()
+{
+	// TODO: Ammo needs to be sync'd to client for this to work.
+#ifndef CLIENT_DLL
+	// complete the reload.
+	int j = Q_min( iMaxClip() - m_iClip, m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]);
+
+	// Add them to the clip
+	m_iClip += j;
+	m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] -= j;
+#else
+	// No idea why this is so arbitrary, but Half Life had it in...
+	m_iClip += 10;
+#endif
+
+	m_fInReload = FALSE;
+}
+
+bool CGenericWeapon::ReloadUsableWeaponIfEmpty()
+{
+	// weapon is useable. Reload if empty and weapon has waited as long as it has to after firing
+	if( m_iClip == 0 && !(iFlags() & ITEM_FLAG_NOAUTORELOAD ) && m_flNextPrimaryAttack < ( UseDecrement() ? 0.0 : gpGlobals->time ) )
+	{
+		Reload();
+		return true;
+	}
+
+	return false;
+}
+
+void CGenericWeapon::UpdateValuesPostFrame()
+{
+	m_InaccuracyCalculator.SetFiredThisFrame(m_bPrimaryAttackThisFrame);
+	m_InaccuracyCalculator.SetLastFireTime(m_flLastPrimaryAttack);
+	m_InaccuracyCalculator.SetLastFireTimeIsDecremented(UseDecrement());
+	m_InaccuracyCalculator.AddInaccuracyPenaltyFromFiring();
+	m_flInaccuracy = m_InaccuracyCalculator.SmoothedInaccuracy();
+
+	if ( IsActiveItem() )
+	{
+		m_pPlayer->m_flWeaponInaccuracy = m_flInaccuracy;
+	}
+}
+
+bool CGenericWeapon::ShouldSecondaryAttackThisFrame() const
+{
+	const bool buttonDown = m_pPlayer->pev->button & IN_ATTACK2;
+	const bool canAttack = CanAttack(m_flNextSecondaryAttack, gpGlobals->time, UseDecrement());
+	const bool secAttackIsContinuous = m_pSecondaryAttackMode && m_pSecondaryAttackMode->IsContinuous;
+
+	return buttonDown && canAttack && (secAttackIsContinuous || !m_bSecondaryAttackHeldDown);
+}
+
+bool CGenericWeapon::ShouldPrimaryAttackThisFrame() const
+{
+	const bool buttonDown = m_pPlayer->pev->button & IN_ATTACK;
+	const bool canAttack = CanAttack(m_flNextPrimaryAttack, gpGlobals->time, UseDecrement());
+	const bool priAttackIsContinuous = m_pPrimaryAttackMode && m_pPrimaryAttackMode->IsContinuous;
+
+	return buttonDown && canAttack && (priAttackIsContinuous || !m_bPrimaryAttackHeldDown);
+}
+
+void CGenericWeapon::HandleNoButtonsDown_Server()
+{
+#ifndef CLIENT_DLL
+	if( !IsUseable() && m_flNextPrimaryAttack < ( UseDecrement() ? 0.0 : gpGlobals->time ) )
+	{
+		// weapon isn't useable, switch.
+		if( !( iFlags() & ITEM_FLAG_NOAUTOSWITCHEMPTY ) && g_pGameRules->GetNextBestWeapon( m_pPlayer, this ) )
+		{
+			m_flNextPrimaryAttack = ( UseDecrement() ? 0.0 : gpGlobals->time ) + 0.3;
+			return;
+		}
+	}
+	else if ( ReloadUsableWeaponIfEmpty() )
+	{
 		return;
 	}
 
-	// catch all
-	if( ShouldWeaponIdle() )
+	WeaponIdle();
+#endif
+}
+
+void CGenericWeapon::HandleNoButtonsDown_Client()
+{
+#ifdef CLIENT_DLL
+	if ( ReloadUsableWeaponIfEmpty() )
 	{
-		WeaponIdle();
+		return;
 	}
+
+	WeaponIdle();
+#endif
+}
+
+bool CGenericWeapon::ReadPredictionData(const weapon_data_t* from)
+{
+	if ( !CBasePlayerWeapon::ReadPredictionData(from) )
+	{
+		return false;
+	}
+
+	m_flInaccuracy = from->m_iInaccuracy;
+	return true;
+}
+
+bool CGenericWeapon::WritePredictionData(weapon_data_t* to)
+{
+	if ( !CBasePlayerWeapon::WritePredictionData(to) )
+	{
+		return false;
+	}
+
+	to->m_iInaccuracy = m_flInaccuracy;
+	return true;
+}
+
+int CGenericWeapon::UpdateClientData(CBasePlayer* pPlayer)
+{
+	CBasePlayerWeapon::UpdateClientData(pPlayer);
+
+#ifndef CLIENT_DLL
+	if ( !IsActiveItem() )
+	{
+		return 1;
+	}
+
+	byte currentAttackMode = GetPrimaryAttackModeIndex();
+
+	if ( pPlayer->m_pActiveItem == pPlayer->m_pClientActiveItem && currentAttackMode == m_iLastPriAttackMode )
+	{
+		// Same weapon as last frame and no mode change, no need to update.
+		return 1;
+	}
+
+	// Update the HUD with the new mode.
+	MESSAGE_BEGIN(MSG_ONE, gmsgCurWeaponPriAttackMode, nullptr, pPlayer->pev);
+		WRITE_BYTE(m_iId);
+		WRITE_BYTE(currentAttackMode);
+	MESSAGE_END();
+
+	m_iLastPriAttackMode = currentAttackMode;
+#endif
+
+	return 1;
 }
 
 void CGenericWeapon::SetFireOnEmptyState(const WeaponAtts::WABaseAttack* attackMode)
@@ -562,11 +691,13 @@ void CGenericWeapon::DelayFiring(float secs, bool allowIfEarlier, WeaponAttackTy
 	if ( type == WeaponAttackType::None || type == WeaponAttackType::Primary )
 	{
 		SetNextPrimaryAttack(secs, allowIfEarlier);
+		m_flLastPrimaryAttack = UTIL_WeaponTimeBase();
 	}
 
 	if ( type == WeaponAttackType::None || type == WeaponAttackType::Secondary )
 	{
 		SetNextSecondaryAttack(secs, allowIfEarlier);
+		m_flLastSecondaryAttack = UTIL_WeaponTimeBase();
 	}
 }
 
@@ -667,6 +798,57 @@ bool CGenericWeapon::CanReload() const
 	return true;
 }
 
+int CGenericWeapon::GetEventIDForAttackMode(const WeaponAtts::WABaseAttack* attack) const
+{
+	return (attack && attack->Signature()->Index < m_AttackModeEvents.Count())
+			? m_AttackModeEvents[attack->Signature()->Index]
+			: -1;
+}
+
+void CGenericWeapon::SetPrimaryAttackMode(const WeaponAtts::WABaseAttack* mode)
+{
+	m_pPrimaryAttackMode = mode;
+}
+
+void CGenericWeapon::SetSecondaryAttackMode(const WeaponAtts::WABaseAttack* mode)
+{
+	m_pSecondaryAttackMode = mode;
+}
+
+float CGenericWeapon::GetInaccuracy() const
+{
+	return m_flInaccuracy;
+}
+
+byte CGenericWeapon::GetPrimaryAttackModeIndex() const
+{
+	if ( !m_pPrimaryAttackMode )
+	{
+		return 0;
+	}
+
+	const WeaponAtts::WACollection& atts = WeaponAttributes();
+	const size_t attackModeCount = atts.AttackModes.Count();
+
+	for ( size_t index = 0; index < attackModeCount; ++index )
+	{
+		if ( m_pPrimaryAttackMode == atts.AttackModes[index].get() )
+		{
+			// This cast is fine, since we should never exceed MAX_ATTACK_MODES.
+			return static_cast<byte>(index);
+		}
+	}
+
+	return 0;
+}
+
+const WeaponAtts::AccuracyParameters* CGenericWeapon::GetWeaponAccuracyParams() const
+{
+	// For now, base this off the primary attack mode only.
+	const WeaponAtts::WAAmmoBasedAttack* ammoAttack = dynamic_cast<const WeaponAtts::WAAmmoBasedAttack*>(m_pPrimaryAttackMode);
+	return ammoAttack ? &ammoAttack->Accuracy : nullptr;
+}
+
 const char* CGenericWeapon::PickupSound() const
 {
 	const WeaponAtts::WACollection& atts = WeaponAttributes();
@@ -723,3 +905,16 @@ void CGenericWeapon::GetSharedCircularGaussianSpread(uint32_t shotIndex, int sha
 	y = UTIL_SharedRandomFloat( shared_rand + (shotIndex * NUM_COMPONENTS) + 2, -0.5, 0.5 ) +
 		UTIL_SharedRandomFloat( shared_rand + (shotIndex * NUM_COMPONENTS) + 3, -0.5, 0.5 );
 }
+
+#ifndef CLIENT_DLL
+TYPEDESCRIPTION	CGenericWeapon::m_SaveData[] =
+{
+#if defined(CLIENT_WEAPONS)
+	DEFINE_FIELD(CGenericWeapon, m_flInaccuracy, FIELD_FLOAT),
+#else	// CLIENT_WEAPONS
+	DEFINE_FIELD(CGenericWeapon, m_flInaccuracy, FIELD_TIME)
+#endif	// CLIENT_WEAPONS
+};
+
+IMPLEMENT_SAVERESTORE(CGenericWeapon, CBasePlayerWeapon)
+#endif

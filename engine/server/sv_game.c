@@ -681,7 +681,7 @@ Issue changing level
 */
 void SV_QueueChangeLevel( const char *level, const char *landname )
 {
-	int	flags, smooth = false;
+	uint	flags, smooth = false;
 	char	mapname[MAX_QPATH];
 	char	*spawn_entity;
 
@@ -772,7 +772,8 @@ void SV_WriteEntityPatch( const char *filename )
 	dheader_t		*header;
 	file_t		*f;
 
-	Q_strncpy( bspfilename, va( "maps/%s.bsp", filename ), sizeof( bspfilename ));
+	Q_snprintf( bspfilename, sizeof( bspfilename ), "maps/%s.bsp", filename );
+
 	f = FS_Open( bspfilename, "rb", false );
 	if( !f ) return;
 
@@ -824,7 +825,8 @@ static char *SV_ReadEntityScript( const char *filename, int *flags )
 
 	*flags = 0;
 
-	Q_strncpy( bspfilename, va( "maps/%s.bsp", filename ), sizeof( bspfilename ));
+	Q_snprintf( bspfilename, sizeof( bspfilename ), "maps/%s.bsp", filename );
+
 	f = FS_Open( bspfilename, "rb", false );
 	if( !f ) return NULL;
 
@@ -846,7 +848,7 @@ static char *SV_ReadEntityScript( const char *filename, int *flags )
 	lumplen = header->lumps[LUMP_ENTITIES].filelen;
 
 	// check for entfile too
-	Q_strncpy( entfilename, va( "maps/%s.ent", filename ), sizeof( entfilename ));
+	Q_snprintf( entfilename, sizeof( entfilename ), "maps/%s.ent", filename );
 
 	// make sure what entity patch is newer than bsp
 	ft1 = FS_FileTime( bspfilename, false );
@@ -878,9 +880,9 @@ SV_MapIsValid
 Validate map
 ==============
 */
-int SV_MapIsValid( const char *filename, const char *spawn_entity, const char *landmark_name )
+uint SV_MapIsValid( const char *filename, const char *spawn_entity, const char *landmark_name )
 {
-	int	flags = 0;
+	uint	flags = 0;
 	char	*pfile;
 	char	*ents;
 
@@ -888,9 +890,11 @@ int SV_MapIsValid( const char *filename, const char *spawn_entity, const char *l
 
 	if( ents )
 	{
-		qboolean	need_landmark = Q_strlen( landmark_name ) > 0 ? true : false;
+		qboolean	need_landmark;
 		char	token[MAX_TOKEN];
 		string	check_name;
+
+		need_landmark = COM_CheckString( landmark_name );
 
 		// g-cont. in-dev mode we can entering on map even without "info_player_start"
 		if( !need_landmark && host_developer.value )
@@ -3143,9 +3147,9 @@ void SV_AllocStringPool( void )
 #endif
 
 	str64.pstringarray = ptr;
-	str64.pstringarraystatic = ptr + str64.maxstringarray;
+	str64.pstringarraystatic = (byte*)ptr + str64.maxstringarray;
 	str64.pstringbase = str64.poldstringbase = ptr;
-	str64.plast = ptr + 1;
+	str64.plast = (byte*)ptr + 1;
 	svgame.globals->pStringBase = ptr;
 #else
 	svgame.stringspool = Mem_AllocPool( "Server Strings" );
@@ -3158,9 +3162,11 @@ void SV_FreeStringPool( void )
 #ifdef XASH_64BIT
 	Con_Reportf( "SV_FreeStringPool()\n" );
 
+#ifdef USE_MMAP
 	if( str64.pstringarray != str64.staticstringarray )
 		munmap( str64.pstringarray, (str64.maxstringarray * 2) & ~(sysconf( _SC_PAGESIZE ) - 1) );
 	else
+#endif
 		Mem_Free( str64.staticstringarray );
 #else
 	Mem_FreePool( &svgame.stringspool );
@@ -3722,7 +3728,7 @@ vaild map must contain one info_player_deatchmatch
 */
 int GAME_EXPORT pfnIsMapValid( char *filename )
 {
-	int	flags = SV_MapIsValid( filename, GI->mp_entity, NULL );
+	uint	flags = SV_MapIsValid( filename, GI->mp_entity, NULL );
 
 	if( FBitSet( flags, MAP_IS_EXIST ) && FBitSet( flags, MAP_HAS_SPAWNPOINT ))
 		return true;
@@ -4635,15 +4641,7 @@ pfnEngineStub
 extended iface stubs
 =============
 */
-static int GAME_EXPORT pfnGetFileSize( char *filename )
-{
-	return 0;
-}
-static unsigned int GAME_EXPORT pfnGetApproxWavePlayLen(const char *filepath)
-{
-	return 0;
-}
-static int GAME_EXPORT pfnGetLocalizedStringLength(const char *label)
+static int GAME_EXPORT pfnGetLocalizedStringLength( const char *label )
 {
 	return 0;
 }
@@ -4797,8 +4795,8 @@ static enginefuncs_t gEngfuncs =
 	pfnGetPlayerAuthId,
 	pfnSequenceGet,
 	pfnSequencePickSentence,
-	pfnGetFileSize,
-	pfnGetApproxWavePlayLen,
+	COM_FileSize,
+	Sound_GetApproxWavePlayLen,
 	pfnIsCareerMatch,
 	pfnGetLocalizedStringLength,
 	pfnRegisterTutorMessageShown,

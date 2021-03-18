@@ -280,7 +280,7 @@ void Mem_CheckHeaderSentinels( void *data, const char *filename, int fileline )
 	}
 
 	if( *((byte *)mem + sizeof(memheader_t) + mem->size) != MEMHEADER_SENTINEL2 )
-	{	
+	{
 		mem->filename = Mem_CheckFilename( mem->filename ); // make sure what we don't crash var_args
 		Sys_Error( "Mem_CheckSentinels: trashed header sentinel 2 (block allocated at %s:%i, sentinel check at %s:%i)\n", mem->filename, mem->fileline, filename, fileline );
 	}

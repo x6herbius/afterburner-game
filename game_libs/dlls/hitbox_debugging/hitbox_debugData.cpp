@@ -14,7 +14,7 @@ CHitboxDebugData::~CHitboxDebugData()
 
 bool CHitboxDebugData::IsValid() const
 {
-	return m_Attacker.Get() && m_Target.Get();
+	return m_Attacker.Get();
 }
 
 void CHitboxDebugData::Clear()
@@ -72,16 +72,11 @@ void CHitboxDebugData::HandleHitscanFire(const CWeaponDebugEvent_HitscanFire* ev
 		return;
 	}
 
+	// Attacker must be valid. Target can be null if we just want to see
+	// weapon shot traces and not hitboxes.
 	if ( !m_Attacker )
 	{
 		ALERT(at_console, "Attacker no longer valid, turning hitbox debugging off.\n");
-		Clear();
-		return;
-	}
-
-	if ( !m_Target )
-	{
-		ALERT(at_console, "Target no longer valid, turning hitbox debugging off.\n");
 		Clear();
 		return;
 	}

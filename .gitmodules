@@ -13,3 +13,6 @@
 [submodule "game_libs/miniutl"]
 	path = game_libs/miniutl
 	url = https://github.com/FWGS/MiniUTL.git
+[submodule "ref_gl/gl4es"]
+	path = ref_gl/gl4es
+	url = https://github.com/ptitSeb/gl4es

@@ -28,6 +28,7 @@
 
 #include "demo.h"
 #include "demo_api.h"
+#include "hud_crosshair.h"
 
 cvar_t *hud_textmode;
 float g_hud_text_color[3];
@@ -184,19 +185,19 @@ void CHud::Init( void )
 	// VGUI Menus
 	HOOK_MESSAGE( VGUIMenu );
 
-	CVAR_CREATE( "hud_classautokill", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );		// controls whether or not to suicide immediately on TF class switch
-	CVAR_CREATE( "hud_takesshots", "0", FCVAR_ARCHIVE );		// controls whether or not to automatically take screenshots at the end of a round
-	hud_textmode = CVAR_CREATE ( "hud_textmode", "0", FCVAR_ARCHIVE );
+	CL_CvarCreate( "hud_classautokill", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );		// controls whether or not to suicide immediately on TF class switch
+	CL_CvarCreate( "hud_takesshots", "0", FCVAR_ARCHIVE );		// controls whether or not to automatically take screenshots at the end of a round
+	hud_textmode = CL_CvarCreate ( "hud_textmode", "0", FCVAR_ARCHIVE );
 
 	m_iLogo = 0;
 	m_iFOV = 0;
 
-	CVAR_CREATE( "zoom_sensitivity_ratio", "1.2", 0 );
-	default_fov = CVAR_CREATE( "default_fov", "90", 0 );
-	m_pCvarStealMouse = CVAR_CREATE( "hud_capturemouse", "1", FCVAR_ARCHIVE );
-	m_pCvarDraw = CVAR_CREATE( "hud_draw", "1", FCVAR_ARCHIVE );
+	CL_CvarCreate( "zoom_sensitivity_ratio", "1.2", 0 );
+	default_fov = CL_CvarCreate( "default_fov", "90", 0 );
+	m_pCvarStealMouse = CL_CvarCreate( "hud_capturemouse", "1", FCVAR_ARCHIVE );
+	m_pCvarDraw = CL_CvarCreate( "hud_draw", "1", FCVAR_ARCHIVE );
 	cl_lw = gEngfuncs.pfnGetCvarPointer( "cl_lw" );
-	cl_viewbob = CVAR_CREATE( "cl_viewbob", "0", FCVAR_ARCHIVE );
+	cl_viewbob = CL_CvarCreate( "cl_viewbob", "0", FCVAR_ARCHIVE );
 
 	m_pSpriteList = NULL;
 
@@ -232,10 +233,18 @@ void CHud::Init( void )
 	m_StatusIcons.Init();
 	m_MOTD.Init();
 	m_Scoreboard.Init();
+	m_Crosshair->Init();
 
 	m_Menu.Init();
 
 	MsgFunc_ResetHUD( 0, 0, NULL );
+}
+
+CHud::CHud()
+	: m_iSpriteCount(0),
+	m_pHudList(NULL),
+	m_Crosshair(std::make_unique<CHudCrosshair>())
+{
 }
 
 // CHud destructor
@@ -413,6 +422,7 @@ void CHud::VidInit( void )
 	m_StatusIcons.VidInit();
 	m_Scoreboard.VidInit();
 	m_MOTD.VidInit();
+	m_Crosshair->VidInit();
 }
 
 int CHud::MsgFunc_Logo( const char *pszName,  int iSize, void *pbuf )
@@ -524,7 +534,8 @@ int CHud::MsgFunc_SetFOV( const char *pszName,  int iSize, void *pbuf )
 	BEGIN_READ( pbuf, iSize );
 
 	int newfov = READ_BYTE();
-	int def_fov = CVAR_GET_FLOAT( "default_fov" );
+
+	int def_fov = CL_CvarGetFloat( "default_fov" );
 
 	g_lastFOV = newfov;
 
@@ -548,7 +559,7 @@ int CHud::MsgFunc_SetFOV( const char *pszName,  int iSize, void *pbuf )
 	else
 	{
 		// set a new sensitivity that is proportional to the change from the FOV default
-		m_flMouseSensitivity = sensitivity->value * ((float)newfov / (float)def_fov) * CVAR_GET_FLOAT("zoom_sensitivity_ratio");
+		m_flMouseSensitivity = sensitivity->value * ((float)newfov / (float)def_fov) * CL_CvarGetFloat("zoom_sensitivity_ratio");
 	}
 
 	return 1;

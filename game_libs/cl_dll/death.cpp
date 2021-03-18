@@ -72,7 +72,7 @@ int CHudDeathNotice::Init( void )
 
 	HOOK_MESSAGE( DeathMsg );
 
-	CVAR_CREATE( "hud_deathnotice_time", "6", 0 );
+	CL_CvarCreate( "hud_deathnotice_time", "6", 0 );
 
 	return 1;
 }
@@ -241,7 +241,7 @@ int CHudDeathNotice::MsgFunc_DeathMsg( const char *pszName, int iSize, void *pbu
 
 	rgDeathNoticeList[i].iId = spr;
 
-	DEATHNOTICE_DISPLAY_TIME = CVAR_GET_FLOAT( "hud_deathnotice_time" );
+	DEATHNOTICE_DISPLAY_TIME = CL_CvarGetFloat( "hud_deathnotice_time" );
 	rgDeathNoticeList[i].flDisplayTime = gHUD.m_flTime + DEATHNOTICE_DISPLAY_TIME;
 
 	if( rgDeathNoticeList[i].iNonPlayerKill )

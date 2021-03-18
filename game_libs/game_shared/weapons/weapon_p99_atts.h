@@ -79,11 +79,10 @@ static const WeaponAtts::WACollection StaticWeaponAttributes([](WeaponAtts::WACo
 	WAHitscanAttack* priAttack = new WAHitscanAttack();
 	obj.AttackModes.AddToTail(std::shared_ptr<WABaseAttack>(priAttack));
 
-	priAttack->EventScript = "events/weapon_p99/fire01.sc";
+	priAttack->EventScript = "events/weapon_p99/fire_unsilenced.sc";
 	priAttack->FunctionsUnderwater = true;
 	priAttack->IsContinuous = false;
 	priAttack->UsesAmmoPool = WAAmmoBasedAttack::AmmoPool::Primary;
-	priAttack->SetUniformSpread(0.03f);
 	priAttack->AttackRate = P99_FIRE_RATE;
 	priAttack->BaseDamagePerShot = &skilldata_t::plrDmgP99;
 	priAttack->AutoAim = AUTOAIM_10DEGREES;
@@ -91,6 +90,20 @@ static const WeaponAtts::WACollection StaticWeaponAttributes([](WeaponAtts::WACo
 	priAttack->MuzzleFlashBrightness = NORMAL_GUN_FLASH;
 	priAttack->ViewPunchY = -2.0f;
 	priAttack->ShellModelName = "models/shell.mdl";
+
+	AccuracyParameters& accuracy = priAttack->Accuracy;
+	accuracy.RestValue = 0.1f;
+	accuracy.RestSpread = Vector2D(0.01f, 0.01f);
+	accuracy.RunValue = 0.5f;
+	accuracy.RunSpread = Vector2D(0.03f, 0.03f);
+	accuracy.CrouchShift = -0.08f;
+	accuracy.AirShift = 0.2f;
+	accuracy.FallShift = 0.1f;
+	accuracy.AttackCoefficient = 0.3f;
+	accuracy.DecayCoefficient = 0.3f;
+	accuracy.FireImpulse = 0.3f;
+	accuracy.FireImpulseCeiling = 0.5f;
+	accuracy.FireImpulseHoldTime = 0.05f;
 
 	priAttack->ViewModelAnimList_Attack << P99_SHOOT;
 	priAttack->ViewModelAnimList_AttackEmpty << P99_SHOOT_EMPTY;
@@ -102,13 +115,19 @@ static const WeaponAtts::WACollection StaticWeaponAttributes([](WeaponAtts::WACo
 	priAttack->AttackSounds.MaxPitch = 104;
 	priAttack->AttackSounds.SoundNames << "weapons/weapon_p99/p99_fire1.wav";
 
+	CrosshairParameters& crosshair = priAttack->Crosshair;
+	crosshair.BarScaleMin = 0.03f;
+	crosshair.BarScaleMax = 0.03f;
+	crosshair.RadiusMin = 0.015f;
+	crosshair.RadiusMax = 0.04f;
+
 	// Silenced
 	WAHitscanAttack* secAttack = new WAHitscanAttack();
 	obj.AttackModes.AddToTail(std::shared_ptr<WABaseAttack>(secAttack));
 
 	// Base off primary attack.
 	*secAttack = *priAttack;
-	secAttack->EventScript = "events/weapon_p99/fire02.sc";
+	secAttack->EventScript = "events/weapon_p99/fire_silenced.sc";
 	secAttack->Volume = QUIET_GUN_VOLUME;
 	secAttack->MuzzleFlashBrightness = DIM_GUN_FLASH;
 

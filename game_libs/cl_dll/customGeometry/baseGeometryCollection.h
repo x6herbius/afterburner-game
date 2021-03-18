@@ -16,6 +16,7 @@ namespace CustomGeometry
 		// of all items, render all items. Create a subclass to
 		// override this behaviour.
 		virtual void AddItem(const GeometryItemPtr_t& item);
+		virtual void VidInit();
 		virtual void Clear();
 		virtual void Render();
 

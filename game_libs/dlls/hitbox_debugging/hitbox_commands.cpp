@@ -24,16 +24,17 @@ namespace HitboxDebugging
 	{
 		int argc = g_engfuncs.pfnCmd_Argc();
 
-		if ( argc != 3 )
+		if ( argc != 2 && argc != 3 )
 		{
-			ALERT(at_console, "Multiplayer usage: hitbox_debug_set <#attackerId|attackerName> <#targetId|targetName>\n");
-			ALERT(at_console, "In multiplayer, only player hitboxes are supported.\n");
+			ALERT(at_console, "Multiplayer usage: hitbox_debug_set <#attackerId|attackerName> [#targetId|targetName]\n");
+			ALERT(at_console, "In multiplayer, only players are supported as targets.\n");
+			ALERT(at_console, "Target can be left blank to show only weapon shot traces.\n");
 			return;
 		}
 
 		debugData.Clear();
 
-		for ( int index = 1; index < 3; ++index )
+		for ( int index = 1; index < argc; ++index )
 		{
 			const char* input = g_engfuncs.pfnCmd_Argv(index);
 
@@ -63,9 +64,17 @@ namespace HitboxDebugging
 
 		if ( debugData.IsValid() )
 		{
-			ALERT(at_console, "Set hitbox debugging attacker '%s' and target '%s'.\n",
-				MPUtils::PlayerNetName(debugData.AttackerPlayer()),
-				MPUtils::PlayerNetName(debugData.TargetPlayer()));
+			if ( debugData.TargetPlayer() )
+			{
+				ALERT(at_console, "Set hitbox debugging attacker '%s' and target '%s'.\n",
+					  MPUtils::PlayerNetName(debugData.AttackerPlayer()),
+					  MPUtils::PlayerNetName(debugData.TargetPlayer()));
+			}
+			else
+			{
+				ALERT(at_console, "Set hitbox debugging attacker '%s' with no target player.\n",
+					  MPUtils::PlayerNetName(debugData.AttackerPlayer()));
+			}
 		}
 		else
 		{
@@ -78,11 +87,11 @@ namespace HitboxDebugging
 	{
 		int argc = g_engfuncs.pfnCmd_Argc();
 
-		// TODO: If argument is not specified, pick whatever the player is pointing at?
-		if ( argc != 2 )
+		if ( argc != 1 && argc != 2 )
 		{
-			ALERT(at_console, "Single player usage: hitbox_debug_set <#entindex|targetname>\n");
+			ALERT(at_console, "Single player usage: hitbox_debug_set [#entindex|targetname]\n");
 			ALERT(at_console, "In singleplayer, any entity with a model is supported as a target.\n");
+			ALERT(at_console, "Target can be left blank to show only weapon shot traces.\n");
 			return;
 		}
 
@@ -96,27 +105,33 @@ namespace HitboxDebugging
 			return;
 		}
 
-		const char* targetName = g_engfuncs.pfnCmd_Argv(1);
-		edict_t* edict = FIND_ENTITY_BY_TARGETNAME(nullptr, targetName);
+		CBaseAnimating* targetEntity = nullptr;
+		const char* targetName = nullptr;
 
-		if ( !edict )
+		if ( argc == 2 )
 		{
-			ALERT(at_error, "Could not find entity with targetname '%s'. Hitbox debugging turned off.\n", targetName);
-			return;
-		}
+			targetName = g_engfuncs.pfnCmd_Argv(1);
+			edict_t* edict = FIND_ENTITY_BY_TARGETNAME(nullptr, targetName);
 
-		CBaseAnimating* entity = GetClassPtrFromEdict<CBaseAnimating>(edict);
+			if ( !edict )
+			{
+				ALERT(at_error, "Could not find entity with targetname '%s'. Hitbox debugging turned off.\n", targetName);
+				return;
+			}
 
-		if ( !entity )
-		{
-			ALERT(at_error, "Entity '%s' is not supported. Hitbox debugging turned off.\n", targetName);
-			return;
+			targetEntity = GetClassPtrFromEdict<CBaseAnimating>(edict);
+
+			if ( !targetEntity )
+			{
+				ALERT(at_error, "Entity '%s' does not have a suported model. Hitbox debugging turned off.\n", targetName);
+				return;
+			}
 		}
 
 		debugData.SetAttackerPlayer(player);
-		debugData.SetTargetEnt(entity);
+		debugData.SetTargetEnt(targetEntity);
 
-		ALERT(at_console, "Set hitbox debugging target entity '%s'.\n", targetName);
+		ALERT(at_console, "Set hitbox debugging target entity '%s'.\n", targetName ? targetName : "worldspawn");
 	}
 
 	static void HitboxDebugClear(void)

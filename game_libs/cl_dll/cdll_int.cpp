@@ -45,6 +45,7 @@ extern "C"
 #include "ui/screenOverlays/DebugCommands.h"
 #include "resources/SoundResources.h"
 #include "gameresources/GameResources.h"
+#include "gameplay/crosshairCvars.h"
 
 cl_enginefunc_t gEngfuncs;
 CHud gHUD;
@@ -242,10 +243,13 @@ so the HUD can reinitialize itself.
 
 int DLLEXPORT HUD_VidInit( void )
 {
+	gHUD.VidInit();
+
 	ScreenOverlays::CScreenOverlayContainer& container = ScreenOverlays::CScreenOverlayContainer::StaticInstance();
 	container.VidInit();
 
-	gHUD.VidInit();
+	CustomGeometry::VidInit();
+
 #ifdef USE_VGUI_FOR_GOLDSOURCE_SUPPORT
 	vgui::Panel* root=(vgui::Panel*)gEngfuncs.VGui_GetPanel();
 	if (root) {
@@ -288,6 +292,7 @@ void DLLEXPORT HUD_Init( void )
 	EventCommands::Initialise();
 	ScreenOverlays::InitialiseDebugCommands();
 	CGameResources::StaticInstance().Initialise();
+	CrosshairCvars::Init();
 
 	InitInput();
 

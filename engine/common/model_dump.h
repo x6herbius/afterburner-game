@@ -16,7 +16,6 @@ GNU General Public License for more details.
 #ifndef MODEL_DUMP_H
 #define MODEL_DUMP_H
 
-#include "SDL_stdinc.h"
 #include "xash3d_types.h"
 #include "const.h"
 #include "com_model.h"

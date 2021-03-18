@@ -155,7 +155,7 @@ typedef struct channel_s
 	int		rightvol;		// 0-255 right volume
 
 	int		entnum;		// entity soundsource
-	int		entchannel;	// sound channel (CHAN_STREAM, CHAN_VOICE, etc.)	
+	int		entchannel;	// sound channel (CHAN_STREAM, CHAN_VOICE, etc.)
 	vec3_t		origin;		// only use if fixed_origin is set
 	float		dist_mult;	// distance multiplier (attenuation/clipK)
 	int		master_vol;	// 0-255 master volume
@@ -217,15 +217,12 @@ extern listener_t	s_listener;
 extern int	idsp_room;
 extern dma_t	dma;
 
-extern convar_t	*s_volume;
-extern convar_t	*s_musicvolume;
-extern convar_t	*s_show;
-extern convar_t	*s_mixahead;
-extern convar_t	*s_lerping;
+extern convar_t	s_musicvolume;
+extern convar_t	s_lerping;
 extern convar_t	*dsp_off;
-extern convar_t	*s_test;		// cvar to testify new effects
-extern convar_t *s_samplecount;
-extern convar_t *snd_mute_losefocus;
+extern convar_t	s_test;		// cvar to testify new effects
+extern convar_t s_samplecount;
+extern convar_t snd_mute_losefocus;
 
 void S_InitScaletable( void );
 wavdata_t *S_LoadSound( sfx_t *sfx );

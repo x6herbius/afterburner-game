@@ -70,7 +70,7 @@ void CHud::Think( void )
 	else
 	{
 		// set a new sensitivity that is proportional to the change from the FOV default
-		m_flMouseSensitivity = sensitivity->value * ((float)newfov / (float)default_fov->value) * CVAR_GET_FLOAT("zoom_sensitivity_ratio");
+		m_flMouseSensitivity = sensitivity->value * ((float)newfov / (float)default_fov->value) * CL_CvarGetFloat("zoom_sensitivity_ratio");
 	}
 
 	// think about default fov
@@ -98,7 +98,7 @@ int CHud::Redraw( float flTime, int intermission )
 	if( !m_iIntermission && intermission )
 	{
 		// Take a screenshot if the client's got the cvar set
-		if( CVAR_GET_FLOAT( "hud_takesshots" ) != 0 )
+		if( CL_CvarGetFloat( "hud_takesshots" ) != 0 )
 			m_flShotTime = flTime + 1.0;	// Take a screenshot in a second
 	}
 

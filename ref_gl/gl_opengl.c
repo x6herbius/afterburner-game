@@ -8,7 +8,6 @@ cvar_t	*gl_texture_nearest;
 cvar_t	*gl_lightmap_nearest;
 cvar_t	*gl_keeptjunctions;
 cvar_t	*gl_emboss_scale;
-cvar_t	*gl_detailscale;
 cvar_t	*gl_check_errors;
 cvar_t	*gl_polyoffset;
 cvar_t	*gl_wireframe;
@@ -649,7 +648,7 @@ void GL_InitExtensionsBigGL( void )
 		const char *version = pglGetString( GL_VERSION | 0x10000 );
 		const char *extensions = pglGetString( GL_EXTENSIONS | 0x10000 );
 		glConfig.wrapper = GLES_WRAPPER_GL4ES;
-		
+
 	}
 
 	// multitexture
@@ -836,13 +835,13 @@ void GL_InitCommands( void )
 	r_lighting_ambient = gEngfuncs.Cvar_Get( "r_lighting_ambient", "0.3", FCVAR_ARCHIVE, "map ambient lighting scale" );
 	r_novis = gEngfuncs.Cvar_Get( "r_novis", "0", 0, "ignore vis information (perfomance test)" );
 	r_nocull = gEngfuncs.Cvar_Get( "r_nocull", "0", 0, "ignore frustrum culling (perfomance test)" );
-	r_detailtextures = gEngfuncs.Cvar_Get( "r_detailtextures", "1", FCVAR_ARCHIVE, "enable detail textures support, use '2' for autogenerate detail.txt" );
+	r_detailtextures = gEngfuncs.Cvar_Get( "r_detailtextures", "1", FCVAR_ARCHIVE, "enable detail textures support" );
 	r_lockpvs = gEngfuncs.Cvar_Get( "r_lockpvs", "0", FCVAR_CHEAT, "lockpvs area at current point (pvs test)" );
 	r_lockfrustum = gEngfuncs.Cvar_Get( "r_lockfrustum", "0", FCVAR_CHEAT, "lock frustrum area at current point (cull test)" );
 	r_dynamic = gEngfuncs.Cvar_Get( "r_dynamic", "1", FCVAR_ARCHIVE, "allow dynamic lighting (dlights, lightstyles)" );
 	r_traceglow = gEngfuncs.Cvar_Get( "r_traceglow", "1", FCVAR_ARCHIVE, "cull flares behind models" );
 	r_lightmap = gEngfuncs.Cvar_Get( "r_lightmap", "0", FCVAR_CHEAT, "lightmap debugging tool" );
-	r_drawentities = gEngfuncs.Cvar_Get( "r_drawentities", "1", FCVAR_CHEAT, "render entities" );
+	r_drawentities = gEngfuncs.pfnGetCvarPointer( "r_drawentities", 0 );
 	r_decals = gEngfuncs.pfnGetCvarPointer( "r_decals", 0 );
 	r_showhull = gEngfuncs.pfnGetCvarPointer( "r_showhull", 0 );
 
@@ -851,7 +850,6 @@ void GL_InitCommands( void )
 	gl_lightmap_nearest = gEngfuncs.Cvar_Get( "gl_lightmap_nearest", "0", FCVAR_ARCHIVE, "disable lightmap filter" );
 	gl_check_errors = gEngfuncs.Cvar_Get( "gl_check_errors", "1", FCVAR_ARCHIVE, "ignore video engine errors" );
 	gl_vsync = gEngfuncs.pfnGetCvarPointer( "gl_vsync", 0 );
-	gl_detailscale = gEngfuncs.Cvar_Get( "gl_detailscale", "4.0", FCVAR_ARCHIVE, "default scale applies while auto-generate list of detail textures" );
 	gl_texture_anisotropy = gEngfuncs.Cvar_Get( "gl_anisotropy", "8", FCVAR_ARCHIVE, "textures anisotropic filter" );
 	gl_texture_lodbias =  gEngfuncs.Cvar_Get( "gl_texture_lodbias", "0.0", FCVAR_ARCHIVE, "LOD bias for mipmapped textures (perfomance|quality)" );
 	gl_keeptjunctions = gEngfuncs.Cvar_Get( "gl_keeptjunctions", "1", FCVAR_ARCHIVE, "removing tjuncs causes blinking pixels" );

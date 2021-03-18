@@ -55,11 +55,12 @@ static const WeaponAtts::WACollection StaticWeaponAttributes([](WeaponAtts::WACo
 	WAHitscanAttack* priAttack = new WAHitscanAttack();
 	obj.AttackModes.AddToTail(std::shared_ptr<WABaseAttack>(priAttack));
 
-	priAttack->EventScript = "events/weapon_silent/fire01.sc";
+	priAttack->EventScript = "events/weapon_silent/fire.sc";
 	priAttack->FunctionsUnderwater = true;
 	priAttack->IsContinuous = false;
 	priAttack->UsesAmmoPool = WAAmmoBasedAttack::AmmoPool::None;
-	priAttack->SetUniformSpread(0.0f);
+	priAttack->Accuracy.RestSpread = Vector2D(0.0f, 0.0f);
+	priAttack->Accuracy.RunSpread = Vector2D(0.0f, 0.0f);
 	priAttack->AttackRate = SILENTWEAPON_FIRE_RATE;
 	priAttack->AutoAim = AUTOAIM_10DEGREES;
 	priAttack->Volume = QUIET_GUN_VOLUME;

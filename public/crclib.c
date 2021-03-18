@@ -259,7 +259,7 @@ void MD5Update( MD5Context_t *ctx, const byte *buf, uint len )
 		}
 
 		memcpy( p, buf, t );
-		MD5Transform( ctx->buf, (uint *)ctx->in );
+		MD5Transform( ctx->buf, ctx->in );
 		buf += t;
 		len -= t;
 	}
@@ -268,7 +268,7 @@ void MD5Update( MD5Context_t *ctx, const byte *buf, uint len )
 	while( len >= 64 )
 	{
 		memcpy( ctx->in, buf, 64 );
-		MD5Transform( ctx->buf, (uint *)ctx->in );
+		MD5Transform( ctx->buf, ctx->in );
 		buf += 64;
 		len -= 64;
 	}
@@ -295,7 +295,7 @@ void MD5Final( byte digest[16], MD5Context_t *ctx )
 
 	// set the first char of padding to 0x80.
 	// this is safe since there is always at least one byte free
-	p = ctx->in + count;
+	p = (byte*)ctx->in + count;
 	*p++ = 0x80;
 
 	// bytes of padding needed to make 64 bytes
@@ -307,7 +307,7 @@ void MD5Final( byte digest[16], MD5Context_t *ctx )
 
 		// two lots of padding: pad the first block to 64 bytes
 		memset( p, 0, count );
-		MD5Transform( ctx->buf, (uint *)ctx->in );
+		MD5Transform( ctx->buf, ctx->in );
 
 		// now fill the next block with 56 bytes
 		memset( ctx->in, 0, 56 );
@@ -319,10 +319,10 @@ void MD5Final( byte digest[16], MD5Context_t *ctx )
 	}
 
 	// append length in bits and transform
-	((uint *)ctx->in)[14] = ctx->bits[0];
-	((uint *)ctx->in)[15] = ctx->bits[1];
+	ctx->in[14] = ctx->bits[0];
+	ctx->in[15] = ctx->bits[1];
 
-	MD5Transform( ctx->buf, (uint *)ctx->in );
+	MD5Transform( ctx->buf, ctx->in );
 	memcpy( digest, ctx->buf, 16 );
 	memset( ctx, 0, sizeof( *ctx ));	// in case it's sensitive
 }
@@ -438,16 +438,12 @@ transform hash to hexadecimal printable symbols
 char *MD5_Print( byte hash[16] )
 {
 	static char	szReturn[64];
-	char		szChunk[10];
 	int		i;
 
 	memset( szReturn, 0, 64 );
 
 	for( i = 0; i < 16; i++ )
-	{
-		Q_snprintf( szChunk, sizeof( szChunk ), "%02X", hash[i] );
-		Q_strncat( szReturn, szChunk, sizeof( szReturn ));
-	}
+		COM_Hex2String( hash[i], &szReturn[i * 2] );
 
 	return szReturn;
 }

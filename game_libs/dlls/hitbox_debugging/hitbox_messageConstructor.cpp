@@ -44,12 +44,8 @@ void CHitboxMessageConstructor::FireMessages(const CWeaponDebugEvent_HitscanFire
 
 	FireClearMessage();
 
-	if ( !m_Target )
-	{
-		return;
-	}
+	m_HitboxCount = m_Target ? g_engfuncs.pfnGetHitboxCount(m_Target->edict()) : 0;
 
-	m_HitboxCount = g_engfuncs.pfnGetHitboxCount(m_Target->edict());
 	SendHitscanGeometry(event);
 	SendHitboxGeometry(event);
 }
@@ -89,6 +85,11 @@ void CHitboxMessageConstructor::SendHitscanGeometry(const CWeaponDebugEvent_Hits
 
 void CHitboxMessageConstructor::SendHitboxGeometry(const CWeaponDebugEvent_HitscanFire& event)
 {
+	if ( !m_Target )
+	{
+		return;
+	}
+
 	for ( uint32_t hitboxIndex = 0; hitboxIndex < m_HitboxCount; ++hitboxIndex )
 	{
 		CHitboxGeometryConstructor constructor;

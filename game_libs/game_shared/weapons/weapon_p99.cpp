@@ -27,8 +27,7 @@ CWeaponP99::CWeaponP99()
 {
 	m_pAttackSilenced = GetAttackModeFromAttributes<WeaponAtts::WAHitscanAttack>(ATTACKMODE_SILENCED);
 	m_pAttackUnsilenced = GetAttackModeFromAttributes<WeaponAtts::WAHitscanAttack>(ATTACKMODE_UNSILENCED);
-
-	m_pPrimaryAttackMode = m_pAttackUnsilenced;
+	SetPrimaryAttackMode(m_pAttackUnsilenced);
 }
 
 const WeaponAtts::WACollection& CWeaponP99::WeaponAttributes() const
@@ -45,7 +44,7 @@ void CWeaponP99::SecondaryAttack()
 
 	m_bSilenced = !m_bSilenced;
 	SetViewModelBody(m_bSilenced ? P99BODY_SILENCED : P99BODY_UNSILENCED);
-	m_pPrimaryAttackMode = m_bSilenced ? m_pAttackSilenced : m_pAttackUnsilenced;
+	SetPrimaryAttackMode(m_bSilenced ? m_pAttackSilenced : m_pAttackUnsilenced);
 
 	DelayPendingActions(ViewModelAnimationDuration(anim));
 }

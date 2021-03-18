@@ -1619,7 +1619,7 @@ int GetWeaponData( struct edict_s *player, struct weapon_data_s *info )
 	CBasePlayer *pl = (CBasePlayer *)CBasePlayer::Instance( pev );
 	CBasePlayerWeapon *gun;
 
-	memset( info, 0, 32 * sizeof(weapon_data_t) );
+	memset( info, 0, MAX_LOCAL_WEAPONS * sizeof(weapon_data_t) );
 
 	if( !pl )
 		return 1;
@@ -1641,7 +1641,7 @@ int GetWeaponData( struct edict_s *player, struct weapon_data_s *info )
 					// Get The ID.
 					gun->GetItemInfo( &II );
 
-					if( II.iId >= 0 && II.iId < 32 )
+					if( II.iId >= 0 && II.iId < MAX_LOCAL_WEAPONS )
 					{
 						item = &info[II.iId];
 
@@ -1651,6 +1651,8 @@ int GetWeaponData( struct edict_s *player, struct weapon_data_s *info )
 						item->m_flTimeWeaponIdle	= Q_max( gun->m_flTimeWeaponIdle, -0.001 );
 						item->m_flNextPrimaryAttack	= Q_max( gun->m_flNextPrimaryAttack, -0.001 );
 						item->m_flNextSecondaryAttack	= Q_max( gun->m_flNextSecondaryAttack, -0.001 );
+						item->m_flLastPrimaryAttack	= Q_max( gun->m_flLastPrimaryAttack, -10.0f );
+						item->m_flLastSecondaryAttack	= Q_max( gun->m_flLastSecondaryAttack, -10.0f );
 						item->m_fInReload		= gun->m_fInReload;
 						item->m_fInSpecialReload	= gun->m_fInSpecialReload;
 
@@ -1663,7 +1665,7 @@ int GetWeaponData( struct edict_s *player, struct weapon_data_s *info )
 		}
 	}
 #else
-	memset( info, 0, 32 * sizeof(weapon_data_t) );
+	memset( info, 0, MAX_LOCAL_WEAPONS * sizeof(weapon_data_t) );
 #endif
 	return 1;
 }
@@ -1722,6 +1724,7 @@ void UpdateClientData( const struct edict_s *ent, int sendweapons, struct client
 	cd->fov			= pev->fov;
 	cd->weaponanim		= pev->weaponanim;
 	cd->weaponScreenOverlay = pl->m_iWeaponScreenOverlay;
+	cd->weaponInaccuracy = pl->m_flWeaponInaccuracy;
 
 	cd->pushmsec		= pev->pushmsec;
 

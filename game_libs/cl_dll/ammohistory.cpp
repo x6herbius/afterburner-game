@@ -57,7 +57,7 @@ void HistoryResource::AddToHistory( int iType, int iId, int iCount )
 	}
 
 	HIST_ITEM *freeslot = &rgAmmoHistory[iCurrentHistorySlot++];  // default to just writing to the first slot
-	HISTORY_DRAW_TIME = CVAR_GET_FLOAT( "hud_drawhistory_time" );
+	HISTORY_DRAW_TIME = CL_CvarGetFloat( "hud_drawhistory_time" );
 
 	freeslot->type = iType;
 	freeslot->iId = iId;
@@ -88,7 +88,7 @@ void HistoryResource::AddToHistory( int iType, const char *szName, int iCount )
 	freeslot->type = iType;
 	freeslot->iCount = iCount;
 
-	HISTORY_DRAW_TIME = CVAR_GET_FLOAT( "hud_drawhistory_time" );
+	HISTORY_DRAW_TIME = CL_CvarGetFloat( "hud_drawhistory_time" );
 	freeslot->DisplayTime = gHUD.m_flTime + HISTORY_DRAW_TIME;
 }
 

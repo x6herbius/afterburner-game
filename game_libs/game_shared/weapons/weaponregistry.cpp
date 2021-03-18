@@ -38,6 +38,22 @@ const WeaponAtts::WACollection* CWeaponRegistry::Get(WeaponId_e id) const
 	return Get(static_cast<int>(id));
 }
 
+const WeaponAtts::WACollection* CWeaponRegistry::GetByName(const char* name) const
+{
+	for ( uint32_t index = 0; index < MAX_WEAPONS; ++index )
+	{
+		const WeaponAtts::WACollection* atts = m_AttributesList[index];
+
+		// Note that index 0 (Weapon_None) will not have a valid pointer.
+		if ( atts && strcmp(atts->Core.Classname, name) == 0 )
+		{
+			return atts;
+		}
+	}
+
+	return nullptr;
+}
+
 void CWeaponRegistry::RegisterCvars()
 {
 	ForEach([](const WeaponAtts::WACollection& atts)

@@ -1066,7 +1066,7 @@ void CL_FinishPMove( playermove_t *pmove, local_state_t *to )
 	VectorCopy( pmove->angles, ps->angles );
 	VectorCopy( pmove->basevelocity, ps->basevelocity );
 	VectorCopy( pmove->punchangle, cd->punchangle );
-	ps->oldbuttons = pmove->oldbuttons;
+	ps->oldbuttons = pmove->cmd.buttons;
 	ps->friction = pmove->friction;
 	ps->movetype = pmove->movetype;
 	ps->onground = pmove->onground;

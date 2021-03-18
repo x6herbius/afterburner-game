@@ -25,7 +25,7 @@ GNU General Public License for more details.
 // #define XASH_USE_SELECT
 #endif
 
-#ifdef XASH_USE_SELECT
+#if defined(XASH_USE_SELECT) && !defined(_WIN32)
 // non-blocking console input
 #include <sys/select.h>
 #endif
@@ -321,4 +321,3 @@ void Platform_MessageBox( const char *title, const char *message, qboolean paren
 		 "======================================\n", title, message );
 }
 #endif
-

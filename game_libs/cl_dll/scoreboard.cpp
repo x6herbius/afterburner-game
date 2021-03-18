@@ -61,8 +61,8 @@ int CHudScoreboard::Init( void )
 
 	InitHUDData();
 
-	cl_scoreboard_bg = CVAR_CREATE( "cl_scoreboard_bg", "1", FCVAR_ARCHIVE );
-	cl_showpacketloss = CVAR_CREATE( "cl_showpacketloss", "0", FCVAR_ARCHIVE );
+	cl_scoreboard_bg = CL_CvarCreate( "cl_scoreboard_bg", "1", FCVAR_ARCHIVE );
+	cl_showpacketloss = CL_CvarCreate( "cl_showpacketloss", "0", FCVAR_ARCHIVE );
 
 	return 1;
 }

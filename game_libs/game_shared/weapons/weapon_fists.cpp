@@ -14,8 +14,8 @@ CWeaponFists::CWeaponFists() : CGenericMeleeWeapon()
 	m_pPunchAttack = GetAttackModeFromAttributes<WeaponAtts::WAMeleeAttack>(ATTACKMODE_PUNCH);
 	m_pPunchComboAttack = GetAttackModeFromAttributes<WeaponAtts::WAMeleeAttack>(ATTACKMODE_PUNCH_COMBO);
 
-	m_pPrimaryAttackMode = m_pPunchAttack;
-	m_pSecondaryAttackMode = GetAttackModeFromAttributes<WeaponAtts::WAMeleeAttack>(ATTACKMODE_KARATE_CHOP);
+	SetPrimaryAttackMode(m_pPunchAttack);
+	SetSecondaryAttackModeFromAttributes(ATTACKMODE_KARATE_CHOP);
 }
 
 const WeaponAtts::WACollection& CWeaponFists::WeaponAttributes() const
@@ -33,9 +33,9 @@ bool CWeaponFists::InvokeWithAttackMode(WeaponAttackType type, const WeaponAtts:
 	if ( type == WeaponAttackType::Primary )
 	{
 		// Alternate between modes.
-		m_pPrimaryAttackMode = m_pPrimaryAttackMode == m_pPunchAttack
-			? m_pPunchComboAttack
-			: m_pPunchAttack;
+		const WeaponAtts::WAMeleeAttack* currentMode = GetPrimaryAttackMode<WeaponAtts::WAMeleeAttack>();
+		const WeaponAtts::WAMeleeAttack* newMode = (currentMode == m_pPunchAttack ? m_pPunchComboAttack : m_pPunchAttack);
+		SetPrimaryAttackMode(newMode);
 	}
 
 	return true;

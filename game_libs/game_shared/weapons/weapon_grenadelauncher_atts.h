@@ -80,15 +80,18 @@ static const WeaponAtts::WACollection StaticWeaponAttributes([](WeaponAtts::WACo
 	WAProjectileAttack* priAttack = new WAProjectileAttack();
 	obj.AttackModes.AddToTail(std::shared_ptr<WABaseAttack>(priAttack));
 
-	priAttack->EventScript = "events/weapon_grenadelauncher/fire01.sc";
+	priAttack->EventScript = "events/weapon_grenadelauncher/fire_impact.sc";
 	priAttack->FunctionsUnderwater = true;
 	priAttack->IsContinuous = false;
 	priAttack->UsesAmmoPool = WAAmmoBasedAttack::AmmoPool::Primary;
-	priAttack->SetUniformSpread(1.0f);
 	priAttack->AttackRate = GRENADELAUNCHER_FIRE_RATE;
 	priAttack->Volume = LOUD_GUN_VOLUME;
 	priAttack->MuzzleFlashBrightness = BRIGHT_GUN_FLASH;
 	priAttack->ViewPunchY = -4.0f;
+
+	AccuracyParameters& accuracy = priAttack->Accuracy;
+	accuracy.RestSpread = Vector2D(0.1f, 0.1f);
+	accuracy.RunSpread = Vector2D(0.1f, 0.1f);
 
 	priAttack->ViewModelAnimList_Attack << GRENADELAUNCHER_FIRE;
 
@@ -96,11 +99,17 @@ static const WeaponAtts::WACollection StaticWeaponAttributes([](WeaponAtts::WACo
 	priAttack->AttackSounds.MaxPitch = 100;
 	priAttack->AttackSounds.SoundNames << "weapons/weapon_grenadelauncher/grenade_launcher_fire.wav";
 
+	CrosshairParameters& crosshair = priAttack->Crosshair;
+	crosshair.BarScaleMin = 0.07f;
+	crosshair.BarScaleMax = 0.07f;
+	crosshair.RadiusMin = 0.14f;
+	crosshair.RadiusMax = 0.14f;
+
 	// Explode after delay
 	WAProjectileAttack* secAttack = new WAProjectileAttack();
 	obj.AttackModes.AddToTail(std::shared_ptr<WABaseAttack>(secAttack));
 
 	// Base off primary attack
 	*secAttack = *priAttack;
-	secAttack->EventScript = "events/weapon_grenadelauncher/fire02.sc";
+	secAttack->EventScript = "events/weapon_grenadelauncher/fire_timed.sc";
 });

@@ -420,10 +420,14 @@ TYPEDESCRIPTION	CBasePlayerWeapon::m_SaveData[] =
 	DEFINE_FIELD( CBasePlayerWeapon, m_flNextPrimaryAttack, FIELD_FLOAT ),
 	DEFINE_FIELD( CBasePlayerWeapon, m_flNextSecondaryAttack, FIELD_FLOAT ),
 	DEFINE_FIELD( CBasePlayerWeapon, m_flTimeWeaponIdle, FIELD_FLOAT ),
+	DEFINE_FIELD( CBasePlayerWeapon, m_flLastPrimaryAttack, FIELD_FLOAT ),
+	DEFINE_FIELD( CBasePlayerWeapon, m_flLastSecondaryAttack, FIELD_FLOAT ),
 #else	// CLIENT_WEAPONS
 	DEFINE_FIELD( CBasePlayerWeapon, m_flNextPrimaryAttack, FIELD_TIME ),
 	DEFINE_FIELD( CBasePlayerWeapon, m_flNextSecondaryAttack, FIELD_TIME ),
 	DEFINE_FIELD( CBasePlayerWeapon, m_flTimeWeaponIdle, FIELD_TIME ),
+	DEFINE_FIELD( CBasePlayerWeapon, m_flLastPrimaryAttack, FIELD_TIME ),
+	DEFINE_FIELD( CBasePlayerWeapon, m_flLastSecondaryAttack, FIELD_TIME ),
 #endif	// CLIENT_WEAPONS
 	DEFINE_FIELD( CBasePlayerWeapon, m_iPrimaryAmmoType, FIELD_INTEGER ),
 	DEFINE_FIELD( CBasePlayerWeapon, m_iSecondaryAmmoType, FIELD_INTEGER ),
@@ -597,6 +601,11 @@ void CBasePlayerItem::DefaultTouch( CBaseEntity *pOther )
 	}
 
 	SUB_UseTargets( pOther, USE_TOGGLE, 0 ); // UNDONE: when should this happen?
+}
+
+bool CBasePlayerWeapon::IsActiveItem() const
+{
+	return m_pPlayer->m_pActiveItem == this;
 }
 
 BOOL CBasePlayerWeapon::CanAttack( float attack_time, float curtime, BOOL isPredicted )

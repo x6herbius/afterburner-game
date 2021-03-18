@@ -8,8 +8,6 @@ class CWeaponFrinesi : public CGenericHitscanWeapon
 public:
 	CWeaponFrinesi();
 	virtual void Precache() override;
-	virtual void PrimaryAttack() override;
-	virtual void SecondaryAttack() override;
 	virtual void Holster(int skipLocal = 0) override;
 	virtual void WeaponTick() override;
 
@@ -28,15 +26,15 @@ public:
 
 protected:
 	virtual int HandleSpecialReload(int currentState) override;
+	virtual bool InvokeWithAttackMode(const CGenericWeapon::WeaponAttackType type, const WeaponAtts::WABaseAttack* attackMode) override;
 
 private:
 	void PlayPumpSound();
 	bool FlagReloadInterrupt();
 
-	float m_flReloadStartDuration;
-	float m_flReloadDuration;
-	float m_flPumpDuration;
-	float m_flNextPumpTime;
+	const WeaponAtts::WABaseAttack* m_pAutoAttackMode = nullptr;
+	const WeaponAtts::WABaseAttack* m_pPumpAttackMode = nullptr;
+	float m_flNextPumpSoundTime;
 	float m_flNextReloadSoundTime;
 };
 

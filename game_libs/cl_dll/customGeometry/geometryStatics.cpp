@@ -79,6 +79,21 @@ namespace CustomGeometry
 		gEngfuncs.pfnHookUserMsg(MESSAGE_NAME, &HandleCustomGeometryMessage);
 	}
 
+	void VidInit()
+	{
+		CGeometryCollectionManager& manager = CGeometryCollectionManager::StaticInstance();
+		manager.VidInit();
+
+		if ( AdHocRenderer )
+		{
+			AdHocRenderer->VidInit();
+		}
+		else
+		{
+			gEngfuncs.Con_Printf("CustomGeometry::VidInit: Ad-hoc renderer was not initialised!\n");
+		}
+	}
+
 	void RenderAllGeometry()
 	{
 		CGeometryCollectionManager& manager = CGeometryCollectionManager::StaticInstance();

@@ -2283,21 +2283,31 @@ static qboolean LoadPNGTextureData(const dpngtexturepath_t* in, texture_t** out,
 			break;
 		}
 
-		textureNum = ref.dllFuncs.GL_LoadTexture(texName, pngData, pngDataSize, TF_MAKELUMA);
-
-		if ( textureNum <= 0 )
+#if !XASH_DEDICATED
+		if( !Host_IsDedicated() )
 		{
-			Con_Printf(S_ERROR "LoadPngTexture: Map '%s' texture '%s' failed to load.\n", loadmodel->name, texName);
-			break;
+			textureNum = ref.dllFuncs.GL_LoadTexture(texName, pngData, pngDataSize, TF_MAKELUMA);
+
+			if ( textureNum <= 0 )
+			{
+				Con_Printf(S_ERROR "LoadPngTexture: Map '%s' texture '%s' failed to load.\n", loadmodel->name, texName);
+				break;
+			}
 		}
+#endif // XASH_DEDICATED
 
 		*out = Mem_Calloc(loadmodel->mempool, sizeof(texture_t));
 
-		(*out)->width = width;
-		(*out)->height = height;
+#if !XASH_DEDICATED
+		if( !Host_IsDedicated() )
+		{
+			(*out)->gl_texturenum = textureNum;
+			(*out)->width = width;
+			(*out)->height = height;
+		}
+#endif // XASH_DEDICATED
 
 		Q_strncpy((*out)->name, in->path, sizeof((*out)->name));
-		(*out)->gl_texturenum = textureNum;
 		success = true;
 	}
 	while ( false );

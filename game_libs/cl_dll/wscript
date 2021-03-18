@@ -46,6 +46,7 @@ SOURCES = \
 	"cl_dll/ui/**/*.cpp",
 	"cl_dll/messages/**/*.cpp",
 	"cl_dll/sound/**/*.cpp",
+	"cl_dll/gameplay/**/*.cpp",
 
 	# TODO: Change the folder structure one day so that we can use globs and not have to do this.
 	# Currently we don't want to include absolutely everything...
@@ -100,7 +101,8 @@ SOURCES = \
 	"cl_dll/util.cpp",
 	"cl_dll/view.cpp",
 	"cl_dll/scoreboard.cpp",
-	"cl_dll/MOTD.cpp"
+	"cl_dll/MOTD.cpp",
+	"cl_dll/hud_crosshair.cpp"
 ]
 
 WIN32LIBS = \

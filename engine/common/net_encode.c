@@ -72,6 +72,19 @@ static void SetDebugSourceFromEvent(event_args_t* event)
 	}
 }
 
+static void SetDebugSourceFromWeapon(int index)
+{
+	if ( index >= 0 )
+	{
+		char source[64];
+		Q_snprintf(encodingSourceName, sizeof(encodingSourceName), "Weapon: %d", index);
+	}
+	else
+	{
+		ClearDebugSource();
+	}
+}
+
 static void SetDebugSource(const char* string)
 {
 	Q_strncpy(encodingSourceName, string, sizeof(encodingSourceName));
@@ -174,6 +187,8 @@ static const delta_field_t wd_fields[] =
 { WPDT_DEF( m_flNextPrimaryAttack )	},
 { WPDT_DEF( m_flNextSecondaryAttack )	},
 { WPDT_DEF( m_flTimeWeaponIdle )	},
+{ WPDT_DEF( m_flLastPrimaryAttack )	},
+{ WPDT_DEF( m_flLastSecondaryAttack )	},
 { WPDT_DEF( m_fInReload )		},
 { WPDT_DEF( m_fInSpecialReload )	},
 { WPDT_DEF( m_flNextReload )		},
@@ -182,6 +197,7 @@ static const delta_field_t wd_fields[] =
 { WPDT_DEF( m_fNextAimBonus )		},
 { WPDT_DEF( m_fInZoom )		},
 { WPDT_DEF( m_iWeaponState )		},
+{ WPDT_DEF( m_iInaccuracy )		},
 { WPDT_DEF( iuser1 )		},
 { WPDT_DEF( iuser2 )		},
 { WPDT_DEF( iuser3 )		},
@@ -222,6 +238,7 @@ static const delta_field_t cd_fields[] =
 { CLDT_DEF( fov )		},
 { CLDT_DEF( weaponanim )	},
 { CLDT_DEF( weaponScreenOverlay )	},
+{ CLDT_DEF( weaponInaccuracy )	},
 { CLDT_DEF( m_iId )		},
 { CLDT_DEF( m_flNextAttack )	},
 { CLDT_DEF( tfstate )	},
@@ -396,7 +413,7 @@ delta_info_t *Delta_FindStructByEncoder( const char *encoderName )
 {
 	int	i;
 
-	if( !encoderName || !encoderName[0] )
+	if( !COM_CheckString( encoderName ) )
 		return NULL;
 
 	for( i = 0; i < NUM_FIELDS( dt_info ); i++ )
@@ -964,7 +981,7 @@ int Delta_ClampIntegerField( delta_t *pField, int iValue, qboolean bSigned, int 
 	{
 		int signbits = bSigned ? (numbits - 1) : numbits;
 		int maxnum = BIT( signbits ) - 1;
-		int minnum = bSigned ? -maxnum : 0;
+		int minnum = bSigned ? ( -maxnum - 1 ) : 0;
 		iValue = bound( minnum, iValue, maxnum );
 	}
 
@@ -1186,21 +1203,30 @@ qboolean Delta_WriteField( sizebuf_t *msg, delta_t *pField, void *from, void *to
 
 	if( pField->flags & DT_BYTE )
 	{
-		iValue = *(byte *)((byte *)to + pField->offset );
+		if( bSigned )
+			iValue = *(int8_t *)((int8_t *)to + pField->offset );
+		else
+			iValue = *(uint8_t *)((int8_t *)to + pField->offset );
 		iValue = Delta_ClampIntegerField( pField, iValue, bSigned, pField->bits );
 		if( pField->multiplier != 1.0f ) iValue *= pField->multiplier;
 		MSG_WriteBitLong( msg, iValue, pField->bits, bSigned );
 	}
 	else if( pField->flags & DT_SHORT )
 	{
-		iValue = *(word *)((byte *)to + pField->offset );
+		if( bSigned )
+			iValue = *(int16_t *)((int8_t *)to + pField->offset );
+		else
+			iValue = *(uint16_t *)((int8_t *)to + pField->offset );
 		iValue = Delta_ClampIntegerField( pField, iValue, bSigned, pField->bits );
 		if( pField->multiplier != 1.0f ) iValue *= pField->multiplier;
 		MSG_WriteBitLong( msg, iValue, pField->bits, bSigned );
 	}
 	else if( pField->flags & DT_INTEGER )
 	{
-		iValue = *(uint *)((byte *)to + pField->offset );
+		if( bSigned )
+			iValue = *(int32_t *)((int8_t *)to + pField->offset );
+		else
+			iValue = *(uint32_t *)((int8_t *)to + pField->offset );
 		iValue = Delta_ClampIntegerField( pField, iValue, bSigned, pField->bits );
 		if( pField->multiplier != 1.0f ) iValue *= pField->multiplier;
 		MSG_WriteBitLong( msg, iValue, pField->bits, bSigned );
@@ -1274,9 +1300,15 @@ qboolean Delta_ReadField( sizebuf_t *msg, delta_t *pField, void *from, void *to,
 		}
 		else
 		{
-			iValue = *(byte *)((byte *)from + pField->offset );
+			if( bSigned )
+				iValue = *(int8_t *)((uint8_t *)from + pField->offset );
+			else
+				iValue = *(uint8_t *)((uint8_t *)from + pField->offset );
 		}
-		*(byte *)((byte *)to + pField->offset ) = iValue;
+		if( bSigned )
+			*(int8_t *)((uint8_t *)to + pField->offset ) = iValue;
+		else
+			*(uint8_t *)((uint8_t *)to + pField->offset ) = iValue;
 	}
 	else if( pField->flags & DT_SHORT )
 	{
@@ -1287,9 +1319,15 @@ qboolean Delta_ReadField( sizebuf_t *msg, delta_t *pField, void *from, void *to,
 		}
 		else
 		{
-			iValue = *(word *)((byte *)from + pField->offset );
+			if( bSigned )
+				iValue = *(int16_t *)((uint8_t *)from + pField->offset );
+			else
+				iValue = *(uint16_t *)((uint8_t *)from + pField->offset );
 		}
-		*(word *)((byte *)to + pField->offset ) = iValue;
+		if( bSigned )
+			*(int16_t *)((uint8_t *)to + pField->offset ) = iValue;
+		else
+			*(uint16_t *)((uint8_t *)to + pField->offset ) = iValue;
 	}
 	else if( pField->flags & DT_INTEGER )
 	{
@@ -1300,9 +1338,15 @@ qboolean Delta_ReadField( sizebuf_t *msg, delta_t *pField, void *from, void *to,
 		}
 		else
 		{
-			iValue = *(uint *)((byte *)from + pField->offset );
+			if( bSigned )
+				iValue = *(int32_t *)((uint8_t *)from + pField->offset );
+			else
+				iValue = *(uint32_t *)((uint8_t *)from + pField->offset );
 		}
-		*(uint *)((byte *)to + pField->offset ) = iValue;
+		if( bSigned )
+			*(int32_t *)((uint8_t *)to + pField->offset ) = iValue;
+		else
+			*(uint32_t *)((uint8_t *)to + pField->offset ) = iValue;
 	}
 	else if( pField->flags & DT_FLOAT )
 	{
@@ -1392,6 +1436,8 @@ void MSG_WriteDeltaUsercmd( sizebuf_t *msg, usercmd_t *from, usercmd_t *to )
 	delta_t		*pField;
 	delta_info_t	*dt;
 	int		i;
+
+	DEBUG_SOURCE_SET(SetDebugSource, "Usercmd");
 
 	dt = Delta_FindStruct( "usercmd_t" );
 	Assert( dt && dt->bInitialized );
@@ -1675,6 +1721,8 @@ void MSG_WriteWeaponData( sizebuf_t *msg, weapon_data_t *from, weapon_data_t *to
 	int		i, startBit;
 	int		numChanges = 0;
 
+	DEBUG_SOURCE_SET(SetDebugSourceFromWeapon, index);
+
 	dt = Delta_FindStruct( "weapon_data_t" );
 	Assert( dt && dt->bInitialized );
 
@@ -1755,9 +1803,15 @@ void MSG_WriteDeltaEntity( entity_state_t *from, entity_state_t *to, sizebuf_t *
 
 	DEBUG_SOURCE_SET(SetDebugSourceFromEntityState, from);
 
-	if( !to && from )
+	if( to == NULL )
 	{
-		int	fRemoveType = 1;
+		int	fRemoveType;
+
+		if( from == NULL )
+		{
+			DEBUG_SOURCE_CLEAR();
+			return;
+		}
 
 		// a NULL to is a delta remove message
 		MSG_WriteUBitLong( msg, from->number, MAX_ENTITY_BITS );
@@ -1770,88 +1824,92 @@ void MSG_WriteDeltaEntity( entity_state_t *from, entity_state_t *to, sizebuf_t *
 		{
 			fRemoveType = 2;
 		}
+		else
+		{
+			fRemoveType = 1;
+		}
 
 		MSG_WriteUBitLong( msg, fRemoveType, 2 );
+		DEBUG_SOURCE_CLEAR();
+		return;
+	}
+
+	startBit = msg->iCurBit;
+
+	if( to->number < 0 || to->number >= GI->max_edicts )
+	{
+		Host_Error( "MSG_WriteDeltaEntity: Bad entity number: %i\n", to->number );
+	}
+
+	MSG_WriteUBitLong( msg, to->number, MAX_ENTITY_BITS );
+	MSG_WriteUBitLong( msg, 0, 2 ); // alive
+
+	if( baseline != 0 )
+	{
+		MSG_WriteOneBit( msg, 1 );
+		MSG_WriteSBitLong( msg, baseline, 7 );
 	}
 	else
 	{
-		startBit = msg->iCurBit;
+		MSG_WriteOneBit( msg, 0 );
+	}
 
-		if( to->number < 0 || to->number >= GI->max_edicts )
+	if( force || ( to->entityType != from->entityType ))
+	{
+		MSG_WriteOneBit( msg, 1 );
+		MSG_WriteUBitLong( msg, to->entityType, 2 );
+		numChanges++;
+	}
+	else
+	{
+		MSG_WriteOneBit( msg, 0 );
+	}
+
+	if( FBitSet( to->entityType, ENTITY_BEAM ))
+	{
+		dt = Delta_FindStruct( "custom_entity_state_t" );
+	}
+	else if( delta_type == DELTA_PLAYER )
+	{
+		dt = Delta_FindStruct( "entity_state_player_t" );
+	}
+	else
+	{
+		dt = Delta_FindStruct( "entity_state_t" );
+	}
+
+	Assert( dt && dt->bInitialized );
+
+	pField = dt->pFields;
+	Assert( pField != NULL );
+
+	if( delta_type == DELTA_STATIC )
+	{
+		// static entities won't to be custom encoded
+		for( i = 0; i < dt->numFields; i++ )
 		{
-			Host_Error( "MSG_WriteDeltaEntity: Bad entity number: %i\n", to->number );
+			dt->pFields[i].bInactive = false;
 		}
+	}
+	else
+	{
+		// activate fields and call custom encode func
+		Delta_CustomEncode( dt, from, to );
+	}
 
-		MSG_WriteUBitLong( msg, to->number, MAX_ENTITY_BITS );
-		MSG_WriteUBitLong( msg, 0, 2 ); // alive
-
-		if( baseline != 0 )
+	// process fields
+	for( i = 0; i < dt->numFields; i++, pField++ )
+	{
+		if( Delta_WriteField( msg, pField, from, to, timebase ))
 		{
-			MSG_WriteOneBit( msg, 1 );
-			MSG_WriteSBitLong( msg, baseline, 7 );
-		}
-		else
-		{
-			MSG_WriteOneBit( msg, 0 );
-		}
-
-		if( force || ( to->entityType != from->entityType ))
-		{
-			MSG_WriteOneBit( msg, 1 );
-			MSG_WriteUBitLong( msg, to->entityType, 2 );
 			numChanges++;
 		}
-		else
-		{
-			MSG_WriteOneBit( msg, 0 );
-		}
+	}
 
-		if( FBitSet( to->entityType, ENTITY_BEAM ))
-		{
-			dt = Delta_FindStruct( "custom_entity_state_t" );
-		}
-		else if( delta_type == DELTA_PLAYER )
-		{
-			dt = Delta_FindStruct( "entity_state_player_t" );
-		}
-		else
-		{
-			dt = Delta_FindStruct( "entity_state_t" );
-		}
-
-		Assert( dt && dt->bInitialized );
-
-		pField = dt->pFields;
-		Assert( pField != NULL );
-
-		if( delta_type == DELTA_STATIC )
-		{
-			// static entities won't to be custom encoded
-			for( i = 0; i < dt->numFields; i++ )
-			{
-				dt->pFields[i].bInactive = false;
-			}
-		}
-		else
-		{
-			// activate fields and call custom encode func
-			Delta_CustomEncode( dt, from, to );
-		}
-
-		// process fields
-		for( i = 0; i < dt->numFields; i++, pField++ )
-		{
-			if( Delta_WriteField( msg, pField, from, to, timebase ))
-			{
-				numChanges++;
-			}
-		}
-
-		// if we have no changes - kill the message
-		if( !numChanges && !force )
-		{
-			MSG_SeekToBit( msg, startBit, SEEK_SET );
-		}
+	// if we have no changes - kill the message
+	if( !numChanges && !force )
+	{
+		MSG_SeekToBit( msg, startBit, SEEK_SET );
 	}
 
 	DEBUG_SOURCE_CLEAR();

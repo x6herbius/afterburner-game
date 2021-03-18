@@ -60,9 +60,9 @@ qboolean Q_isdigit( const char *str )
 	return false;
 }
 
-int Q_strlen( const char *string )
+size_t Q_strlen( const char *string )
 {
-	int		len;
+	size_t		len;
 	const char	*p;
 
 	if( !string ) return 0;
@@ -77,9 +77,9 @@ int Q_strlen( const char *string )
 	return len;
 }
 
-int Q_colorstr( const char *string )
+size_t Q_colorstr( const char *string )
 {
-	int		len;
+	size_t		len;
 	const char	*p;
 
 	if( !string ) return 0;
@@ -194,14 +194,14 @@ int Q_atoi( const char *str )
 		str++;
 
 	if( !str ) return 0;
-	
+
 	if( *str == '-' )
 	{
 		sign = -1;
 		str++;
 	}
 	else sign = 1;
-		
+
 	// check for hex
 	if( str[0] == '0' && ( str[1] == 'x' || str[1] == 'X' ))
 	{
@@ -215,11 +215,11 @@ int Q_atoi( const char *str )
 			else return val * sign;
 		}
 	}
-	
+
 	// check for character
 	if( str[0] == '\'' )
 		return sign * str[1];
-	
+
 	// assume decimal
 	while( 1 )
 	{
@@ -243,14 +243,14 @@ float Q_atof( const char *str )
 		str++;
 
 	if( !str ) return 0.0f;
-	
+
 	if( *str == '-' )
 	{
 		sign = -1;
 		str++;
 	}
 	else sign = 1;
-		
+
 	// check for hex
 	if( str[0] == '0' && ( str[1] == 'x' || str[1] == 'X' ))
 	{
@@ -264,10 +264,10 @@ float Q_atof( const char *str )
 			else return val * sign;
 		}
 	}
-	
+
 	// check for character
 	if( str[0] == '\'' ) return sign * str[1];
-	
+
 	// assume decimal
 	decimal = -1;
 	total = 0;
@@ -295,7 +295,7 @@ float Q_atof( const char *str )
 		val /= 10;
 		total--;
 	}
-	
+
 	return val * sign;
 }
 
@@ -325,7 +325,7 @@ void Q_atov( float *vec, const char *str, size_t siz )
 
 char *Q_strchr( const char *s, char c )
 {
-	int	len = Q_strlen( s );
+	size_t	len = Q_strlen( s );
 
 	while( len-- )
 	{
@@ -337,7 +337,7 @@ char *Q_strchr( const char *s, char c )
 
 char *Q_strrchr( const char *s, char c )
 {
-	int	len = Q_strlen( s );
+	size_t	len = Q_strlen( s );
 
 	s += len;
 
@@ -369,7 +369,7 @@ int Q_strnicmp( const char *s1, const char *s2, int n )
 		c2 = *s2++;
 
 		if( !n-- ) return 0; // strings are equal until end point
-		
+
 		if( c1 != c2 )
 		{
 			if( c1 >= 'a' && c1 <= 'z' ) c1 -= ('a' - 'A');
@@ -395,7 +395,7 @@ int Q_strncmp( const char *s1, const char *s2, int n )
 	else if( s2 == NULL )
 	{
 		return 1;
-	}	
+	}
 
 	do {
 		c1 = *s1++;
@@ -406,7 +406,7 @@ int Q_strncmp( const char *s1, const char *s2, int n )
 		if( c1 != c2 ) return c1 < c2 ? -1 : 1;
 
 	} while( c1 );
-	
+
 	// strings are equal
 	return 0;
 }
@@ -504,7 +504,8 @@ const char* Q_timestamp( int format )
 
 char *Q_strstr( const char *string, const char *string2 )
 {
-	int	c, len;
+	int	c;
+	size_t	len;
 
 	if( !string || !string2 ) return NULL;
 
@@ -528,7 +529,8 @@ char *Q_strstr( const char *string, const char *string2 )
 
 char *Q_stristr( const char *string, const char *string2 )
 {
-	int	c, len;
+	int	c;
+	size_t	len;
 
 	if( !string || !string2 ) return NULL;
 
@@ -552,7 +554,7 @@ char *Q_stristr( const char *string, const char *string2 )
 
 int Q_vsnprintf( char *buffer, size_t buffersize, const char *format, va_list args )
 {
-	size_t	result;
+	int	result;
 
 #ifndef _MSC_VER
 	result = vsnprintf( buffer, buffersize, format, args );
@@ -601,6 +603,22 @@ int Q_sprintf( char *buffer, const char *format, ... )
 	va_end( args );
 
 	return result;
+}
+
+char *Q_strpbrk(const char *s, const char *accept)
+{
+	for( ; *s; s++ )
+	{
+		const char *k;
+
+		for( k = accept; *k; k++ )
+		{
+			if( *s == *k )
+				return (char*)s;
+		}
+	}
+
+	return NULL;
 }
 
 uint Q_hashkey( const char *string, uint hashSize, qboolean caseinsensitive )
@@ -842,7 +860,11 @@ void COM_StripExtension( char *path )
 {
 	size_t	length;
 
-	length = Q_strlen( path ) - 1;
+	length = Q_strlen( path );
+
+	if( length > 0 )
+		length--;
+
 	while( length > 0 && path[length] != '.' )
 	{
 		length--;
@@ -918,6 +940,33 @@ void COM_PathSlashFix( char *path )
 		Q_strcpy( &path[len], "/" );
 }
 
+/*
+============
+COM_Hex2Char
+============
+*/
+char COM_Hex2Char( uint8_t hex )
+{
+	if( hex >= 0x0 && hex <= 0x9 )
+		hex += '0';
+	else if( hex >= 0xA && hex <= 0xF )
+		hex += '7';
+
+	return (char)hex;
+}
+
+/*
+============
+COM_Hex2String
+============
+*/
+void COM_Hex2String( uint8_t hex, char *str )
+{
+	*str++ = COM_Hex2Char( hex >> 4 );
+	*str++ = COM_Hex2Char( hex & 0x0F );
+	*str = '\0';
+}
+
 int matchpattern( const char *in, const char *pattern, qboolean caseinsensitive )
 {
 	return matchpattern_with_separator( in, pattern, caseinsensitive, "/\\:", false );
@@ -983,3 +1032,4 @@ int matchpattern_with_separator( const char *in, const char *pattern, qboolean c
 		return 0; // reached end of pattern but not end of input
 	return 1; // success
 }
+

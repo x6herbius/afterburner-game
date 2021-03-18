@@ -20,6 +20,16 @@ struct UIVec2
 
 	inline UIVec2& operator =(const UIVec2& other) = default;
 
+	inline bool operator ==(const UIVec2& other) const
+	{
+		return x == other.x && y == other.y;
+	}
+
+	inline bool operator !=(const UIVec2& other) const
+	{
+		return !(*this == other);
+	}
+
 	inline int& operator [](size_t index)
 	{
 		if ( index < NUM_COMPONENTS )

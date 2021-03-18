@@ -241,7 +241,7 @@ void Wcon_WinPrint( const char *pMsg )
 	{
 		SendMessage( s_wcd.hwndBuffer, EM_SETSEL, 0, -1 );
 		s_wcd.outLen = len;
-	} 
+	}
 
 	SendMessage( s_wcd.hwndBuffer, EM_REPLACESEL, 0, (LPARAM)pMsg );
 
@@ -290,7 +290,7 @@ void Wcon_CreateConsole( void )
 		rect.top = 0;
 		rect.bottom = 364;
 		Q_strncpy( FontName, "Fixedsys", sizeof( FontName ));
-		Q_strncpy( s_wcd.title, va( "Xash3D %s", XASH_VERSION ), sizeof( s_wcd.title ));
+		Q_strncpy( s_wcd.title, va( "Afterburner %s", XASH_VERSION ), sizeof( s_wcd.title ));
 		Q_strncpy( s_wcd.log_path, "engine.log", sizeof( s_wcd.log_path ));
 		fontsize = 8;
 	}
@@ -301,7 +301,7 @@ void Wcon_CreateConsole( void )
 		rect.top = 0;
 		rect.bottom = 392;
 		Q_strncpy( FontName, "System", sizeof( FontName ));
-		Q_strncpy( s_wcd.title, va( "XashDS %s", XASH_VERSION ), sizeof( s_wcd.title ));
+		Q_strncpy( s_wcd.title, va( "Afterburner Dedicated Server %s", XASH_VERSION ), sizeof( s_wcd.title ));
 		Q_strncpy( s_wcd.log_path, "dedicated.log", sizeof( s_wcd.log_path ));
 		s_wcd.log_active = true; // always make log
 		fontsize = 14;
@@ -312,7 +312,7 @@ void Wcon_CreateConsole( void )
 		// print into log
 		Con_Reportf( S_ERROR  "Can't register window class '%s'\n", SYSCONSOLE );
 		return;
-	} 
+	}
 
 	AdjustWindowRect( &rect, DEDSTYLE, FALSE );
 
@@ -354,7 +354,11 @@ void Wcon_CreateConsole( void )
 
 	if( host.type == HOST_DEDICATED )
 	{
+#ifdef XASH_64BIT
+		s_wcd.SysInputLineWndProc = (WNDPROC)SetWindowLongPtr( s_wcd.hwndInputLine, GWLP_WNDPROC, (LONG_PTR)Wcon_InputLineProc );
+#else
 		s_wcd.SysInputLineWndProc = (WNDPROC)SetWindowLong( s_wcd.hwndInputLine, GWL_WNDPROC, (long)Wcon_InputLineProc );
+#endif
 		SendMessage( s_wcd.hwndInputLine, WM_SETFONT, ( WPARAM )s_wcd.hfBufferFont, 0 );
 	}
 
@@ -396,7 +400,7 @@ destroy win32 console
 */
 void Wcon_DestroyConsole( void )
 {
-	// last text message into console or log 
+	// last text message into console or log
 	Con_Reportf( "Sys_FreeLibrary: Unloading xash.dll\n" );
 
 	Sys_CloseLog();
@@ -436,17 +440,17 @@ void Wcon_DestroyConsole( void )
 ================
 Con_Input
 
-returned input text 
+returned input text
 ================
 */
 char *Wcon_Input( void )
 {
 	if( s_wcd.consoleText[0] == 0 )
 		return NULL;
-		
+
 	Q_strncpy( s_wcd.returnedText, s_wcd.consoleText, sizeof( s_wcd.returnedText ));
 	s_wcd.consoleText[0] = 0;
-	
+
 	return s_wcd.returnedText;
 }
 
@@ -454,7 +458,7 @@ char *Wcon_Input( void )
 ================
 Con_SetFocus
 
-change focus to console hwnd 
+change focus to console hwnd
 ================
 */
 void Wcon_RegisterHotkeys( void )

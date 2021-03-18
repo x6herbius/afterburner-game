@@ -2,10 +2,16 @@
 
 namespace CustomGeometry
 {
-	void CGeometryItem::Clear()
+	void CGeometryItem::Reset()
 	{
+		ClearGeometry();
+
 		m_Colour = 0xFFFFFFFF;
 		m_DrawType = DrawType::None;
+	}
+
+	void CGeometryItem::ClearGeometry()
+	{
 		m_Points.Purge();
 		m_Indices.Purge();
 	}
@@ -33,6 +39,16 @@ namespace CustomGeometry
 	void CGeometryItem::SetColour(uint32_t col)
 	{
 		m_Colour = col;
+	}
+
+	float CGeometryItem::GetScale() const
+	{
+		return m_Scale;
+	}
+
+	void CGeometryItem::SetScale(float scale)
+	{
+		m_Scale = scale;
 	}
 
 	const CUtlVector<Vector>& CGeometryItem::GetPoints() const
@@ -145,5 +161,29 @@ namespace CustomGeometry
 	uint8_t CGeometryItem::CurrentBaseIndex() const
 	{
 		return static_cast<uint8_t>(m_Points.Count());
+	}
+
+	Vector& CGeometryItem::GetPoint(uint8_t index)
+	{
+		static Vector dummy;
+		return index < m_Points.Count() ? m_Points[index] : dummy;
+	}
+
+	const Vector& CGeometryItem::GetPoint(uint8_t index) const
+	{
+		static Vector dummy;
+		return index < m_Points.Count() ? m_Points[index] : dummy;
+	}
+
+	uint8_t& CGeometryItem::GetIndex(uint8_t i)
+	{
+		static uint8_t dummy;
+		return i < m_Indices.Count() ? m_Indices[i] : dummy;
+	}
+
+	const uint8_t& CGeometryItem::GetIndex(uint8_t i) const
+	{
+		static uint8_t dummy;
+		return i < m_Indices.Count() ? m_Indices[i] : dummy;
 	}
 }

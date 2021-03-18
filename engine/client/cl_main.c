@@ -45,7 +45,6 @@ convar_t	*rcon_client_password;
 convar_t	*rcon_address;
 convar_t	*cl_timeout;
 convar_t	*cl_nopred;
-convar_t	*cl_showfps;
 convar_t	*cl_nodelta;
 convar_t	*cl_crosshair;
 convar_t	*cl_cmdbackup;
@@ -1237,6 +1236,7 @@ void CL_UpdateClientData( void )
 	VectorCopy( clgame.entities[cl.viewentity].origin, cdat.origin );
 	cdat.iWeaponBits = cl.local.weapons;
 	cdat.fov = cl.local.scr_fov;
+	cdat.weaponInaccuracy = cl.local.weaponInaccuracy;
 
 	if( clgame.dllFuncs.pfnUpdateClientData( &cdat, cl.time ))
 	{
@@ -1774,7 +1774,7 @@ void CL_CheckForResend( void )
 	// only retry so many times before failure.
 	if( cls.connect_retry >= CL_CONNECTION_RETRIES )
 	{
-		Con_DPrintf( S_ERROR "CL_CheckForResend: couldn't connected\n" );
+		Con_DPrintf( S_ERROR "CL_CheckForResend: couldn't connect\n" );
 		CL_Disconnect();
 		return;
 	}
@@ -1784,7 +1784,7 @@ void CL_CheckForResend( void )
 	if( cls.connect_retry == CL_TEST_RETRIES_NORESPONCE )
 	{
 		// too many fails use default connection method
-		Con_Printf( "hi-speed connection is failed, use default method\n" );
+		Con_Printf( "hi-speed connection failed, using default method\n" );
 		Netchan_OutOfBandPrint( NS_CLIENT, adr, "getchallenge\n" );
 		Cvar_SetValue( "cl_dlmax", FRAGMENT_MIN_SIZE );
 		cls.connect_time = host.realtime;
@@ -3034,7 +3034,7 @@ A file has been received via the fragmentation/reassembly layer, put it in the r
 */
 void CL_ProcessFile( qboolean successfully_received, const char *filename )
 {
-	int		sound_len = Q_strlen( DEFAULT_SOUNDPATH );
+	int		sound_len = sizeof( DEFAULT_SOUNDPATH ) - 1;
 	byte		rgucMD5_hash[16];
 	const char	*pfilename;
 	resource_t	*p;
@@ -3303,7 +3303,7 @@ qboolean CL_PrecacheResources( void )
 			{
 				if( FBitSet( pRes->ucFlags, RES_WASMISSING ))
 				{
-					Con_Printf( S_ERROR "Could not load sound %s%s\n", DEFAULT_SOUNDPATH, pRes->szFileName );
+					Con_Printf( S_ERROR "Could not load sound " DEFAULT_SOUNDPATH "%s\n", pRes->szFileName );
 					cl.sound_precache[pRes->nIndex][0] = 0;
 					cl.sound_index[pRes->nIndex] = 0;
 				}
@@ -3447,7 +3447,7 @@ void CL_InitLocal( void )
 	Cvar_RegisterVariable( &cl_test_bandwidth );
 
 	// register our variables
-	cl_crosshair = Cvar_Get( "crosshair", "1", FCVAR_ARCHIVE, "show weapon chrosshair" );
+	cl_crosshair = Cvar_Get( "crosshair", "1", FCVAR_ARCHIVE, "Show weapon chrosshair (1 = static, 2 = dynamic)" );
 	cl_nodelta = Cvar_Get ("cl_nodelta", "0", 0, "disable delta-compression for server messages" );
 	cl_idealpitchscale = Cvar_Get( "cl_idealpitchscale", "0.8", 0, "how much to look up/down slopes and stairs when not using freelook" );
 	cl_solid_players = Cvar_Get( "cl_solid_players", "1", 0, "Make all players not solid (can't traceline them)" );
@@ -3477,7 +3477,6 @@ void CL_InitLocal( void )
 	Cvar_Get( "team", "", FCVAR_USERINFO, "player team" );
 	Cvar_Get( "skin", "", FCVAR_USERINFO, "player skin" );
 
-	cl_showfps = Cvar_Get( "cl_showfps", "1", FCVAR_ARCHIVE, "show client fps" );
 	cl_nosmooth = Cvar_Get( "cl_nosmooth", "0", FCVAR_ARCHIVE, "disable smooth up stair climbing and interpolate position in multiplayer" );
 	cl_smoothtime = Cvar_Get( "cl_smoothtime", "0", FCVAR_ARCHIVE, "time to smooth up" );
 	cl_cmdbackup = Cvar_Get( "cl_cmdbackup", "10", FCVAR_ARCHIVE, "how many additional history commands are sent" );
@@ -3518,6 +3517,7 @@ void CL_InitLocal( void )
 	Cmd_AddCommand ("internetservers", CL_InternetServers_f, "collect info about internet servers" );
 	Cmd_AddCommand ("cd", CL_PlayCDTrack_f, "Play cd-track (not real cd-player of course)" );
 	Cmd_AddCommand ("mp3", CL_PlayCDTrack_f, "Play mp3-track (based on virtual cd-player)" );
+	Cmd_AddCommand ("waveplaylen", CL_WavePlayLen_f, "Get approximate length of wave file");
 
 	Cmd_AddCommand ("setinfo", CL_SetInfo_f, "examine or change the userinfo string (alias of userinfo)" );
 	Cmd_AddCommand ("userinfo", CL_SetInfo_f, "examine or change the userinfo string (alias of setinfo)" );

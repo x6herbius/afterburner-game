@@ -43,12 +43,14 @@ bool CGenericProjectileWeapon::InvokeWithAttackMode(WeaponAttackType type, const
 	CreateProjectile(*projectileAttack);
 #endif
 
-	if ( m_AttackModeEvents[projectileAttack->Signature()->Index] )
+	const int eventID = GetEventIDForAttackMode(projectileAttack);
+
+	if ( eventID >= 0 )
 	{
 		using namespace EventConstructor;
 
 		CEventConstructor event;
-		event.InitSimple(DefaultEventFlags(), m_pPlayer->edict(), m_AttackModeEvents[projectileAttack->Signature()->Index]);
+		event.InitSimple(DefaultEventFlags(), m_pPlayer->edict(), eventID);
 
 		event.Send();
 	}

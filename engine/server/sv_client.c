@@ -935,7 +935,7 @@ Rcon_Validate
 */
 qboolean Rcon_Validate( void )
 {
-	if( !Q_strlen( rcon_password.string ))
+	if( !COM_CheckString( rcon_password.string ))
 		return false;
 	if( Q_strcmp( Cmd_Argv( 1 ), rcon_password.string ))
 		return false;
@@ -1289,7 +1289,7 @@ void SV_PutClientInServer( sv_client_t *cl )
 			svgame.dllFuncs.pfnParmsChangeLevel();
 
 			MSG_BeginServerCmd( &msg, svc_restore );
-			Q_snprintf( name, sizeof( name ), "%s%s.HL2", DEFAULT_SAVE_DIRECTORY, sv.name );
+			Q_snprintf( name, sizeof( name ), DEFAULT_SAVE_DIRECTORY "%s.HL2", sv.name );
 			COM_FixSlashes( name );
 			MSG_WriteString( &msg, name );
 			MSG_WriteByte( &msg, levelData.connectionCount );
@@ -1560,9 +1560,9 @@ static qboolean SV_New_f( sv_client_t *cl )
 	if(( cl->state == cs_spawned ) && cl->edict )
 		svgame.dllFuncs.pfnClientDisconnect( cl->edict );
 
-	Q_snprintf( szName, sizeof( szName ), "%s", cl->name );
-	Q_snprintf( szAddress, sizeof( szAddress ), "%s", NET_AdrToString( cl->netchan.remote_address ));
-	Q_snprintf( szRejectReason, sizeof( szRejectReason ), "Connection rejected by game\n");
+	Q_strncpy( szName, cl->name, sizeof( szName ) );
+	Q_strncpy( szAddress, NET_AdrToString( cl->netchan.remote_address ), sizeof( szAddress ) );
+	Q_strncpy( szRejectReason, "Connection rejected by game\n", sizeof( szRejectReason ) );
 
 	// Allow the game dll to reject this client.
 	if( !svgame.dllFuncs.pfnClientConnect( cl->edict, szName, szAddress, szRejectReason ))
@@ -1686,7 +1686,7 @@ void SV_UserinfoChanged( sv_client_t *cl )
 		val = Info_ValueForKey( cl->userinfo, "name" );
 	}
 
-	if( !Q_strlen( name1 ))
+	if( !COM_CheckStringEmpty( name1 ) )
 	{
 		Info_SetValueForKey( cl->userinfo, "name", "unnamed", MAX_INFO_STRING );
 		val = Info_ValueForKey( cl->userinfo, "name" );
@@ -1724,7 +1724,7 @@ void SV_UserinfoChanged( sv_client_t *cl )
 
 	// rate command
 	val = Info_ValueForKey( cl->userinfo, "rate" );
-	if( Q_strlen( val ))
+	if( COM_CheckString( val ) )
 		cl->netchan.rate = bound( MIN_RATE, Q_atoi( val ), MAX_RATE );
 	else cl->netchan.rate = DEFAULT_RATE;
 
@@ -1745,7 +1745,7 @@ void SV_UserinfoChanged( sv_client_t *cl )
 
 	val = Info_ValueForKey( cl->userinfo, "cl_updaterate" );
 
-	if( Q_strlen( val ))
+	if( COM_CheckString( val ) )
 	{
 		if( Q_atoi( val ) != 0 )
 		{
@@ -2329,11 +2329,11 @@ static void SV_ParseClientMove( sv_client_t *cl, sizebuf_t *msg )
 		}
 		net_drop = 0;
 	}
-	else
-	{
-		if( !player->v.fixangle )
-			VectorCopy( cmds[0].viewangles, player->v.v_angle );
-	}
+
+	// There used to be code here that set the player's view angles from cmds[0]
+	// in an "else" clause. This was dumb as it stopped the PMove code from being
+	// able to see what the last frame's angles were, so it has been removed.
+	// Player angles should always be set from the PMove code.
 
 	SV_EstablishTimeBase( cl, cmds, net_drop, numbackup, numcmds );
 

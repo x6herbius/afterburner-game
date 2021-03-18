@@ -46,6 +46,7 @@
 #include "screenOverlays/messageWriter.h"
 #include "com_model.h"
 #include "resources/SoundResources.h"
+#include "weapons/genericweapon.h"
 
 // #define DUCKFIX
 
@@ -64,6 +65,8 @@ extern Vector VecBModelOrigin( entvars_t *pevBModel );
 
 // the world node graph
 extern CGraph WorldGraph;
+
+static cvar_t* cvarMaxSpeed = nullptr;
 
 #define TRAIN_ACTIVE		0x80
 #define TRAIN_NEW		0xc0
@@ -166,6 +169,7 @@ int gmsgResetHUD = 0;
 int gmsgInitHUD = 0;
 int gmsgShowGameTitle = 0;
 int gmsgCurWeapon = 0;
+int gmsgCurWeaponPriAttackMode = 0;
 int gmsgHealth = 0;
 int gmsgDamage = 0;
 int gmsgBattery = 0;
@@ -207,6 +211,7 @@ void LinkUserMessages( void )
 
 	gmsgSelAmmo = REG_USER_MSG( "SelAmmo", sizeof(SelAmmo) );
 	gmsgCurWeapon = REG_USER_MSG( "CurWeapon", 3 );
+	gmsgCurWeaponPriAttackMode = REG_USER_MSG( "CurWeaponPriAttackMode", 2 );
 	gmsgGeigerRange = REG_USER_MSG( "Geiger", 1 );
 	gmsgFlashlight = REG_USER_MSG( "Flashlight", 2 );
 	gmsgFlashBattery = REG_USER_MSG( "FlashBat", 1 );
@@ -1781,10 +1786,22 @@ void CBasePlayer::PreThink( void )
 	m_afButtonPressed =  buttonsChanged & pev->button;		// The changed ones still down are "pressed"
 	m_afButtonReleased = buttonsChanged & ( ~pev->button );	// The ones not down are "released"
 
+	if ( !cvarMaxSpeed )
+	{
+		cvarMaxSpeed = CVAR_GET_POINTER("sv_maxspeed");
+	}
+
+	if ( cvarMaxSpeed )
+	{
+		pev->maxspeed = cvarMaxSpeed->value;
+	}
+
 	g_pGameRules->PlayerThink( this );
 
 	if( g_fGameOver )
+	{
 		return;         // intermission or finale
+	}
 
 	UTIL_MakeVectors( pev->v_angle );             // is this still used?
 
@@ -1792,9 +1809,13 @@ void CBasePlayer::PreThink( void )
 	WaterMove();
 
 	if( g_pGameRules && g_pGameRules->FAllowFlashlight() )
+	{
 		m_iHideHUD &= ~HIDEHUD_FLASHLIGHT;
+	}
 	else
+	{
 		m_iHideHUD |= HIDEHUD_FLASHLIGHT;
+	}
 
 	// JOHN: checks if new client data (for HUD and view control) needs to be sent to the client
 	UpdateClientData();
@@ -2581,6 +2602,8 @@ pt_end:
 				{
 					gun->m_flNextPrimaryAttack = Q_max( gun->m_flNextPrimaryAttack - gpGlobals->frametime, -1.0 );
 					gun->m_flNextSecondaryAttack = Q_max( gun->m_flNextSecondaryAttack - gpGlobals->frametime, -0.001 );
+					gun->m_flLastPrimaryAttack = Q_max( gun->m_flLastPrimaryAttack - gpGlobals->frametime, -10.0f );
+					gun->m_flLastSecondaryAttack = Q_max( gun->m_flLastSecondaryAttack - gpGlobals->frametime, -10.0f );
 
 					if( gun->m_flTimeWeaponIdle != 1000 )
 					{
@@ -2617,8 +2640,6 @@ pt_end:
 		if( m_flAmmoStartCharge < -0.001 )
 			m_flAmmoStartCharge = -0.001;
 	}
-#else
-	return;
 #endif
 }
 
@@ -3665,7 +3686,10 @@ void CBasePlayer::ItemPostFrame()
 	ImpulseCommands();
 
 	if( !m_pActiveItem )
+	{
+		m_flWeaponInaccuracy = 0;
 		return;
+	}
 
 	m_pActiveItem->ItemPostFrame();
 }

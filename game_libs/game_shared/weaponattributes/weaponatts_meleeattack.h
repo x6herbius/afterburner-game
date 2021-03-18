@@ -28,15 +28,15 @@ namespace WeaponAtts
 		}
 
 		virtual void Validate() const override
-        {
-            WABaseAttack::Validate();
+		{
+			WABaseAttack::Validate();
 
-            ASSERTSZ_Q(BaseDamagePerHit, "Skill entry for base damage per hit must be specified.");
+			ASSERTSZ_Q(BaseDamagePerHit, "Skill entry for base damage per hit must be specified.");
 
 			FOR_EACH_VEC(Strikes, index)
 			{
 				ASSERTSZ_Q(Strikes[index] >= 0.0f, "Strike delay must be positive.");
 			}
-        }
+		}
 	};
 }

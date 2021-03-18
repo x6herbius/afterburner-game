@@ -126,7 +126,7 @@ void CL_PlayCDTrack_f( void )
 		int	i, maxTrack;
 
 		for( maxTrack = i = 0; i < MAX_CDTRACKS; i++ )
-			if( Q_strlen( clgame.cdtracks[i] )) maxTrack++;
+			if( COM_CheckStringEmpty( clgame.cdtracks[i] ) ) maxTrack++;
 
 		Con_Printf( "%u tracks\n", maxTrack );
 		if( track )
@@ -360,7 +360,7 @@ void CL_SaveShot_f( void )
 		return;
 	}
 
-	Q_sprintf( cls.shotname, "%s%s.bmp", DEFAULT_SAVE_DIRECTORY, Cmd_Argv( 1 ));
+	Q_sprintf( cls.shotname, DEFAULT_SAVE_DIRECTORY "%s.bmp", Cmd_Argv( 1 ));
 	cls.scrshot_action = scrshot_savegame;	// build new frame for saveshot
 }
 
@@ -417,4 +417,33 @@ void SCR_Viewpos_f( void )
 {
 	Con_Printf( "org ( %g %g %g )\n", refState.vieworg[0], refState.vieworg[1], refState.vieworg[2] );
 	Con_Printf( "ang ( %g %g %g )\n", refState.viewangles[0], refState.viewangles[1], refState.viewangles[2] );
+}
+
+/*
+=============
+CL_WavePlayLen_f
+
+=============
+*/
+void CL_WavePlayLen_f( void )
+{
+	const char *name;
+	uint msecs;
+
+	if( Cmd_Argc() != 2 )
+	{
+		Con_Printf( "waveplaylen <wave file name>: returns approximate number of milliseconds a wave file will take to play.\n" );
+		return;
+	}
+
+	name = Cmd_Argv( 1 );
+	msecs = Sound_GetApproxWavePlayLen( name );
+
+	if( msecs == 0 )
+	{
+		Con_Printf( "Unable to read %s, file may be missing or incorrectly formatted.\n", name );
+		return;
+	}
+
+	Con_Printf( "Play time is approximately %dms\n", msecs );
 }

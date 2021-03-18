@@ -5,15 +5,45 @@
 #include "hud.h"
 #include "cl_util.h"
 
+namespace
+{
+	static inline bool FloatIsZero(float f)
+	{
+		return fabs(f) < 0.0001f;
+	}
+
+	static inline void DefaultTextureCoOrdinate()
+	{
+		gEngfuncs.pTriAPI->TexCoord2f(0.0f, 0.0f);
+	}
+}
+
 namespace CustomGeometry
 {
 	CGeometryRenderer::CGeometryRenderer()
+	{
+	}
+
+	void CGeometryRenderer::VidInit()
 	{
 		m_ColourSprite = SPR_Load("sprites/white.spr");
 	}
 
 	void CGeometryRenderer::Render(const CGeometryItem& item)
 	{
+		if ( m_ColourSprite == 0 )
+		{
+			gEngfuncs.Con_Printf("CGeometryRenderer: Colour sprite not initialised!\n");
+			return;
+		}
+
+		m_Scale = item.GetScale();
+
+		if ( FloatIsZero(m_Scale) )
+		{
+			return;
+		}
+
 		const CUtlVector<Vector>& points = item.GetPoints();
 
 		if ( points.Count() < 1 )
@@ -80,6 +110,7 @@ namespace CustomGeometry
 		const CUtlVector<uint8_t>& indices = item.GetIndices();
 		const size_t halfCount = indices.Count() / 2;
 		const uint32_t colour = item.GetColour();
+		const bool scaled = !FloatIsZero(m_Scale - 1.0f);
 
 		if ( halfCount < 1 )
 		{
@@ -98,11 +129,22 @@ namespace CustomGeometry
 			ASSERTSZ(pointIndex0 < static_cast<size_t>(points.Count()), "Index was out of range.");
 			ASSERTSZ(pointIndex1 < static_cast<size_t>(points.Count()), "Index was out of range.");
 
-			gEngfuncs.pTriAPI->TexCoord2f(0.0f, 0.0f);
-			gEngfuncs.pTriAPI->Vertex3fv(points[pointIndex0]);
+			if ( scaled )
+			{
+				DefaultTextureCoOrdinate();
+				gEngfuncs.pTriAPI->Vertex3fv(points[pointIndex0] * m_Scale);
 
-			gEngfuncs.pTriAPI->TexCoord2f(0.0f, 0.0f);
-			gEngfuncs.pTriAPI->Vertex3fv(points[pointIndex1]);
+				DefaultTextureCoOrdinate();
+				gEngfuncs.pTriAPI->Vertex3fv(points[pointIndex1] * m_Scale);
+			}
+			else
+			{
+				DefaultTextureCoOrdinate();
+				gEngfuncs.pTriAPI->Vertex3fv(points[pointIndex0]);
+
+				DefaultTextureCoOrdinate();
+				gEngfuncs.pTriAPI->Vertex3fv(points[pointIndex1]);
+			}
 		}
 
 		gEngfuncs.pTriAPI->End();
@@ -126,6 +168,7 @@ namespace CustomGeometry
 		const CUtlVector<uint8_t>& indices = item.GetIndices();
 		const size_t thirdCount = indices.Count() / 3;
 		const uint32_t colour = item.GetColour();
+		const bool scaled = !FloatIsZero(m_Scale - 1.0f);
 
 		if ( thirdCount < 1 )
 		{
@@ -146,14 +189,28 @@ namespace CustomGeometry
 			ASSERTSZ(pointIndex1 < static_cast<size_t>(points.Count()), "Index was out of range.");
 			ASSERTSZ(pointIndex2 < static_cast<size_t>(points.Count()), "Index was out of range.");
 
-			gEngfuncs.pTriAPI->TexCoord2f(0.0f, 0.0f);
-			gEngfuncs.pTriAPI->Vertex3fv(points[pointIndex0]);
+			if ( scaled )
+			{
+				DefaultTextureCoOrdinate();
+				gEngfuncs.pTriAPI->Vertex3fv(points[pointIndex0] * m_Scale);
 
-			gEngfuncs.pTriAPI->TexCoord2f(0.0f, 0.0f);
-			gEngfuncs.pTriAPI->Vertex3fv(points[pointIndex1]);
+				DefaultTextureCoOrdinate();
+				gEngfuncs.pTriAPI->Vertex3fv(points[pointIndex1] * m_Scale);
 
-			gEngfuncs.pTriAPI->TexCoord2f(0.0f, 0.0f);
-			gEngfuncs.pTriAPI->Vertex3fv(points[pointIndex2]);
+				DefaultTextureCoOrdinate();
+				gEngfuncs.pTriAPI->Vertex3fv(points[pointIndex2] * m_Scale);
+			}
+			else
+			{
+				DefaultTextureCoOrdinate();
+				gEngfuncs.pTriAPI->Vertex3fv(points[pointIndex0]);
+
+				DefaultTextureCoOrdinate();
+				gEngfuncs.pTriAPI->Vertex3fv(points[pointIndex1]);
+
+				DefaultTextureCoOrdinate();
+				gEngfuncs.pTriAPI->Vertex3fv(points[pointIndex2]);
+			}
 		}
 
 		gEngfuncs.pTriAPI->End();
@@ -165,6 +222,7 @@ namespace CustomGeometry
 		const CUtlVector<uint8_t>& indices = item.GetIndices();
 		const size_t count = indices.Count();
 		const uint32_t colour = item.GetColour();
+		const bool scaled = !FloatIsZero(m_Scale - 1.0f);
 
 		if ( count < 3 )
 		{
@@ -181,8 +239,16 @@ namespace CustomGeometry
 
 			ASSERTSZ(pointIndex < static_cast<size_t>(points.Count()), "Index was out of range.");
 
-			gEngfuncs.pTriAPI->TexCoord2f(0.0f, 0.0f);
-			gEngfuncs.pTriAPI->Vertex3fv(points[pointIndex]);
+			if ( scaled )
+			{
+				DefaultTextureCoOrdinate();
+				gEngfuncs.pTriAPI->Vertex3fv(points[pointIndex] * m_Scale);
+			}
+			else
+			{
+				DefaultTextureCoOrdinate();
+				gEngfuncs.pTriAPI->Vertex3fv(points[pointIndex]);
+			}
 		}
 
 		gEngfuncs.pTriAPI->End();

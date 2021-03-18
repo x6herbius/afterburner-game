@@ -90,6 +90,21 @@ GNU General Public License for more details.
 #define SDL_GetScancodeName( x ) "unknown"
 #endif
 
+static qboolean SDLash_IsInstanceIDAGameController( SDL_JoystickID joyId )
+{
+#if !SDL_VERSION_ATLEAST( 2, 0, 4 )
+	// HACKHACK: if we're not initialized g_joy, then we're probably using gamecontroller api
+	// so return true
+	if( !g_joy )
+		return true;
+	return false;
+#else
+	if( SDL_GameControllerFromInstanceID( joyId ) )
+		return true;
+	return false;
+#endif
+}
+
 /*
 =============
 SDLash_KeyEvent
@@ -325,8 +340,8 @@ static void SDLash_ActiveEvent( int gain )
 	if( gain )
 	{
 		host.status = HOST_FRAME;
-		IN_ActivateMouse(true);
-		if( snd_mute_losefocus->value )
+		IN_ActivateMouse( true );
+		if( dma.initialized && snd_mute_losefocus.value )
 		{
 			SNDDMA_Activate( true );
 		}
@@ -346,7 +361,7 @@ static void SDLash_ActiveEvent( int gain )
 #endif
 		host.status = HOST_NOFOCUS;
 		IN_DeactivateMouse();
-		if( snd_mute_losefocus->value )
+		if( dma.initialized && snd_mute_losefocus.value )
 		{
 			SNDDMA_Activate( false );
 		}
@@ -355,6 +370,48 @@ static void SDLash_ActiveEvent( int gain )
 		VID_RestoreScreenResolution();
 	}
 }
+
+#if SDL_VERSION_ATLEAST( 2, 0, 0 )
+static size_t num_open_game_controllers = 0;
+
+static void SDLash_GameController_Add( int index )
+{
+	extern convar_t *joy_enable; // private to input system
+	SDL_GameController *controller;
+	if( !joy_enable->value )
+		return;
+	controller = SDL_GameControllerOpen( index );
+	if( !controller )
+	{
+		Con_Reportf( "Failed to open SDL GameController %d: %s\n", index, SDL_GetError( ) );
+		SDL_ClearError( );
+		return;
+	}
+#if SDL_VERSION_ATLEAST( 2, 0, 6 )
+	Con_Reportf( "Added controller: %s (%i:%i:%i)\n",
+		SDL_GameControllerName( controller ),
+		SDL_GameControllerGetVendor( controller ),
+		SDL_GameControllerGetProduct( controller ),
+		SDL_GameControllerGetProductVersion( controller ));
+#endif // SDL_VERSION_ATLEAST( 2, 0, 6 )
+
+	++num_open_game_controllers;
+	if( num_open_game_controllers == 1 )
+		Joy_AddEvent( );
+}
+
+
+static void SDLash_GameController_Remove( SDL_JoystickID joystick_id )
+{
+	Con_Reportf( "Removed controller %i\n", joystick_id );
+
+	// `Joy_RemoveEvent` sets `joy_found` to `0`.
+	// We only want to do this when all the game controllers have been removed.
+	--num_open_game_controllers;
+	if( num_open_game_controllers == 0 )
+		Joy_RemoveEvent( );
+}
+#endif
 
 /*
 =============
@@ -390,20 +447,24 @@ static void SDLash_EventFilter( SDL_Event *event )
 
 	/* Joystick events */
 	case SDL_JOYAXISMOTION:
-		Joy_AxisMotionEvent( event->jaxis.axis, event->jaxis.value );
+		if ( !SDLash_IsInstanceIDAGameController( event->jaxis.which ))
+			Joy_AxisMotionEvent( event->jaxis.axis, event->jaxis.value );
 		break;
 
 	case SDL_JOYBALLMOTION:
-		Joy_BallMotionEvent( event->jball.ball, event->jball.xrel, event->jball.yrel );
+		if ( !SDLash_IsInstanceIDAGameController( event->jball.which ))
+			Joy_BallMotionEvent( event->jball.ball, event->jball.xrel, event->jball.yrel );
 		break;
 
 	case SDL_JOYHATMOTION:
-		Joy_HatMotionEvent( event->jhat.hat, event->jhat.value );
+		if ( !SDLash_IsInstanceIDAGameController( event->jhat.which ))
+			Joy_HatMotionEvent( event->jhat.hat, event->jhat.value );
 		break;
 
 	case SDL_JOYBUTTONDOWN:
 	case SDL_JOYBUTTONUP:
-		Joy_ButtonEvent( event->jbutton.button, event->jbutton.state );
+		if ( !SDLash_IsInstanceIDAGameController( event->jbutton.which ))
+			Joy_ButtonEvent( event->jbutton.button, event->jbutton.state );
 		break;
 
 	case SDL_QUIT:
@@ -486,44 +547,46 @@ static void SDLash_EventFilter( SDL_Event *event )
 
 	/* GameController API */
 	case SDL_CONTROLLERAXISMOTION:
-		if( event->caxis.axis == (Uint8)SDL_CONTROLLER_AXIS_INVALID )
-			break;
-
+	{
 		// Swap axis to follow default axis binding:
 		// LeftX, LeftY, RightX, RightY, TriggerRight, TriggerLeft
-		if( event->caxis.axis == SDL_CONTROLLER_AXIS_TRIGGERLEFT )
-			event->caxis.axis = SDL_CONTROLLER_AXIS_TRIGGERRIGHT;
-		else if( event->caxis.axis == SDL_CONTROLLER_AXIS_TRIGGERRIGHT )
-			event->caxis.axis = SDL_CONTROLLER_AXIS_TRIGGERLEFT;
-
-		Joy_AxisMotionEvent( event->caxis.axis, event->caxis.value );
+		static int sdlControllerAxisToEngine[] = {
+			JOY_AXIS_SIDE, // SDL_CONTROLLER_AXIS_LEFTX,
+			JOY_AXIS_FWD, // SDL_CONTROLLER_AXIS_LEFTY,
+			JOY_AXIS_PITCH, // SDL_CONTROLLER_AXIS_RIGHTX,
+			JOY_AXIS_YAW, // SDL_CONTROLLER_AXIS_RIGHTY,
+			JOY_AXIS_LT, // SDL_CONTROLLER_AXIS_TRIGGERLEFT,
+			JOY_AXIS_RT, // SDL_CONTROLLER_AXIS_TRIGGERRIGHT,
+		};
+		if( Joy_IsActive() && event->caxis.axis != (Uint8)SDL_CONTROLLER_AXIS_INVALID )
+			Joy_KnownAxisMotionEvent( sdlControllerAxisToEngine[event->caxis.axis], event->caxis.value );
 		break;
+	}
 
 	case SDL_CONTROLLERBUTTONDOWN:
 	case SDL_CONTROLLERBUTTONUP:
 	{
 		static int sdlControllerButtonToEngine[] =
 		{
-			K_AUX16, // invalid
 			K_A_BUTTON, K_B_BUTTON, K_X_BUTTON,	K_Y_BUTTON,
 			K_BACK_BUTTON, K_MODE_BUTTON, K_START_BUTTON,
 			K_LSTICK, K_RSTICK,
 			K_L1_BUTTON, K_R1_BUTTON,
-			K_UPARROW, K_DOWNARROW, K_LEFTARROW, K_RIGHTARROW
+			K_DPAD_UP, K_DPAD_DOWN, K_DPAD_LEFT, K_DPAD_RIGHT
 		};
 
 		// TODO: Use joyinput funcs, for future multiple gamepads support
-		if( Joy_IsActive() )
+		if( Joy_IsActive() && event->cbutton.button != (Uint8)SDL_CONTROLLER_BUTTON_INVALID )
 			Key_Event( sdlControllerButtonToEngine[event->cbutton.button], event->cbutton.state );
 		break;
 	}
 
 	case SDL_CONTROLLERDEVICEADDED:
-		Joy_AddEvent( );
+		SDLash_GameController_Add( event->cdevice.which );
 		break;
 
 	case SDL_CONTROLLERDEVICEREMOVED:
-		Joy_RemoveEvent( );
+		SDLash_GameController_Remove( event->cdevice.which );
 		break;
 
 	case SDL_WINDOWEVENT:

@@ -4,11 +4,11 @@
 
 namespace WeaponAtts
 {
-    struct WAProjectileAttack : public WAAmmoBasedAttack
-    {
-        virtual WABaseAttack::Classification Classify() const override
-        {
-            return WABaseAttack::Classification::Projectile;
-        }
-    };
+	struct WAProjectileAttack : public WAAmmoBasedAttack
+	{
+		virtual WABaseAttack::Classification Classify() const override
+		{
+			return WABaseAttack::Classification::Projectile;
+		}
+	};
 }

@@ -93,7 +93,7 @@ void GAME_EXPORT VGUI_CursorSelect(enum VGUI_DefaultCursor cursor )
 	qboolean visible;
 	if( cls.key_dest != key_game || cl.paused )
 		return;
-	
+
 	switch( cursor )
 	{
 		case dc_user:
@@ -121,6 +121,7 @@ void GAME_EXPORT VGUI_CursorSelect(enum VGUI_DefaultCursor cursor )
 		SDL_ShowCursor( false );
 		if( host.mouse_visible )
 			SDL_GetRelativeMouseState( NULL, NULL );
+		Key_EnableTextInput( false, true );
 	}
 	//SDL_SetRelativeMouseMode(false);
 #endif
@@ -146,7 +147,7 @@ void GAME_EXPORT VGUI_SetVisible( qboolean state )
 	if( !state )
 		SDL_GetRelativeMouseState( NULL, NULL );
 #endif
-	Key_EnableTextInput( state, true );
+	Key_EnableTextInput( false, true );
 }
 
 int GAME_EXPORT VGUI_UtfProcessChar( int in )
@@ -284,7 +285,7 @@ void VGui_Startup( const char *clientlib, int width, int height )
 		if( !s_pVGuiSupport )
 		{
 			if( FS_FileExists( vguiloader, false ) )
-				Con_Reportf( S_ERROR  "Failed to load vgui_support library: %s", COM_GetLibraryError() );
+				Con_Reportf( S_ERROR  "Failed to load vgui_support library: %s\n", COM_GetLibraryError() );
 			else
 				Con_Reportf( "vgui_support: not found\n" );
 		}
@@ -329,7 +330,10 @@ void VGui_Startup( const char *clientlib, int width, int height )
 		//host.mouse_visible = true;
 		vgui.Startup( width, height );
 	}
-	else failed = true;
+	else if ( COM_CheckString( clientlib ) )
+	{
+		failed = true;
+	}
 }
 
 
@@ -491,12 +495,11 @@ void VGui_KeyEvent( int key, int down )
 	if( !vgui.initialized )
 		return;
 
-	if( host.mouse_visible )
-		Key_EnableTextInput( true, false );
-
 	switch( key )
 	{
 	case K_MOUSE1:
+		if( down && host.mouse_visible )
+			Key_EnableTextInput( true, false );
 		vgui.Mouse( down ? MA_PRESSED : MA_RELEASED, MOUSE_LEFT );
 		return;
 	case K_MOUSE2:

@@ -190,6 +190,7 @@ void DLLEXPORT HUD_TxferPredictionData( struct entity_state_s *ps, const struct 
 	pcd->fov				= ppcd->fov;
 	pcd->weaponanim				= ppcd->weaponanim;
 	pcd->weaponScreenOverlay	= ppcd->weaponScreenOverlay;
+	pcd->weaponInaccuracy		= ppcd->weaponInaccuracy;
 	pcd->tfstate				= ppcd->tfstate;
 	pcd->maxspeed				= ppcd->maxspeed;
 
@@ -225,7 +226,7 @@ void DLLEXPORT HUD_TxferPredictionData( struct entity_state_s *ps, const struct 
 	VectorCopy( ppcd->vuser3, pcd->vuser3 );
 	VectorCopy( ppcd->vuser4, pcd->vuser4 );
 
-	memcpy( wd, pwd, 32 * sizeof(weapon_data_t) );
+	memcpy( wd, pwd, MAX_LOCAL_WEAPONS * sizeof(weapon_data_t) );
 }
 
 /*

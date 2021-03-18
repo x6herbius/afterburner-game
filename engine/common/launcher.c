@@ -77,7 +77,11 @@ int main( int argc, char** argv )
 
 	if( !COM_CheckString( gamedir ) )
 	{
+#ifdef DEFAULT_GAME_DIR
+		gamedir = DEFAULT_GAME_DIR;
+#else
 		gamedir = "valve";
+#endif
 	}
 	else
 	{

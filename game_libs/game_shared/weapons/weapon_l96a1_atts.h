@@ -19,7 +19,8 @@ enum L96A1Animations_e
 
 enum L9A61AttackMode_e
 {
-	ATTACKMODE_NORMAL = 0
+	ATTACKMODE_UNSCOPED = 0,
+	ATTACKMODE_SCOPED
 };
 
 // Rounds per second:
@@ -79,11 +80,10 @@ static const WeaponAtts::WACollection StaticWeaponAttributes([](WeaponAtts::WACo
 	WAHitscanAttack* priAttack = new WAHitscanAttack();
 	obj.AttackModes.AddToTail(std::shared_ptr<WABaseAttack>(priAttack));
 
-	priAttack->EventScript = "events/weapon_l96a1/fire01.sc";
+	priAttack->EventScript = "events/weapon_l96a1/fire_unscoped.sc";
 	priAttack->FunctionsUnderwater = true;
 	priAttack->IsContinuous = false;
 	priAttack->UsesAmmoPool = WAAmmoBasedAttack::AmmoPool::Primary;
-	priAttack->SetUniformSpread(0.0f);
 	priAttack->AttackRate = L96A1_FIRE_RATE;
 	priAttack->BaseDamagePerShot = &skilldata_t::plrDmgL96A1;
 	priAttack->AutoAim = AUTOAIM_10DEGREES;
@@ -106,4 +106,31 @@ static const WeaponAtts::WACollection StaticWeaponAttributes([](WeaponAtts::WACo
 	priAttack->ViewModelAttackSounds.MinPitch = 95;
 	priAttack->ViewModelAttackSounds.MaxPitch = 100;
 	priAttack->ViewModelAttackSounds.SoundNames << "weapons/weapon_l96a1/l96a1_fire.wav";
+
+	AccuracyParameters& accuracy = priAttack->Accuracy;
+	accuracy.RestValue = 0.1f;
+	accuracy.RestSpread = Vector2D(0.01f, 0.01f);
+	accuracy.RunValue = 0.5f;
+	accuracy.RunSpread = Vector2D(0.035f, 0.035f);
+	accuracy.CrouchShift = -0.08f;
+	accuracy.AirShift = 0.2f;
+	accuracy.FallShift = 0.1f;
+	accuracy.AttackCoefficient = 0.3f;
+	accuracy.DecayCoefficient = 0.3f;
+	accuracy.FireImpulse = 0.1f;
+	accuracy.FireImpulseCeiling = 0.3f;
+	accuracy.FireImpulseHoldTime = 0.05f;
+
+	CrosshairParameters& crosshair = priAttack->Crosshair;
+	crosshair.HasCrosshair = false;
+
+	WAHitscanAttack* scopedAttack = new WAHitscanAttack();
+	obj.AttackModes.AddToTail(std::shared_ptr<WABaseAttack>(scopedAttack));
+
+	// Base off primary attack
+	*scopedAttack = *priAttack;
+
+	scopedAttack->EventScript = "events/weapon_l96a1/fire_scoped.sc";
+	scopedAttack->Accuracy.RestSpread = Vector2D(0.0f, 0.0f);
+	scopedAttack->Accuracy.RunSpread = Vector2D(0.02f, 0.02f);
 });

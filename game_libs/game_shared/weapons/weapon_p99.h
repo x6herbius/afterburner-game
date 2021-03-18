@@ -23,9 +23,9 @@ public:
 #endif
 
 private:
-	const WeaponAtts::WAHitscanAttack* m_pAttackUnsilenced;
-	const WeaponAtts::WAHitscanAttack* m_pAttackSilenced;
-	bool m_bSilenced;
+	const WeaponAtts::WAHitscanAttack* m_pAttackUnsilenced = nullptr;
+	const WeaponAtts::WAHitscanAttack* m_pAttackSilenced = nullptr;
+	bool m_bSilenced = false;
 };
 
 namespace WeaponAtts

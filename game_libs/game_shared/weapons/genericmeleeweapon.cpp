@@ -232,12 +232,20 @@ bool CGenericMeleeWeapon::CheckForContact(const WeaponAtts::WAMeleeAttack* melee
 void CGenericMeleeWeapon::FireEvent(const WeaponAtts::WAMeleeAttack* meleeAttack)
 {
 	using namespace EventConstructor;
+
+	const int eventID = GetEventIDForAttackMode(meleeAttack);
+
+	if ( eventID < 0 )
+	{
+		return;
+	}
+
 	CEventConstructor event;
 
 	event
 		<< Flags(DefaultEventFlags())
 		<< Invoker(m_pPlayer->edict())
-		<< EventIndex(m_AttackModeEvents[meleeAttack->Signature()->Index])
+		<< EventIndex(eventID)
 		;
 
 	event.Send();

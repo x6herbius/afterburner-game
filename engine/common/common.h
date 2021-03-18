@@ -138,16 +138,16 @@ typedef enum
 
 #define CIN_MAIN		0
 #define CIN_LOGO		1
+
 #if XASH_LOW_MEMORY == 0
 #define MAX_DECALS		512	// touching TE_DECAL messages, etc
 #define MAX_STATIC_ENTITIES	3096	// static entities that moved on the client when level is spawn
-
-#elif XASH_LOW_MEMORY == 2
-#define MAX_DECALS		256	// touching TE_DECAL messages, etc
-#define MAX_STATIC_ENTITIES	32	// static entities that moved on the client when level is spawn
 #elif XASH_LOW_MEMORY == 1
 #define MAX_DECALS		512	// touching TE_DECAL messages, etc
 #define MAX_STATIC_ENTITIES	128	// static entities that moved on the client when level is spawn
+#elif XASH_LOW_MEMORY == 2
+#define MAX_DECALS		256	// touching TE_DECAL messages, etc
+#define MAX_STATIC_ENTITIES	32	// static entities that moved on the client when level is spawn
 #endif
 
 // filesystem flags
@@ -866,7 +866,7 @@ int COM_ExpandFilename( const char *fileName, char *nameOutBuffer, int nameOutBu
 struct cmd_s *Cmd_GetFirstFunctionHandle( void );
 struct cmd_s *Cmd_GetNextFunctionHandle( struct cmd_s *cmd );
 struct cmdalias_s *Cmd_AliasGetList( void );
-char *Cmd_GetName( struct cmd_s *cmd );
+const char *Cmd_GetName( struct cmd_s *cmd );
 struct pmtrace_s *PM_TraceLine( float *start, float *end, int flags, int usehull, int ignore_pe );
 void SV_StartSound( edict_t *ent, int chan, const char *sample, float vol, float attn, int flags, int pitch );
 void SV_StartMusic( const char *curtrack, const char *looptrack, int position );

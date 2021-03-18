@@ -505,11 +505,8 @@ void CL_BatchResourceRequest( qboolean initialize )
 			{
 				if( !FBitSet( p->ucFlags, RES_REQUESTED ))
 				{
-					string	filename;
-
-					Q_snprintf( filename, sizeof( filename ), "!MD5%s", MD5_Print( p->rgucMD5_hash ));
 					MSG_BeginClientCmd( &msg, clc_stringcmd );
-					MSG_WriteString( &msg, va( "dlfile %s", filename ));
+					MSG_WriteString( &msg, va( "dlfile !MD5%s", MD5_Print( p->rgucMD5_hash ) ) );
 					SetBits( p->ucFlags, RES_REQUESTED );
 				}
 				break;
@@ -564,7 +561,7 @@ int CL_EstimateNeededResources( void )
 		switch( p->type )
 		{
 		case t_sound:
-			if( p->szFileName[0] != '*' && !FS_FileExists( va( "%s%s", DEFAULT_SOUNDPATH, p->szFileName ), false ) )
+			if( p->szFileName[0] != '*' && !FS_FileExists( va( DEFAULT_SOUNDPATH "%s", p->szFileName ), false ) )
 			{
 				SetBits( p->ucFlags, RES_WASMISSING );
 				nTotalSize += p->nDownloadSize;
@@ -1149,6 +1146,7 @@ void CL_ParseClientData( sizebuf_t *msg )
 	cl.local.pushmsec = frame->clientdata.pushmsec;
 	cl.local.weapons = frame->clientdata.weapons;
 	cl.local.health = frame->clientdata.health;
+	cl.local.weaponInaccuracy = frame->clientdata.weaponInaccuracy;
 }
 
 /*
@@ -1500,7 +1498,7 @@ void CL_SendConsistencyInfo( sizebuf_t *msg )
 		MSG_WriteUBitLong( msg, pc->orig_index, MAX_MODEL_BITS );
 
 		if( pc->issound )
-			Q_snprintf( filename, sizeof( filename ), "%s%s", DEFAULT_SOUNDPATH, pc->filename );
+			Q_snprintf( filename, sizeof( filename ), DEFAULT_SOUNDPATH "%s", pc->filename );
 		else Q_strncpy( filename, pc->filename, sizeof( filename ));
 
 		if( Q_strstr( filename, "models/" ))
@@ -1581,6 +1579,9 @@ void CL_RegisterResources( sizebuf_t *msg )
 			cl.audio_prepped = true;
 
 			CL_ClearWorld ();
+
+			// update the ref state.
+			R_UpdateRefState ();
 
 			// tell rendering system we have a new set of models.
 			ref.dllFuncs.R_NewMap ();
@@ -2806,7 +2807,7 @@ void CL_LegacyParseResourceList( sizebuf_t *msg )
 		const char *path;
 
 		if( reslist.restype[i] == t_sound )
-			path = va( "sound/%s", reslist.resnames[i] );
+			path = va( DEFAULT_SOUNDPATH "%s", reslist.resnames[i] );
 		else path = reslist.resnames[i];
 
 		if( FS_FileExists( path, false ))
@@ -3171,6 +3172,9 @@ void CL_LegacyPrecache_f( void )
 	cl.audio_prepped = true;
 	if( clgame.entities )
 		clgame.entities->model = cl.worldmodel;
+
+	// update the ref state.
+	R_UpdateRefState ();
 
 	// tell rendering system we have a new set of models.
 	ref.dllFuncs.R_NewMap ();

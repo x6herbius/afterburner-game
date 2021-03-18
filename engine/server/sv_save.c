@@ -218,6 +218,83 @@ static TYPEDESCRIPTION gTempEntvars[] =
 	DEFINE_ENTITY_GLOBAL_FIELD( globalname, FIELD_STRING ),
 };
 
+struct
+{
+	const char *mapname;
+	const char *titlename;
+} gTitleComments[] =
+{
+	// default Half-Life map titles
+	// ordering is important
+	// strings hw.so| grep T0A0TITLE -B 50 -A 150
+	{ "T0A0", "#T0A0TITLE" },
+	{ "C0A0", "#C0A0TITLE" },
+	{ "C1A0", "#C0A1TITLE" },
+	{ "C1A1", "#C1A1TITLE" },
+	{ "C1A2", "#C1A2TITLE" },
+	{ "C1A3", "#C1A3TITLE" },
+	{ "C1A4", "#C1A4TITLE" },
+	{ "C2A1", "#C2A1TITLE" },
+	{ "C2A2", "#C2A2TITLE" },
+	{ "C2A3", "#C2A3TITLE" },
+	{ "C2A4D", "#C2A4TITLE2" },
+	{ "C2A4E", "#C2A4TITLE2" },
+	{ "C2A4F", "#C2A4TITLE2" },
+	{ "C2A4G", "#C2A4TITLE2" },
+	{ "C2A4", "#C2A4TITLE1" },
+	{ "C2A5", "#C2A5TITLE" },
+	{ "C3A1", "#C3A1TITLE" },
+	{ "C3A2", "#C3A2TITLE" },
+	{ "C4A1A", "#C4A1ATITLE" },
+	{ "C4A1B", "#C4A1ATITLE" },
+	{ "C4A1C", "#C4A1ATITLE" },
+	{ "C4A1D", "#C4A1ATITLE" },
+	{ "C4A1E", "#C4A1ATITLE" },
+	{ "C4A1", "#C4A1TITLE" },
+	{ "C4A2", "#C4A2TITLE" },
+	{ "C4A3", "#C4A3TITLE" },
+	{ "C5A1", "#C5TITLE" },
+	{ "OFBOOT", "#OF_BOOT0TITLE" },
+	{ "OF0A", "#OF1A1TITLE" },
+	{ "OF1A1", "#OF1A3TITLE" },
+	{ "OF1A2", "#OF1A3TITLE" },
+	{ "OF1A3", "#OF1A3TITLE" },
+	{ "OF1A4", "#OF1A3TITLE" },
+	{ "OF1A", "#OF1A5TITLE" },
+	{ "OF2A1", "#OF2A1TITLE" },
+	{ "OF2A2", "#OF2A1TITLE" },
+	{ "OF2A3", "#OF2A1TITLE" },
+	{ "OF2A", "#OF2A4TITLE" },
+	{ "OF3A1", "#OF3A1TITLE" },
+	{ "OF3A2", "#OF3A1TITLE" },
+	{ "OF3A", "#OF3A3TITLE" },
+	{ "OF4A1", "#OF4A1TITLE" },
+	{ "OF4A2", "#OF4A1TITLE" },
+	{ "OF4A3", "#OF4A1TITLE" },
+	{ "OF4A", "#OF4A4TITLE" },
+	{ "OF5A", "#OF5A1TITLE" },
+	{ "OF6A1", "#OF6A1TITLE" },
+	{ "OF6A2", "#OF6A1TITLE" },
+	{ "OF6A3", "#OF6A1TITLE" },
+	{ "OF6A4b", "#OF6A4TITLE" },
+	{ "OF6A4", "#OF6A4TITLE" },
+	{ "OF6A5", "#OF6A4TITLE" },
+	{ "OF6A", "#OF6A4TITLE" },
+	{ "OF7A", "#OF7A0TITLE" },
+	{ "ba_tram", "#BA_TRAMTITLE" },
+	{ "ba_security", "#BA_SECURITYTITLE" },
+	{ "ba_main", "#BA_SECURITYTITLE" },
+	{ "ba_elevator", "#BA_SECURITYTITLE" },
+	{ "ba_canal", "#BA_CANALSTITLE" },
+	{ "ba_yard", "#BA_YARDTITLE" },
+	{ "ba_xen", "#BA_XENTITLE" },
+	{ "ba_hazard", "#BA_HAZARD" },
+	{ "ba_power", "#BA_POWERTITLE" },
+	{ "ba_teleport1", "#BA_POWERTITLE" },
+	{ "ba_teleport", "#BA_TELEPORTTITLE" },
+	{ "ba_outro", "#BA_OUTRO" },
+};
+
 /*
 =============
 SaveBuildComment
@@ -228,30 +305,49 @@ typically it writes world message and level time
 */
 static void SaveBuildComment( char *text, int maxlength )
 {
-	const char	*pName;
+	string      comment;
+	const char *pName = NULL;
 
 	text[0] = '\0'; // clear
 
 	if( pfnSaveGameComment != NULL )
 	{
 		// get save comment from gamedll
-		pfnSaveGameComment( text, maxlength );
+		pfnSaveGameComment( comment, MAX_STRING );
+		pName = comment;
 	}
 	else
 	{
-		if( svgame.edicts->v.message != 0 )
+		size_t i;
+		const char *mapname = STRING( svgame.globals->mapname );
+
+		for( i = 0; i < ARRAYSIZE( gTitleComments ); i++ )
 		{
-			// trying to extract message from the world
-			pName = STRING( svgame.edicts->v.message );
-		}
-		else
-		{
-			// or use mapname
-			pName = STRING( svgame.globals->mapname );
+			// compare if strings are equal at beginning
+			size_t len = strlen( gTitleComments[i].mapname );
+			if( !Q_strnicmp( mapname, gTitleComments[i].mapname, len ))
+			{
+				pName = gTitleComments[i].titlename;
+				break;
+			}
 		}
 
-		Q_snprintf( text, maxlength, "%-64.64s %02d:%02d", pName, (int)(sv.time / 60.0 ), (int)fmod( sv.time, 60.0 ));
+		if( !pName )
+		{
+			if( svgame.edicts->v.message != 0 )
+			{
+				// trying to extract message from the world
+				pName = STRING( svgame.edicts->v.message );
+			}
+			else
+			{
+				// or use mapname
+				pName = STRING( svgame.globals->mapname );
+			}
+		}
 	}
+
+	Q_snprintf( text, maxlength, "%-64.64s %02d:%02d", pName, (int)(sv.time / 60.0 ), (int)fmod( sv.time, 60.0 ));
 }
 
 /*
@@ -398,7 +494,7 @@ static void ClearSaveDir( void )
 	int	i;
 
 	// just delete all HL? files
-	t = FS_Search( va( "%s*.HL?", DEFAULT_SAVE_DIRECTORY ), true, true );
+	t = FS_Search( DEFAULT_SAVE_DIRECTORY "*.HL?", true, true );
 	if( !t ) return; // already empty
 
 	for( i = 0; i < t->numfilenames; i++ )
@@ -491,8 +587,8 @@ static void AgeSaveList( const char *pName, int count )
 	char	newShot[MAX_OSPATH], oldShot[MAX_OSPATH];
 
 	// delete last quick/autosave (e.g. quick05.sav)
-	Q_snprintf( newName, sizeof( newName ), "%s%s%02d.sav", DEFAULT_SAVE_DIRECTORY, pName, count );
-	Q_snprintf( newShot, sizeof( newShot ), "%s%s%02d.bmp", DEFAULT_SAVE_DIRECTORY, pName, count );
+	Q_snprintf( newName, sizeof( newName ), DEFAULT_SAVE_DIRECTORY "%s%02d.sav", pName, count );
+	Q_snprintf( newShot, sizeof( newShot ), DEFAULT_SAVE_DIRECTORY "%s%02d.bmp", pName, count );
 
 	// only delete from game directory, basedir is read-only
 	FS_Delete( newName );
@@ -508,18 +604,18 @@ static void AgeSaveList( const char *pName, int count )
 		if( count == 1 )
 		{
 			// quick.sav
-			Q_snprintf( oldName, sizeof( oldName ), "%s%s.sav", DEFAULT_SAVE_DIRECTORY, pName );
-			Q_snprintf( oldShot, sizeof( oldShot ), "%s%s.bmp", DEFAULT_SAVE_DIRECTORY, pName );
+			Q_snprintf( oldName, sizeof( oldName ), DEFAULT_SAVE_DIRECTORY "%s.sav", pName );
+			Q_snprintf( oldShot, sizeof( oldShot ), DEFAULT_SAVE_DIRECTORY "%s.bmp", pName );
 		}
 		else
 		{
 			// quick04.sav, etc.
-			Q_snprintf( oldName, sizeof( oldName ), "%s%s%02d.sav", DEFAULT_SAVE_DIRECTORY, pName, count - 1 );
-			Q_snprintf( oldShot, sizeof( oldShot ), "%s%s%02d.bmp", DEFAULT_SAVE_DIRECTORY, pName, count - 1 );
+			Q_snprintf( oldName, sizeof( oldName ), DEFAULT_SAVE_DIRECTORY "%s%02d.sav", pName, count - 1 );
+			Q_snprintf( oldShot, sizeof( oldShot ), DEFAULT_SAVE_DIRECTORY "%s%02d.bmp", pName, count - 1 );
 		}
 
-		Q_snprintf( newName, sizeof( newName ), "%s%s%02d.sav", DEFAULT_SAVE_DIRECTORY, pName, count );
-		Q_snprintf( newShot, sizeof( newShot ), "%s%s%02d.bmp", DEFAULT_SAVE_DIRECTORY, pName, count );
+		Q_snprintf( newName, sizeof( newName ), DEFAULT_SAVE_DIRECTORY "%s%02d.sav", pName, count );
+		Q_snprintf( newShot, sizeof( newShot ), DEFAULT_SAVE_DIRECTORY "%s%02d.bmp", pName, count );
 
 #if !XASH_DEDICATED
 		// unloading the oldshot footprint too
@@ -584,7 +680,7 @@ static void DirectoryExtract( file_t *pFile, int fileCount )
 		// filename can only be as long as a map name + extension
 		FS_Read( pFile, szName, MAX_OSPATH );
 		FS_Read( pFile, &fileSize, sizeof( int ));
-		Q_snprintf( fileName, sizeof( fileName ), "%s%s", DEFAULT_SAVE_DIRECTORY, szName );
+		Q_snprintf( fileName, sizeof( fileName ), DEFAULT_SAVE_DIRECTORY "%s", szName );
 		COM_FixSlashes( fileName );
 
 		pCopy = FS_Open( fileName, "wb", true );
@@ -773,7 +869,7 @@ static int GetClientDataSize( const char *level )
 	char	name[MAX_QPATH];
 	file_t	*pFile;
 
-	Q_snprintf( name, sizeof( name ), "%s%s.HL2", DEFAULT_SAVE_DIRECTORY, level );
+	Q_snprintf( name, sizeof( name ), DEFAULT_SAVE_DIRECTORY "%s.HL2", level );
 
 	if(( pFile = FS_Open( name, "rb", true )) == NULL )
 		return 0;
@@ -819,7 +915,7 @@ static SAVERESTOREDATA *LoadSaveData( const char *level )
 	int		totalSize;
 	file_t		*pFile;
 
-	Q_snprintf( name, sizeof( name ), "%s%s.HL1", DEFAULT_SAVE_DIRECTORY, level );
+	Q_snprintf( name, sizeof( name ), DEFAULT_SAVE_DIRECTORY "%s.HL1", level );
 	Con_Printf( "Loading game from %s...\n", name );
 
 	if(( pFile = FS_Open( name, "rb", true )) == NULL )
@@ -929,7 +1025,7 @@ static void EntityPatchWrite( SAVERESTOREDATA *pSaveData, const char *level )
 	int	i, size = 0;
 	file_t	*pFile;
 
-	Q_snprintf( name, sizeof( name ), "%s%s.HL3", DEFAULT_SAVE_DIRECTORY, level );
+	Q_snprintf( name, sizeof( name ), DEFAULT_SAVE_DIRECTORY "%s.HL3", level );
 
 	if(( pFile = FS_Open( name, "wb", true )) == NULL )
 		return;
@@ -966,7 +1062,7 @@ static void EntityPatchRead( SAVERESTOREDATA *pSaveData, const char *level )
 	int	i, size, entityId;
 	file_t	*pFile;
 
-	Q_snprintf( name, sizeof( name ), "%s%s.HL3", DEFAULT_SAVE_DIRECTORY, level );
+	Q_snprintf( name, sizeof( name ), DEFAULT_SAVE_DIRECTORY "%s.HL3", level );
 
 	if(( pFile = FS_Open( name, "rb", true )) == NULL )
 		return;
@@ -1166,7 +1262,7 @@ static void SaveClientState( SAVERESTOREDATA *pSaveData, const char *level, int 
 	// Write entity string token table
 	pTokenData = StoreHashTable( pSaveData );
 
-	Q_snprintf( name, sizeof( name ), "%s%s.HL2", DEFAULT_SAVE_DIRECTORY, level );
+	Q_snprintf( name, sizeof( name ), DEFAULT_SAVE_DIRECTORY "%s.HL2", level );
 
 	// output to disk
 	if(( pFile = FS_Open( name, "wb", true )) == NULL )
@@ -1205,7 +1301,7 @@ static void LoadClientState( SAVERESTOREDATA *pSaveData, const char *level, qboo
 	SAVE_CLIENT	header;
 	file_t		*pFile;
 
-	Q_snprintf( name, sizeof( name ), "%s%s.HL2", DEFAULT_SAVE_DIRECTORY, level );
+	Q_snprintf( name, sizeof( name ), DEFAULT_SAVE_DIRECTORY "%s.HL2", level );
 
 	if(( pFile = FS_Open( name, "rb", true )) == NULL )
 		return; // something bad is happens
@@ -1288,7 +1384,7 @@ static void LoadClientState( SAVERESTOREDATA *pSaveData, const char *level, qboo
 		// restore camera view here
 		edict_t	*pent = pSaveData->pTable[bound( 0, (word)header.viewentity, pSaveData->tableCount )].pent;
 
-		if( Q_strlen( header.introTrack ))
+		if( COM_CheckStringEmpty( header.introTrack ) )
 		{
 			// NOTE: music is automatically goes across transition, never restore it on changelevel
 			MSG_BeginServerCmd( &sv.signon, svc_stufftext );
@@ -1390,7 +1486,7 @@ static SAVERESTOREDATA *SaveGameState( int changelevel )
 
 	pSaveData = SaveInit( SAVE_HEAPSIZE, SAVE_HASHSTRINGS );
 
-	Q_snprintf( name, sizeof( name ), "%s%s.HL1", DEFAULT_SAVE_DIRECTORY, sv.name );
+	Q_snprintf( name, sizeof( name ), DEFAULT_SAVE_DIRECTORY "%s.HL1", sv.name );
 	COM_FixSlashes( name );
 
 	// initialize entity table to count moved entities
@@ -1612,7 +1708,7 @@ static int SaveGameSlot( const char *pSaveName, const char *pSaveComment )
 	SaveFinish( pSaveData );
 	pSaveData = SaveInit( SAVE_HEAPSIZE, SAVE_HASHSTRINGS ); // re-init the buffer
 
-	Q_snprintf( hlPath, sizeof( hlPath ), "%s*.HL?", DEFAULT_SAVE_DIRECTORY );
+	Q_strncpy( hlPath, DEFAULT_SAVE_DIRECTORY "*.HL?", sizeof( hlPath ) );
 	Q_strncpy( gameHeader.mapName, sv.name, sizeof( gameHeader.mapName )); // get the name of level where a player
 	Q_strncpy( gameHeader.comment, pSaveComment, sizeof( gameHeader.comment ));
 	gameHeader.mapCount = DirectoryCount( hlPath ); // counting all the adjacency maps
@@ -1626,7 +1722,7 @@ static int SaveGameSlot( const char *pSaveName, const char *pSaveComment )
 	// Write entity string token table
 	pTokenData = StoreHashTable( pSaveData );
 
-	Q_snprintf( name, sizeof( name ), "%s%s.sav", DEFAULT_SAVE_DIRECTORY, pSaveName );
+	Q_snprintf( name, sizeof( name ), DEFAULT_SAVE_DIRECTORY "%s.sav", pSaveName );
 	COM_FixSlashes( name );
 
 	// output to disk
@@ -2000,7 +2096,7 @@ qboolean SV_LoadGame( const char *pPath )
 	qboolean		validload = false;
 	GAME_HEADER	gameHeader;
 	file_t		*pFile;
-	int		flags;
+	uint		flags;
 
 	if( Host_IsDedicated() )
 		return false;
@@ -2092,7 +2188,7 @@ void SV_SaveGame( const char *pName )
 		{
 			Q_snprintf( savename, sizeof( savename ), "save%03d", n );
 
-			if( !FS_FileExists( va( "%s%s.sav", DEFAULT_SAVE_DIRECTORY, savename ), true ))
+			if( !FS_FileExists( va( DEFAULT_SAVE_DIRECTORY "%s.sav", savename ), true ))
 				break;
 		}
 
@@ -2106,7 +2202,7 @@ void SV_SaveGame( const char *pName )
 
 #if !XASH_DEDICATED
 	// unload previous image from memory (it's will be overwritten)
-	GL_FreeImage( va( "%s%s.bmp", DEFAULT_SAVE_DIRECTORY, savename ));
+	GL_FreeImage( va( DEFAULT_SAVE_DIRECTORY "%s.bmp", savename ) );
 #endif // XASH_DEDICATED
 
 	SaveBuildComment( comment, sizeof( comment ));
@@ -2132,7 +2228,7 @@ const char *SV_GetLatestSave( void )
 	int		i, found = 0;
 	search_t		*t;
 
-	if(( t = FS_Search( va( "%s*.sav", DEFAULT_SAVE_DIRECTORY ), true, true )) == NULL )
+	if(( t = FS_Search( DEFAULT_SAVE_DIRECTORY "*.sav" , true, true )) == NULL )
 		return NULL;
 
 	for( i = 0; i < t->numfilenames; i++ )
@@ -2176,7 +2272,7 @@ int GAME_EXPORT SV_GetSaveComment( const char *savename, char *comment )
 	if(( f = FS_Open( savename, "rb", true )) == NULL )
 	{
 		// just not exist - clear comment
-		Q_strncpy( comment, "", MAX_STRING );
+		comment[0] = '\0';
 		return 0;
 	}
 
@@ -2193,7 +2289,7 @@ int GAME_EXPORT SV_GetSaveComment( const char *savename, char *comment )
 
 	if( tag == 0x0065 )
 	{
-		Q_strncpy( comment, "old version Xash3D <unsupported>", MAX_STRING );
+		Q_strncpy( comment, "<old version Xash3D unsupported>", MAX_STRING );
 		FS_Close( f );
 		return 0;
 	}
@@ -2276,6 +2372,7 @@ int GAME_EXPORT SV_GetSaveComment( const char *savename, char *comment )
 	// each field is a short (size), short (index of name), binary string of "size" bytes (data)
 	for( i = 0; i < nNumberOfFields; i++ )
 	{
+		size_t size;
 		// Data order is:
 		// Size
 		// szName
@@ -2286,13 +2383,15 @@ int GAME_EXPORT SV_GetSaveComment( const char *savename, char *comment )
 		pFieldName = pTokenList[*(short *)pData];
 		pData += sizeof( short );
 
+		size = Q_min( nFieldSize, MAX_STRING );
+
 		if( !Q_stricmp( pFieldName, "comment" ))
 		{
-			Q_strncpy( description, pData, nFieldSize );
+			Q_strncpy( description, pData, size );
 		}
 		else if( !Q_stricmp( pFieldName, "mapName" ))
 		{
-			Q_strncpy( mapName, pData, nFieldSize );
+			Q_strncpy( mapName, pData, size );
 		}
 
 		// move to start of next field.
@@ -2305,12 +2404,12 @@ int GAME_EXPORT SV_GetSaveComment( const char *savename, char *comment )
 	FS_Close( f );
 
 	// at least mapname should be filled
-	if( Q_strlen( mapName ) > 0 )
+	if( COM_CheckStringEmpty( mapName ) )
 	{
 		time_t		fileTime;
 		const struct tm	*file_tm;
 		string		timestring;
-		int		flags;
+		uint		flags;
 
 		// now check for map problems
 		flags = SV_MapIsValid( mapName, GI->sp_entity, NULL );

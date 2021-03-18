@@ -25,6 +25,8 @@ private:
 	void PlayZoomSound();
 
 	uint32_t m_iZoomLevel = 0;
+	const WeaponAtts::WAHitscanAttack* m_pAttackUnscoped;
+	const WeaponAtts::WAHitscanAttack* m_pAttackScoped;
 };
 
 namespace WeaponAtts

@@ -67,7 +67,7 @@ void Sound_Init( void )
 	{
 	case HOST_NORMAL:
 		sound.loadformats = load_game;
-		sound.streamformat = stream_game;		
+		sound.streamformat = stream_game;
 		break;
 	default:	// all other instances not using soundlib or will be reinstalling later
 		sound.loadformats = load_null;
@@ -90,19 +90,19 @@ byte *Sound_Copy( size_t size )
 	out = Mem_Malloc( host.soundpool, size );
 	memcpy( out, sound.tempbuffer, size );
 
-	return out; 
+	return out;
 }
 
 uint GAME_EXPORT Sound_GetApproxWavePlayLen( const char *filepath )
 {
-	file_t	*f;
-	wavehdr_t	wav;
-	size_t	filesize;
-	float	seconds;
-	uint	samples;
+	file_t    *f;
+	wavehdr_t wav;
+	size_t    filesize;
+	uint      msecs;
 
 	f = FS_Open( filepath, "rb", false );
-	if( !f ) return 0;
+	if( !f )
+		return 0;
 
 	if( FS_Read( f, &wav, sizeof( wav )) != sizeof( wav ))
 	{
@@ -111,7 +111,7 @@ uint GAME_EXPORT Sound_GetApproxWavePlayLen( const char *filepath )
 	}
 
 	filesize = FS_FileLength( f );
-	filesize -= ( sizeof( wavehdr_t ) + sizeof( chunkhdr_t ));
+	filesize -= 128; // magic number from GoldSrc, seems to be header size
 
 	FS_Close( f );
 
@@ -119,21 +119,11 @@ uint GAME_EXPORT Sound_GetApproxWavePlayLen( const char *filepath )
 	if( wav.riff_id != RIFFHEADER || wav.wave_id != WAVEHEADER || wav.fmt_id != FORMHEADER )
 		return 0;
 
-	if( wav.wFormatTag != 1 )
-		return 0;
+	if( wav.nAvgBytesPerSec >= 1000 )
+		msecs = (uint)((float)filesize / ((float)wav.nAvgBytesPerSec / 1000.0f));
+	else msecs = (uint)(((float)filesize / (float)wav.nAvgBytesPerSec) * 1000.0f);
 
-	if( wav.nChannels != 1 && wav.nChannels != 2 )
-		return 0;
-
-	if( wav.nBitsPerSample != 8 && wav.nBitsPerSample != 16 )
-		return 0;
-
-	// calc samplecount
-	seconds = (float)filesize / wav.nAvgBytesPerSec / wav.nChannels;
-	samples = (uint)(( wav.nSamplesPerSec * wav.nChannels ) * seconds );
-
-	// g-cont. this function returns samplecount or time in milliseconds ???
-	return (uint)(seconds * 1000);
+	return msecs;
 }
 
 /*
@@ -256,7 +246,7 @@ qboolean Sound_Process( wavdata_t **wav, int rate, int width, uint flags )
 {
 	wavdata_t	*snd = *wav;
 	qboolean	result = true;
-				
+
 	// check for buffers
 	if( !snd || !snd->buffer )
 		return false;

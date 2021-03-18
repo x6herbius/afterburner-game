@@ -45,8 +45,8 @@ enum
 void Q_strnupr( const char *in, char *out, size_t size_out );
 #define Q_strlwr( in, out ) Q_strnlwr( in, out, 99999 )
 void Q_strnlwr( const char *in, char *out, size_t size_out );
-int Q_strlen( const char *string );
-int Q_colorstr( const char *string );
+size_t Q_strlen( const char *string );
+size_t Q_colorstr( const char *string );
 char Q_toupper( const char in );
 char Q_tolower( const char in );
 #define Q_strcat( dst, src ) Q_strncat( dst, src, 99999 )
@@ -72,6 +72,7 @@ char *Q_strstr( const char *string, const char *string2 );
 int Q_vsnprintf( char *buffer, size_t buffersize, const char *format, va_list args );
 int Q_snprintf( char *buffer, size_t buffersize, const char *format, ... ) _format( 3 );
 int Q_sprintf( char *buffer, const char *format, ... ) _format( 2 );
+char *Q_strpbrk(const char *s, const char *accept);
 #define Q_memprint( val ) Q_pretifymem( val, 2 )
 char *Q_pretifymem( float value, int digitsafterdecimal );
 char *va( const char *format, ... ) _format( 1 );
@@ -84,7 +85,10 @@ const char *COM_FileWithoutPath( const char *in );
 void COM_StripExtension( char *path );
 void COM_RemoveLineFeed( char *str );
 void COM_PathSlashFix( char *path );
+char COM_Hex2Char( uint8_t hex );
+void COM_Hex2String( uint8_t hex, char *str );
 #define COM_CheckString( string ) ( ( !string || !*string ) ? 0 : 1 )
+#define COM_CheckStringEmpty( string ) ( ( !*string ) ? 0 : 1 )
 int matchpattern( const char *in, const char *pattern, qboolean caseinsensitive );
 int matchpattern_with_separator( const char *in, const char *pattern, qboolean caseinsensitive, const char *separators, qboolean wildcard_least_one );
 

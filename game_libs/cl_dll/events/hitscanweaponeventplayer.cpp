@@ -15,6 +15,7 @@
 #include "rapidjson_helpers/rapidjson_helpers.h"
 #include "debugging/hitscanweapondebugging.h"
 #include "eventCommands.h"
+#include "gameplay/inaccuracymodifiers.h"
 
 namespace
 {
@@ -61,12 +62,20 @@ void HitscanWeaponEventPlayer::CreateBulletTracers()
 {
 	const uint32_t numShots = m_pHitscanAttack->BulletsPerShot;
 
+	WeaponAtts::AccuracyParameters accuracyParams(m_pHitscanAttack->Accuracy);
+
+	if ( InaccuracyModifiers::IsInaccuracyDebuggingEnabled() )
+	{
+		InaccuracyModifiers::GetInaccuracyValuesFromDebugCvars(accuracyParams);
+	}
+
 	HitscanWeaponDebugging::Clear();
 	Debug_BeginBatch();
 
 	for ( uint32_t shot = 0; shot < numShots; ++shot )
 	{
 		vec3_t shotDir;
+		const Vector2D spread = InaccuracyModifiers::GetInterpolatedSpread(accuracyParams, m_flSpreadInterp);
 		float spreadX = 0.0f;
 		float spreadY = 0.0f;
 
@@ -74,9 +83,7 @@ void HitscanWeaponEventPlayer::CreateBulletTracers()
 
 		for ( uint8_t axis = 0; axis < 3; ++axis )
 		{
-			shotDir[axis] = m_vecFwd[axis] +
-				(spreadX * m_pHitscanAttack->SpreadX * m_vecRight[axis]) +
-				(spreadY * m_pHitscanAttack->SpreadY * m_vecUp[axis]);
+			shotDir[axis] = m_vecFwd[axis] + (spreadX * spread.x * m_vecRight[axis]) + (spreadY * spread.y * m_vecUp[axis]);
 		}
 
 		vec3_t traceEnd = m_vecGunPosition + (CGenericWeapon::DEFAULT_BULLET_TRACE_DISTANCE * shotDir);
@@ -135,6 +142,7 @@ bool HitscanWeaponEventPlayer::Initialise()
 
 	m_iShellModelIndex = gEngfuncs.pEventAPI->EV_FindModelIndex(m_pHitscanAttack->ShellModelName);
 	m_iRandomSeed = m_pEventArgs->iparam1;
+	m_flSpreadInterp = m_pEventArgs->fparam1;
 
 	return true;
 }

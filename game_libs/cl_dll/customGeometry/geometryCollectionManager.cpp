@@ -33,6 +33,19 @@ namespace CustomGeometry
 		}
 	}
 
+	void CGeometryCollectionManager::VidInit()
+	{
+		for ( uint32_t index = 1; index < CATEGORY_COUNT; ++index )
+		{
+			CollectionEntry& entry = m_Entries[index];
+
+			if ( entry.collection )
+			{
+				entry.collection->VidInit();
+			}
+		}
+	}
+
 	CBaseGeometryCollection* CGeometryCollectionManager::CollectionForCategory(Category category) const
 	{
 		if ( category <= Category::None || category >= Category::CategoryCount )

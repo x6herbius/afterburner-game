@@ -129,7 +129,7 @@ static int KeycodeFromEvdev(int keycode, int value)
 		break;
 	}
 
-	return 0;	
+	return 0;
 }
 static void Evdev_CheckPermissions( void )
 {

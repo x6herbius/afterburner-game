@@ -15,6 +15,7 @@ namespace CustomGeometry
 
 		void SetFactoryFunction(Category category, CollectionFactoryFunc function);
 		void Initialise();
+		void VidInit();
 
 		CBaseGeometryCollection* CollectionForCategory(Category category) const;
 

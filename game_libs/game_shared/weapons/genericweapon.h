@@ -5,6 +5,7 @@
 #include "utlvector.h"
 #include "weaponatts_collection.h"
 #include "weaponatts_ammobasedattack.h"
+#include "gameplay/weaponInaccuracyCalculator.h"
 
 class CBaseBot;
 class CBaseBotFightStyle;
@@ -32,8 +33,14 @@ public:
 	virtual void WeaponIdle() override;
 	virtual int iItemSlot() override;
 	virtual void ItemPostFrame() override;
+	virtual bool ReadPredictionData(const weapon_data_t* from) override;
+	virtual bool WritePredictionData(weapon_data_t* to) override;
+	virtual int UpdateClientData(CBasePlayer* pPlayer) override;
 
 	virtual const WeaponAtts::WACollection& WeaponAttributes() const = 0;
+
+	float GetInaccuracy() const;
+	byte GetPrimaryAttackModeIndex() const;
 
 #ifndef CLIENT_DLL
 	// Don't know if this is the best place to put these?
@@ -43,6 +50,9 @@ public:
 	// make bot weapon profiles local to bot code?
 	virtual float Bot_CalcDesireToUse(CBaseBot& bot, CBaseEntity& enemy, float distanceToEnemy) const = 0;
 	virtual void Bot_SetFightStyle(CBaseBotFightStyle& fightStyle) const = 0;
+	virtual int Save(CSave &save) override;
+	virtual int Restore(CRestore &restore) override;
+	static TYPEDESCRIPTION m_SaveData[];
 #endif
 
 	static constexpr float DEFAULT_BULLET_TRACE_DISTANCE = 8192;
@@ -57,14 +67,14 @@ protected:
 	};
 
 	template<typename T>
-	const T* GetAttackModeFromAttributes(uint32_t index)
+	const T* GetAttackModeFromAttributes(uint32_t index) const
 	{
 		const WeaponAtts::WACollection& atts = WeaponAttributes();
 		ASSERT(index < atts.AttackModes.Count());
 
 		if ( index >= atts.AttackModes.Count() )
 		{
-			return NULL;
+			return nullptr;
 		}
 
 		const T* attackMode = dynamic_cast<const T*>(atts.AttackModes[index].get());
@@ -89,6 +99,39 @@ protected:
 	bool HasAmmo(const WeaponAtts::WABaseAttack* attackMode, int minCount = 1, bool useClip = true) const;
 	bool DecrementAmmo(const WeaponAtts::WABaseAttack* attackMode, int decrement);
 	bool CanReload() const;
+
+	int GetEventIDForAttackMode(const WeaponAtts::WABaseAttack* attack) const;
+
+	template<typename T = WeaponAtts::WABaseAttack>
+	inline const T* GetPrimaryAttackMode() const
+	{
+		return dynamic_cast<const T*>(m_pPrimaryAttackMode);
+	}
+
+	template<typename T = WeaponAtts::WABaseAttack>
+	inline const T* GetSecondaryAttackMode() const
+	{
+		return dynamic_cast<const T*>(m_pSecondaryAttackMode);
+	}
+
+	void SetPrimaryAttackMode(const WeaponAtts::WABaseAttack* mode);
+	void SetSecondaryAttackMode(const WeaponAtts::WABaseAttack* mode);
+
+	// T can be used to validate the type of attack expected to be set,
+	// but can be omitted if this is not required.
+	template<typename T = WeaponAtts::WABaseAttack>
+	inline void SetPrimaryAttackModeFromAttributes(uint32_t modeIndex)
+	{
+		SetPrimaryAttackMode(GetAttackModeFromAttributes<T>(modeIndex));
+	}
+
+	// T can be used to validate the type of attack expected to be set,
+	// but can be omitted if this is not required.
+	template<typename T = WeaponAtts::WABaseAttack>
+	inline void SetSecondaryAttackModeFromAttributes(uint32_t modeIndex)
+	{
+		SetSecondaryAttackMode(GetAttackModeFromAttributes<T>(modeIndex));
+	}
 
 	// Return the value to set m_fInSpecialReload to next.
 	virtual int HandleSpecialReload(int currentState);
@@ -130,10 +173,6 @@ protected:
 #endif
 	}
 
-	const WeaponAtts::WABaseAttack* m_pPrimaryAttackMode;
-	const WeaponAtts::WABaseAttack* m_pSecondaryAttackMode;
-	CUtlVector<int> m_AttackModeEvents;
-
 private:
 	// TODO: Should these be delegated somewhere else, a la aggregate programming model?
 	void PrecacheCore(const WeaponAtts::WACore& core);
@@ -149,15 +188,64 @@ private:
 	void IdleProcess_PlayIdleAnimation();
 
 	void FindWeaponSlotInfo();
+	const WeaponAtts::AccuracyParameters* GetWeaponAccuracyParams() const;
 
-	int m_iViewModelIndex;
-	int m_iViewModelBody;
+	void PerformReload();
+	bool ReloadUsableWeaponIfEmpty();
+	void UpdateValuesPostFrame();
+	bool ShouldSecondaryAttackThisFrame() const;
+	bool ShouldPrimaryAttackThisFrame() const;
+	void HandleNoButtonsDown_Server();
+	void HandleNoButtonsDown_Client();
+
+	CUtlVector<int> m_AttackModeEvents;
 	CUtlVector<float> m_ViewAnimDurations;
-	int m_iWeaponSlot;
-	int m_iWeaponSlotPosition;
-	bool m_bPrimaryAttackHeldDown;
-	bool m_bSecondaryAttackHeldDown;
+	CWeaponInaccuracyCalculator m_InaccuracyCalculator;
+
+	const WeaponAtts::WABaseAttack* m_pPrimaryAttackMode = nullptr;
+	const WeaponAtts::WABaseAttack* m_pSecondaryAttackMode = nullptr;
+
+	int m_iViewModelIndex = 0;
+	int m_iViewModelBody = 0;
+	int m_iWeaponSlot = -1;
+	int m_iWeaponSlotPosition = -1;
+	bool m_bPrimaryAttackHeldDown = false;
+	bool m_bPrimaryAttackThisFrame = false;
+	bool m_bSecondaryAttackHeldDown = false;
+	bool m_bSecondaryAttackThisFrame = false;
+	float m_flInaccuracy = 0.0f;
+	byte m_iLastPriAttackMode = 0;
 };
+
+// Function specialisations which must be outside the class
+// to be fully standards-compliant:
+
+// Specialisation for base class, which does not need a dynamic_cast.
+template<>
+inline const WeaponAtts::WABaseAttack* CGenericWeapon::GetAttackModeFromAttributes<WeaponAtts::WABaseAttack>(uint32_t index) const
+{
+	const WeaponAtts::WACollection& atts = WeaponAttributes();
+	ASSERT(index < atts.AttackModes.Count());
+
+	if ( index >= atts.AttackModes.Count() )
+	{
+		return nullptr;
+	}
+
+	return atts.AttackModes[index].get();
+}
+
+template<>
+inline const WeaponAtts::WABaseAttack* CGenericWeapon::GetPrimaryAttackMode() const
+{
+	return m_pPrimaryAttackMode;
+}
+
+template<>
+inline const WeaponAtts::WABaseAttack* CGenericWeapon::GetSecondaryAttackMode() const
+{
+	return m_pSecondaryAttackMode;
+}
 
 class CGenericAmmo : public CBasePlayerAmmo
 {

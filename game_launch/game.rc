@@ -13,16 +13,16 @@
 #define VER_FILETYPE		VFT_DLL
 #define VER_FILESUBTYPE		VFT2_UNKNOWN
 
-#define VER_COMPANYNAME_STR	"Flying With Gauss"
-#define VER_LEGALCOPYRIGHT_STR	"Flying With Gauss"
-#define VER_PRODUCTNAME_STR	"Xash3D Launcher"
+#define VER_COMPANYNAME_STR	"Afterburner Development Team"
+#define VER_LEGALCOPYRIGHT_STR	"Afterburner Development Team"
+#define VER_PRODUCTNAME_STR	"Afterburner"
 
 #define VER_ANSICP
 
-#define VER_FILEDESCRIPTION_STR		"Xash3D FWGS Launcher"
-#define VER_ORIGINALFILENAME_STR	"xash.exe"
-#define VER_INTERNALNAME_STR		"xash"
+#define VER_FILEDESCRIPTION_STR		"Afterburner"
+#define VER_ORIGINALFILENAME_STR	"bond.exe"
+#define VER_INTERNALNAME_STR		"bond"
 
 #include <common.ver>
 
-IDI_ICON1	ICON    DISCARDABLE		"icon-xash-material.ico"
+IDI_ICON1	ICON    DISCARDABLE		"game.ico"

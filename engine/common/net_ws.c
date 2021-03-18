@@ -452,7 +452,7 @@ static int NET_StringToSockaddr( const char *s, struct sockaddr *sadr, qboolean 
 
 	if( !net.initialized )
 		return false;
-	
+
 	memset( sadr, 0, sizeof( *sadr ));
 
 	((struct sockaddr_in *)sadr)->sin_family = AF_INET;
@@ -1441,7 +1441,7 @@ static int NET_Isocket( const char *net_interface, int port, qboolean multicast 
 		}
 	}
 
-	if( !net_interface[0] || !Q_stricmp( net_interface, "localhost" ))
+	if( !COM_CheckStringEmpty( net_interface ) || !Q_stricmp( net_interface, "localhost" ))
 		addr.sin_addr.s_addr = INADDR_ANY;
 	else NET_StringToSockaddr( net_interface, (struct sockaddr *)&addr, false );
 
@@ -1584,7 +1584,7 @@ void NET_Config( qboolean multiplayer )
 	old_config = multiplayer;
 
 	if( multiplayer )
-	{	
+	{
 		// open sockets
 		if( net.allow_ip ) NET_OpenIP();
 
@@ -1596,7 +1596,7 @@ void NET_Config( qboolean multiplayer )
 		}
 	}
 	else
-	{	
+	{
 		int	i;
 
 		// shut down any existing sockets

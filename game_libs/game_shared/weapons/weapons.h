@@ -319,6 +319,7 @@ public:
 	virtual BOOL IsUseable( void );
 	BOOL DefaultDeploy( const char *szViewModel, const char *szWeaponModel, int iAnim, const char *szAnimExt, int body = 0 );
 	int DefaultReload( int iClipSize, int iAnim, float fDelay, int body = 0 );
+	bool IsActiveItem() const;
 
 	virtual void ItemPostFrame( void );	// called each frame by the player PostThink
 	// called by CBasePlayerWeapons ItemPostFrame()
@@ -332,7 +333,7 @@ public:
 	virtual BOOL ShouldWeaponIdle( void ) {return FALSE; };
 	virtual void Holster( int skiplocal = 0 );
 
-	inline BOOL UseDecrement( void )
+	inline BOOL UseDecrement( void ) const
 	{
 #if defined( CLIENT_WEAPONS )
 		return TRUE;
@@ -353,6 +354,8 @@ public:
 	float	m_flNextPrimaryAttack;								// soonest time ItemPostFrame will call PrimaryAttack
 	float	m_flNextSecondaryAttack;							// soonest time ItemPostFrame will call SecondaryAttack
 	float	m_flTimeWeaponIdle;									// soonest time ItemPostFrame will call WeaponIdle
+	float	m_flLastPrimaryAttack;
+	float	m_flLastSecondaryAttack;
 	int		m_iPrimaryAmmoType;									// "primary" ammo index into players m_rgAmmo[]
 	int		m_iSecondaryAmmoType;								// "secondary" ammo index into players m_rgAmmo[]
 	int		m_iClip;											// number of shots left in the primary weapon clip, -1 it not used

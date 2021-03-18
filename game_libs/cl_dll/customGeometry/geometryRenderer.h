@@ -10,6 +10,7 @@ namespace CustomGeometry
 	public:
 		CGeometryRenderer();
 
+		void VidInit();
 		void Render(const CGeometryItem& item);
 
 	private:
@@ -21,5 +22,6 @@ namespace CustomGeometry
 		void DrawTriangleChainGeneric(const CGeometryItem& item, int glDrawMode);
 
 		HSPRITE m_ColourSprite = 0;
+		float m_Scale = 1.0f;
 	};
 }

@@ -24,13 +24,9 @@ GNU General Public License for more details.
 #include "sound.h"
 #include "vid_common.h"
 
-static SDL_Joystick *joy;
-#if SDL_VERSION_ATLEAST( 2, 0, 0 )
-static SDL_GameController *gamecontroller;
-#else // SDL_VERSION_ATLEAST( 2, 0, 0 )
-
+SDL_Joystick *g_joy = NULL;
+#if !SDL_VERSION_ATLEAST( 2, 0, 0 )
 #define SDL_WarpMouseInWindow( win, x, y ) SDL_WarpMouse( ( x ), ( y ) )
-
 #endif
 
 /*
@@ -53,6 +49,20 @@ Platform_SetMousePos
 void GAME_EXPORT Platform_SetMousePos( int x, int y )
 {
 	SDL_WarpMouseInWindow( host.hWnd, x, y );
+}
+
+/*
+========================
+Platform_MouseMove
+
+========================
+*/
+void Platform_MouseMove( float *x, float *y )
+{
+	int m_x, m_y;
+	SDL_GetRelativeMouseState( &m_x, &m_y );
+	*x = (float)m_x;
+	*y = (float)m_y;
 }
 
 /*
@@ -133,9 +143,9 @@ static int SDLash_JoyInit_Old( int numjoy )
 		return 0;
 	}
 
-	if( joy )
+	if( g_joy )
 	{
-		SDL_JoystickClose( joy );
+		SDL_JoystickClose( g_joy );
 	}
 
 	num = SDL_NumJoysticks();
@@ -155,9 +165,9 @@ static int SDLash_JoyInit_Old( int numjoy )
 
 	Con_Reportf( "Pass +set joy_index N to command line, where N is number, to select active joystick\n" );
 
-	joy = SDL_JoystickOpen( numjoy );
+	g_joy = SDL_JoystickOpen( numjoy );
 
-	if( !joy )
+	if( !g_joy )
 	{
 		Con_Reportf( "Failed to select joystick: %s\n", SDL_GetError( ) );
 		return 0;
@@ -169,8 +179,8 @@ static int SDLash_JoyInit_Old( int numjoy )
 		"\tHats: %i\n"
 		"\tButtons: %i\n"
 		"\tBalls: %i\n",
-		SDL_JoystickName( joy ), SDL_JoystickNumAxes( joy ), SDL_JoystickNumHats( joy ),
-		SDL_JoystickNumButtons( joy ), SDL_JoystickNumBalls( joy ) );
+		SDL_JoystickName( g_joy ), SDL_JoystickNumAxes( g_joy ), SDL_JoystickNumHats( g_joy ),
+		SDL_JoystickNumButtons( g_joy ), SDL_JoystickNumBalls( g_joy ) );
 
 	SDL_GameControllerEventState( SDL_DISABLE );
 #endif // SDL_VERSION_ATLEAST( 2, 0, 0 )
@@ -188,11 +198,9 @@ SDLash_JoyInit_New
 */
 static int SDLash_JoyInit_New( int numjoy )
 {
-	int temp, num;
-	int i;
+	int count, numJoysticks, i;
 
 	Con_Reportf( "Joystick: SDL GameController API\n" );
-
 	if( SDL_WasInit( SDL_INIT_GAMECONTROLLER ) != SDL_INIT_GAMECONTROLLER &&
 		SDL_InitSubSystem( SDL_INIT_GAMECONTROLLER ) )
 	{
@@ -200,55 +208,15 @@ static int SDLash_JoyInit_New( int numjoy )
 		return 0;
 	}
 
-	// chance to add mappings from file
 	SDL_GameControllerAddMappingsFromFile( "controllermappings.txt" );
 
-	if( gamecontroller )
-	{
-		SDL_GameControllerClose( gamecontroller );
-	}
+	count = 0;
+	numJoysticks = SDL_NumJoysticks();
+	for ( i = 0; i < numJoysticks; i++ )
+		if( SDL_IsGameController( i ) )
+			++count;
 
-	temp = SDL_NumJoysticks();
-	num = 0;
-
-	for( i = 0; i < temp; i++ )
-	{
-		if( SDL_IsGameController( i ))
-			num++;
-	}
-
-	if( num > 0 )
-		Con_Reportf( "%i joysticks found:\n", num );
-	else
-	{
-		Con_Reportf( "No joystick found.\n" );
-		return 0;
-	}
-
-	for( i = 0; i < num; i++ )
-		Con_Reportf( "%i\t: %s\n", i, SDL_GameControllerNameForIndex( i ) );
-
-	Con_Reportf( "Pass +set joy_index N to command line, where N is number, to select active joystick\n" );
-
-	gamecontroller = SDL_GameControllerOpen( numjoy );
-
-	if( !gamecontroller )
-	{
-		Con_Reportf( "Failed to select joystick: %s\n", SDL_GetError( ) );
-		return 0;
-	}
-// was added in SDL2-2.0.6, allow build with earlier versions just in case
-#if SDL_VERSION_ATLEAST( 2, 0, 6 )
-	Con_Reportf( "Selected joystick: %s (%i:%i:%i)\n",
-		SDL_GameControllerName( gamecontroller ),
-		SDL_GameControllerGetVendor( gamecontroller ),
-		SDL_GameControllerGetProduct( gamecontroller ),
-		SDL_GameControllerGetProductVersion( gamecontroller ));
-#endif // SDL_VERSION_ATLEAST( 2, 0, 6 )
-	SDL_GameControllerEventState( SDL_ENABLE );
-	SDL_JoystickEventState( SDL_DISABLE );
-
-	return num;
+	return count;
 }
 #endif // SDL_VERSION_ATLEAST( 2, 0, 0 )
 

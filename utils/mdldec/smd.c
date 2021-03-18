@@ -28,7 +28,7 @@ static matrix3x4	*bonetransform;
 
 /*
 ============
-CreateBoneTransformMatrices        
+CreateBoneTransformMatrices
 ============
 */
 static qboolean CreateBoneTransformMatrices( void )
@@ -46,7 +46,7 @@ static qboolean CreateBoneTransformMatrices( void )
 
 /*
 ============
-FillBoneTransformMatrices        
+FillBoneTransformMatrices
 ============
 */
 static void FillBoneTransformMatrices( void )
@@ -107,14 +107,10 @@ static void ClipRotations( vec3_t angle )
 ProperBoneRotationZ
 ============
 */
-static void ProperBoneRotationZ( mstudioseqdesc_t *seqdesc, vec_t *motion, int frame, float angle )
+static void ProperBoneRotationZ( vec_t *motion, float angle )
 {
-	int	i;
 	float	c, s, x, y;
 	float	rot;
-
-	for( i = 0; i < 3; i++ )
-		 motion[i] += frame * 1.0f / seqdesc->numframes * seqdesc->linearmovement[i];
 
 	rot = DEG2RAD( angle );
 
@@ -227,7 +223,7 @@ static void WriteTriangleInfo( FILE *fp, mstudiomodel_t *model, mstudiotexture_t
 	int	 i, indices[3];
 	int	 vert_index;
 	int	 norm_index;
-	int	 bone_index; 
+	int	 bone_index;
 	float	 s, t, u, v;
 	byte	*vertbone;
 	vec3_t	*studioverts;
@@ -264,7 +260,7 @@ static void WriteTriangleInfo( FILE *fp, mstudiomodel_t *model, mstudiotexture_t
 
 		Matrix3x4_VectorTransform( bonetransform[bone_index], studioverts[vert_index], vert );
 		Matrix3x4_VectorRotate( bonetransform[bone_index], studionorms[norm_index], norm );
-		VectorNormalize( norm );		
+		VectorNormalize( norm );
 
 		u = ( triverts[indices[i]]->s + 1.0f ) * s;
 		v = 1.0f - triverts[indices[i]]->t * t;
@@ -302,7 +298,7 @@ static void WriteTriangles( FILE *fp, mstudiomodel_t *model )
 		{
 			if( j >= 0 )
 			{
-				// triangle fan
+				// triangle strip
 				for( k = 0; j > 0; j--, k++, tricmds += 4 )
 				{
 					if( k == 0 )
@@ -337,7 +333,7 @@ static void WriteTriangles( FILE *fp, mstudiomodel_t *model )
 			}
 			else
 			{
-				// triangle strip
+				// triangle fan
 				j = abs( j );
 
 				for( k = 0; j > 0; j--, k++, tricmds += 4 )
@@ -391,7 +387,12 @@ static void WriteFrameInfo( FILE *fp, mstudioanim_t *anim, mstudioseqdesc_t *seq
 		CalcBonePosition( anim, bone, motion, frame );
 
 		if( bone->parent == -1 )
-			ProperBoneRotationZ( seqdesc, motion, frame, 270.0f );
+		{
+			for( j = 0; j < 3; j++ )
+				motion[j] += frame * 1.0f / seqdesc->numframes * seqdesc->linearmovement[j];
+
+			ProperBoneRotationZ( motion, 270.0f );
+		}
 
 		ClipRotations( &motion[3] );
 
@@ -433,7 +434,7 @@ WriteReferences
 static void WriteReferences( void )
 {
 	int			 i, j;
-	size_t			 len;
+	int			 len;
 	FILE			*fp;
 	mstudiomodel_t		*model;
 	mstudiobodyparts_t	*bodypart;
@@ -460,7 +461,7 @@ static void WriteReferences( void )
 
 			len = Q_snprintf( filename, MAX_SYSPATH, "%s%s.smd", destdir, name );
 
-			if( len >= MAX_SYSPATH )
+			if( len == -1 )
 			{
 				fprintf( stderr, "ERROR: Destination path is too long. Can't write %s.smd\n", name );
 				RemoveBoneTransformMatrices();
@@ -499,7 +500,7 @@ WriteSequences
 static void WriteSequences( void )
 {
 	int			 i, j;
-	size_t			 len;
+	int			 len;
 	FILE			*fp;
 	char			 filename[MAX_SYSPATH];
 	mstudioseqdesc_t	*seqdesc;
@@ -515,7 +516,7 @@ static void WriteSequences( void )
 			else
 				len = Q_snprintf( filename, MAX_SYSPATH, "%s%s_blend%i.smd", destdir, seqdesc->label, j + 1 );
 
-			if( len >= MAX_SYSPATH )
+			if( len == -1 )
 			{
 				fprintf( stderr, "ERROR: Destination path is too long. Can't write %s.smd\n", seqdesc->label );
 				return;

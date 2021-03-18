@@ -5,24 +5,24 @@
 
 namespace WeaponAtts
 {
-    struct WAHitscanAttack : public WAAmmoBasedAttack
-    {
-        typedef WASkillRecord::SkillDataEntryPtr SkillDataEntryPtr;
+	struct WAHitscanAttack : public WAAmmoBasedAttack
+	{
+		typedef WASkillRecord::SkillDataEntryPtr SkillDataEntryPtr;
 
-        uint8_t BulletsPerShot = 1;
-        SkillDataEntryPtr BaseDamagePerShot = nullptr;
-        float AutoAim = 0.0f;
+		uint8_t BulletsPerShot = 1;
+		SkillDataEntryPtr BaseDamagePerShot = nullptr;
+		float AutoAim = 0.0f;
 
-        virtual WABaseAttack::Classification Classify() const override
-        {
-            return WABaseAttack::Classification::Hitscan;
-        }
+		virtual WABaseAttack::Classification Classify() const override
+		{
+			return WABaseAttack::Classification::Hitscan;
+		}
 
-        virtual void Validate() const override
-        {
-            WABaseAttack::Validate();
+		virtual void Validate() const override
+		{
+			WABaseAttack::Validate();
 
-            ASSERTSZ_Q(BaseDamagePerShot, "Skill entry for base damage per shot must be specified.");
-        }
-    };
+			ASSERTSZ_Q(BaseDamagePerShot, "Skill entry for base damage per shot must be specified.");
+		}
+	};
 }

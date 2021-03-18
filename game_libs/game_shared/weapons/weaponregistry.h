@@ -23,6 +23,7 @@ public:
 	void Add(const WeaponAtts::WACollection* atts);
 	const WeaponAtts::WACollection* Get(int index) const;
 	const WeaponAtts::WACollection* Get(WeaponId_e id) const;
+	const WeaponAtts::WACollection* GetByName(const char* name) const;
 	void RegisterCvars();
 
 	template<typename T>

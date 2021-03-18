@@ -29,6 +29,8 @@
 
 #include "ammohistory.h"
 #include "miniutl.h"
+#include "weapons/weaponregistry.h"
+#include "weaponattributes/weaponatts_collection.h"
 
 WEAPON *gpActiveSel;	// NULL means off, 1 means just the menu bar, otherwise
 						// this points to the active weapon menu item
@@ -107,15 +109,33 @@ void WeaponsResource::LoadWeaponSprites( WEAPON *pWeapon )
 
 	client_sprite_t *p;
 
-	p = GetSpriteList( pList, "crosshair", iRes, i );
-	if( p )
+	const WeaponAtts::WACollection* atts = CWeaponRegistry::StaticInstance().GetByName(pWeapon->szName);
+
+	if ( atts )
 	{
-		sprintf( sz, "sprites/%s.spr", p->szSprite );
-		pWeapon->hCrosshair = SPR_Load( sz );
-		pWeapon->rcCrosshair = p->rc;
+		// This is a Nightfire weapon - set the default crosshair.
+		// Once all the Half Life weapons are gone, we can remove the check
+		// and just do this for all weapons.
+		pWeapon->hCrosshair = SPR_Load("sprites/nfcrosshair.spr");
+		pWeapon->rcCrosshair.top = 0;
+		pWeapon->rcCrosshair.left = 0;
+		pWeapon->rcCrosshair.bottom = 0;
+		pWeapon->rcCrosshair.right = 0;
 	}
 	else
-		pWeapon->hCrosshair = 0;
+	{
+		p = GetSpriteList( pList, "crosshair", iRes, i );
+		if( p )
+		{
+			sprintf( sz, "sprites/%s.spr", p->szSprite );
+			pWeapon->hCrosshair = SPR_Load( sz );
+			pWeapon->rcCrosshair = p->rc;
+		}
+		else
+		{
+			pWeapon->hCrosshair = 0;
+		}
+	}
 
 	p = GetSpriteList( pList, "autoaim", iRes, i );
 	if( p )
@@ -235,6 +255,7 @@ int giBucketHeight, giBucketWidth, giABHeight, giABWidth; // Ammo Bar width and 
 HSPRITE ghsprBuckets;					// Sprite for top row of weapons menu
 
 DECLARE_MESSAGE( m_Ammo, CurWeapon )	// Current weapon and clip
+DECLARE_MESSAGE( m_Ammo, CurWeaponPriAttackMode )
 DECLARE_MESSAGE( m_Ammo, WeaponList )	// new weapon type
 DECLARE_MESSAGE( m_Ammo, AmmoX )		// update known ammo type's count
 DECLARE_MESSAGE( m_Ammo, AmmoPickup )	// flashes an ammo pickup record
@@ -267,6 +288,7 @@ int CHudAmmo::Init( void )
 	gHUD.AddHudElem( this );
 
 	HOOK_MESSAGE( CurWeapon );
+	HOOK_MESSAGE( CurWeaponPriAttackMode );
 	HOOK_MESSAGE( WeaponList );
 	HOOK_MESSAGE( AmmoPickup );
 	HOOK_MESSAGE( WeapPickup );
@@ -290,8 +312,8 @@ int CHudAmmo::Init( void )
 
 	Reset();
 
-	CVAR_CREATE( "hud_drawhistory_time", HISTORY_DRAW_TIME, 0 );
-	CVAR_CREATE( "hud_fastswitch", "0", FCVAR_ARCHIVE );		// controls whether or not weapons can be selected in one keypress
+	CL_CvarCreate( "hud_drawhistory_time", HISTORY_DRAW_TIME, 0 );
+	CL_CvarCreate( "hud_fastswitch", "0", FCVAR_ARCHIVE );		// controls whether or not weapons can be selected in one keypress
 
 	m_iFlags |= HUD_ACTIVE; //!!!
 
@@ -440,7 +462,7 @@ void WeaponsResource::SelectSlot( int iSlot, int fAdvance, int iDirection )
 		return;
 
 	WEAPON *p = NULL;
-	bool fastSwitch = CVAR_GET_FLOAT( "hud_fastswitch" ) != 0;
+	bool fastSwitch = CL_CvarGetFloat( "hud_fastswitch" ) != 0;
 
 	if ( ( gpActiveSel == NULL ) || ( gpActiveSel == (WEAPON *) 1 ) || ( iSlot != gpActiveSel->iSlot ) )
 	{
@@ -639,6 +661,23 @@ int CHudAmmo::MsgFunc_CurWeapon( const char *pszName, int iSize, void *pbuf )
 
 	m_fFade = 200.0f; //!!!
 	m_iFlags |= HUD_ACTIVE;
+
+	return 1;
+}
+
+int CHudAmmo::MsgFunc_CurWeaponPriAttackMode( const char *pszName, int iSize, void *pbuf )
+{
+	BEGIN_READ( pbuf, iSize );
+
+	int id = READ_CHAR();
+	int mode = READ_BYTE();
+
+	WEAPON* weapon = gWR.GetWeapon(id);
+
+	if ( weapon )
+	{
+		weapon->iPriAttackMode = mode;
+	}
 
 	return 1;
 }
@@ -1158,6 +1197,11 @@ int CHudAmmo::DrawWList( float flTime )
 	}
 
 	return 1;
+}
+
+WEAPON* CHudAmmo::GetCurrentWeapon() const
+{
+	return m_pWeapon;
 }
 
 /* =================================

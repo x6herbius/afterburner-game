@@ -18,7 +18,6 @@ GNU General Public License for more details.
 #endif
 
 #include <stddef.h>
-#include "SDL_stdinc.h"
 #include "xash3d_types.h"
 #include "const.h"
 

@@ -64,6 +64,7 @@ typedef struct client_data_s
 {
 	// fields that cannot be modified  (ie. have no effect if changed)
 	vec3_t		origin;
+	float		weaponInaccuracy;
 
 	// fields that can be changed by the cldll
 	vec3_t		viewangles;

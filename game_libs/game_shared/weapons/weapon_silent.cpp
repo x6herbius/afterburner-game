@@ -15,7 +15,7 @@ LINK_ENTITY_TO_CLASS(weapon_silent, CWeaponSilent)
 CWeaponSilent::CWeaponSilent()
 	: CGenericHitscanWeapon()
 {
-	m_pPrimaryAttackMode = GetAttackModeFromAttributes<WeaponAtts::WAHitscanAttack>(ATTACKMODE_NORMAL);
+	SetPrimaryAttackModeFromAttributes(ATTACKMODE_NORMAL);
 }
 
 const WeaponAtts::WACollection& CWeaponSilent::WeaponAttributes() const

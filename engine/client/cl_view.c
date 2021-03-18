@@ -488,6 +488,7 @@ void V_PostRender( void )
 	{
 		SCR_RSpeeds();
 		SCR_NetSpeeds();
+		SCR_DrawPos();
 		SCR_DrawNetGraph();
 		SV_DrawOrthoTriangles();
 		CL_DrawDemoRecording();

@@ -146,6 +146,7 @@ typedef struct clientdata_s
 	float		fov;
 	int		weaponanim;
 	int		weaponScreenOverlay;
+	float	weaponInaccuracy;
 
 	int		m_iId;
 	float		m_flNextAttack;
@@ -173,7 +174,7 @@ typedef struct clientdata_s
 
 #include "weaponinfo.h"
 
-#define MAX_LOCAL_WEAPONS	64	// max weapons that can be predicted on the client
+#define MAX_LOCAL_WEAPONS	32	// max weapons that can be predicted on the client
 
 typedef struct local_state_s
 {

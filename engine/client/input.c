@@ -46,6 +46,7 @@ convar_t *cl_forwardspeed;
 convar_t *cl_sidespeed;
 convar_t *cl_backspeed;
 convar_t *look_filter;
+convar_t *m_rawinput;
 
 /*
 ================
@@ -117,6 +118,7 @@ void IN_StartupMouse( void )
 	m_pitch = Cvar_Get( "m_pitch", "0.022", FCVAR_ARCHIVE, "mouse pitch value" );
 	m_yaw = Cvar_Get( "m_yaw", "0.022", FCVAR_ARCHIVE, "mouse yaw value" );
 	look_filter = Cvar_Get( "look_filter", "0", FCVAR_ARCHIVE, "filter look events making it smoother" );
+	m_rawinput = Cvar_Get( "m_rawinput", "1", FCVAR_ARCHIVE, "enable mouse raw input" );
 
 	// You can use -nomouse argument to prevent using mouse from client
 	// -noenginemouse will disable all mouse input
@@ -209,7 +211,7 @@ void IN_ToggleClientMouse( int newstate, int oldstate )
 #if XASH_SDL
 			SDL_SetWindowGrab( host.hWnd, allowGrab ? SDL_TRUE : SDL_FALSE );
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
-			if( clgame.dllFuncs.pfnLookEvent )
+			if ( clgame.dllFuncs.pfnLookEvent || ( clgame.client_dll_uses_sdl && CVAR_TO_BOOL( m_rawinput ) ) )
 				SDL_SetRelativeMouseMode( allowGrab ? SDL_TRUE : SDL_FALSE );
 #endif
 #endif // XASH_SDL
@@ -223,8 +225,10 @@ void IN_ToggleClientMouse( int newstate, int oldstate )
 #ifdef XASH_SDL
 		SDL_SetWindowGrab(host.hWnd, SDL_FALSE);
 #if SDL_VERSION_ATLEAST( 2, 0, 0 )
-		if( clgame.dllFuncs.pfnLookEvent )
+		if ( clgame.dllFuncs.pfnLookEvent || ( clgame.client_dll_uses_sdl && CVAR_TO_BOOL( m_rawinput ) ) )
+		{
 			SDL_SetRelativeMouseMode( SDL_FALSE );
+		}
 #endif
 #endif // XASH_SDL
 #if XASH_ANDROID
@@ -569,23 +573,16 @@ static void IN_JoyAppendMove( usercmd_t *cmd, float forwardmove, float sidemove 
 
 void IN_CollectInput( float *forward, float *side, float *pitch, float *yaw, qboolean includeMouse, qboolean includeSdlMouse )
 {
-	if( includeMouse )
+	if( includeMouse
+#if XASH_SDL
+		&& includeSdlMouse
+#endif
+		)
 	{
-#if XASH_INPUT == INPUT_SDL
-		/// TODO: check if we may move this to platform
-		if( includeSdlMouse )
-		{
-			int x, y;
-			SDL_GetRelativeMouseState( &x, &y );
-			*pitch += y * m_pitch->value;
-			*yaw   -= x * m_yaw->value;
-		}
-#else
 		float x, y;
 		Platform_MouseMove( &x, &y );
 		*pitch += y * m_pitch->value;
 		*yaw   -= x * m_yaw->value;
-#endif // SDL
 
 #ifdef XASH_USE_EVDEV
 		IN_EvdevMove( yaw, pitch );

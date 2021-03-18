@@ -26,6 +26,7 @@
 #define RGB_REDISH 0x00FF1010 //255,160,0
 #define RGB_GREENISH 0x0000A000 //0,160,0
 
+#include <memory>
 #include "wrect.h"
 #include "cl_dll.h"
 #include "ammo.h"
@@ -37,6 +38,8 @@
 #define MIN_ALPHA	 100.0f
 
 #define		HUDELEM_ACTIVE	1
+
+class CHudCrosshair;
 
 typedef struct
 {
@@ -98,7 +101,9 @@ public:
 	void Think( void );
 	void Reset( void );
 	int DrawWList( float flTime );
+	WEAPON* GetCurrentWeapon() const;
 	int MsgFunc_CurWeapon( const char *pszName, int iSize, void *pbuf );
+	int MsgFunc_CurWeaponPriAttackMode( const char *pszName, int iSize, void *pbuf );
 	int MsgFunc_WeaponList( const char *pszName, int iSize, void *pbuf );
 	int MsgFunc_AmmoX( const char *pszName, int iSize, void *pbuf );
 	int MsgFunc_AmmoPickup( const char *pszName, int iSize, void *pbuf );
@@ -631,13 +636,15 @@ public:
 	CHudScoreboard	m_Scoreboard;
 	CHudMOTD	m_MOTD;
 
+	std::unique_ptr<CHudCrosshair> m_Crosshair;
+
 	void Init( void );
 	void VidInit( void );
 	void Think(void);
 	int Redraw( float flTime, int intermission );
 	int UpdateClientData( client_data_t *cdata, float time );
 
-	CHud() : m_iSpriteCount(0), m_pHudList(NULL) {}
+	CHud();
 	~CHud();			// destructor, frees allocated memory
 
 	// user messages
@@ -656,6 +663,7 @@ public:
 	int	m_iWeaponBits;
 	int	m_fPlayerDead;
 	int m_iIntermission;
+	float m_flWeaponInaccuracy = 0.0f;
 
 	// sprite indexes
 	int m_HUD_number_0;

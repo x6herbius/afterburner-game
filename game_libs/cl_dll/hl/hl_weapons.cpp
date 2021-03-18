@@ -50,7 +50,7 @@ static CBasePlayer player;
 // Local version of game .dll global variables ( time, etc. )
 static globalvars_t Globals;
 
-static CBasePlayerWeapon *g_pWpns[32];
+static CBasePlayerWeapon *g_pWpns[MAX_LOCAL_WEAPONS];
 
 float g_flApplyVel = 0.0;
 int g_irunninggausspred = 0;
@@ -144,6 +144,11 @@ If weapons code "kills" an entity, just set its effects to EF_NODRAW
 void CBaseEntity::Killed( entvars_t *pevAttacker, int iGib )
 {
 	pev->effects |= EF_NODRAW;
+}
+
+bool CBasePlayerWeapon::IsActiveItem() const
+{
+	return m_pPlayer->m_pActiveItem == this;
 }
 
 BOOL CBasePlayerWeapon::CanAttack( float attack_time, float curtime, BOOL isPredicted )
@@ -797,7 +802,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 	if( !pWeapon )
 		return;
 
-	for( i = 0; i < 32; i++ )
+	for( i = 0; i < MAX_LOCAL_WEAPONS; i++ )
 	{
 		pCurrent = g_pWpns[i];
 		if( !pCurrent )
@@ -813,6 +818,8 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 		pCurrent->m_flNextPrimaryAttack	= pfrom->m_flNextPrimaryAttack;
 		pCurrent->m_flNextSecondaryAttack = pfrom->m_flNextSecondaryAttack;
 		pCurrent->m_flTimeWeaponIdle = pfrom->m_flTimeWeaponIdle;
+		pCurrent->m_flLastPrimaryAttack = pfrom->m_flLastPrimaryAttack;
+		pCurrent->m_flLastSecondaryAttack = pfrom->m_flLastSecondaryAttack;
 
 		pCurrent->ReadPredictionData(pfrom);
 
@@ -849,6 +856,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 	player.pev->fov = from->client.fov;
 	player.pev->weaponanim = from->client.weaponanim;
 	player.m_iWeaponScreenOverlay = ScreenOverlays::ToOverlayId(from->client.weaponScreenOverlay);
+	player.m_flWeaponInaccuracy = from->client.weaponInaccuracy;
 	player.pev->viewmodel = from->client.viewmodel;
 	player.m_flNextAttack = from->client.m_flNextAttack;
 	player.m_flNextAmmoBurn = from->client.fuser2;
@@ -913,6 +921,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 	to->client.fov = player.pev->fov;
 	to->client.weaponanim = player.pev->weaponanim;
 	to->client.weaponScreenOverlay = player.m_iWeaponScreenOverlay;
+	to->client.weaponInaccuracy = player.m_flWeaponInaccuracy;
 	to->client.m_flNextAttack = player.m_flNextAttack;
 	to->client.fuser2 = player.m_flNextAmmoBurn;
 	to->client.fuser3 = player.m_flAmmoStartCharge;
@@ -943,7 +952,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 		HUD_SendWeaponAnim( to->client.weaponanim, body, 1 );
 	}
 
-	for( i = 0; i < 32; i++ )
+	for( i = 0; i < MAX_LOCAL_WEAPONS; i++ )
 	{
 		pCurrent = g_pWpns[i];
 
@@ -961,6 +970,8 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 		pto->m_flNextPrimaryAttack = pCurrent->m_flNextPrimaryAttack;
 		pto->m_flNextSecondaryAttack = pCurrent->m_flNextSecondaryAttack;
 		pto->m_flTimeWeaponIdle = pCurrent->m_flTimeWeaponIdle;
+		pto->m_flLastPrimaryAttack = pCurrent->m_flLastPrimaryAttack;
+		pto->m_flLastSecondaryAttack = pCurrent->m_flLastSecondaryAttack;
 
 		pCurrent->WritePredictionData(pto);
 
@@ -970,6 +981,8 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 		pto->m_flNextPrimaryAttack -= cmd->msec / 1000.0;
 		pto->m_flNextSecondaryAttack -= cmd->msec / 1000.0;
 		pto->m_flTimeWeaponIdle -= cmd->msec / 1000.0;
+		pto->m_flLastPrimaryAttack -= cmd->msec / 1000.0;
+		pto->m_flLastSecondaryAttack -= cmd->msec / 1000.0;
 		pto->fuser1 -= cmd->msec / 1000.0;
 
 		to->client.vuser3[2] = pCurrent->m_iSecondaryAmmoType;
@@ -995,6 +1008,16 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 		if( pto->m_flTimeWeaponIdle < -0.001 )
 		{
 			pto->m_flTimeWeaponIdle = -0.001;
+		}
+
+		if ( pto->m_flLastPrimaryAttack < -10.0f )
+		{
+			pto->m_flLastPrimaryAttack = -10.0f;
+		}
+
+		if ( pto->m_flLastSecondaryAttack < -10.0f )
+		{
+			pto->m_flLastSecondaryAttack = -10.0f;
 		}
 
 		if( pto->m_flNextReload < -0.001 )

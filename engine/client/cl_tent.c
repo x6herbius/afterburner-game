@@ -162,7 +162,7 @@ void CL_AddClientResources( void )
 
 	for( i = 0; i < ARRAYSIZE( cl_weapon_shell_sounds ); i++ )
 	{
-		Q_snprintf( filepath, sizeof( filepath ), "%s%s", DEFAULT_SOUNDPATH, cl_weapon_shell_sounds[i] );
+		Q_snprintf( filepath, sizeof( filepath ), DEFAULT_SOUNDPATH "%s", cl_weapon_shell_sounds[i] );
 
 		if( !FS_FileExists( filepath, false ))
 			CL_AddClientResource( cl_weapon_shell_sounds[i], t_sound );
@@ -170,7 +170,7 @@ void CL_AddClientResources( void )
 
 	for( i = 0; i < ARRAYSIZE( cl_explode_sounds ); i++ )
 	{
-		Q_snprintf( filepath, sizeof( filepath ), "%s%s", DEFAULT_SOUNDPATH, cl_explode_sounds[i] );
+		Q_snprintf( filepath, sizeof( filepath ), DEFAULT_SOUNDPATH "%s", cl_explode_sounds[i] );
 
 		if( !FS_FileExists( filepath, false ))
 			CL_AddClientResource( cl_explode_sounds[i], t_sound );
@@ -1448,7 +1448,7 @@ void GAME_EXPORT R_RicochetSound( const vec3_t pos )
 	char	soundpath[32];
 	sound_t	handle;
 
-	Q_snprintf( soundpath, sizeof( soundpath ), "%s", cl_ricochet_sounds[COM_RandomLong( 0, 4 )] );
+	Q_strncpy( soundpath, cl_ricochet_sounds[COM_RandomLong( 0, 4 )], sizeof( soundpath ) );
 	handle = S_RegisterSound( soundpath );
 
 	S_StartSound( pos, 0, CHAN_AUTO, handle, fvol, ATTN_NORM, iPitch, 0 );
@@ -1598,7 +1598,7 @@ void GAME_EXPORT R_Explosion( vec3_t pos, int model, float scale, float framerat
 
 	if( !FBitSet( flags, TE_EXPLFLAG_NOSOUND ))
 	{
-		hSound = S_RegisterSound( va( "%s", cl_explode_sounds[COM_RandomLong( 0, ARRAYSIZE( cl_explode_sounds ) - 1 )] ));
+		hSound = S_RegisterSound( cl_explode_sounds[COM_RandomLong( 0, ARRAYSIZE( cl_explode_sounds ) - 1 )] );
 		S_StartSound( pos, 0, CHAN_STATIC, hSound, VOL_NORM, 0.3f, PITCH_NORM, 0 );
 	}
 }

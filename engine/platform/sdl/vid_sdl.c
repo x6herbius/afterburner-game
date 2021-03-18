@@ -335,12 +335,15 @@ static void R_InitVideoModes( void )
 		num_vidmodes++;
 	}
 #endif // SDL_VERSION_ATLEAST( 2, 0, 0 )
-	
+
 }
 
 static void R_FreeVideoModes( void )
 {
 	int i;
+
+	if( !vidmodes )
+		return;
 
 	for( i = 0; i < num_vidmodes; i++ )
 		Mem_Free( (char*)vidmodes[i].desc );
@@ -1160,7 +1163,7 @@ R_Free_Video
 ==================
 */
 void R_Free_Video( void )
-{	
+{
 	GL_DeleteContext ();
 
 	VID_DestroyWindow ();

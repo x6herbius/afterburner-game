@@ -1,9 +1,9 @@
 /***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*	
-*	This product contains software technology licensed from Id 
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc. 
+*
+*	This product contains software technology licensed from Id
+*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
 *	All Rights Reserved.
 *
 *   Use, distribution, and modification of this source code and/or resulting
@@ -36,6 +36,7 @@ int CHud::UpdateClientData( client_data_t *cdata, float time )
 
 	m_iKeyBits = CL_ButtonBits( 0 );
 	m_iWeaponBits = cdata->iWeaponBits;
+	m_flWeaponInaccuracy = cdata->weaponInaccuracy;
 
 	in_fov = cdata->fov;
 

@@ -3,6 +3,7 @@
 #include "weaponatts_hitscanattack.h"
 #include "skill.h"
 #include "eventConstructor/eventConstructor.h"
+#include "gameplay/inaccuracymodifiers.h"
 
 #ifndef CLIENT_DLL
 #include "weaponregistry.h"
@@ -18,9 +19,11 @@ CGenericHitscanWeapon::~CGenericHitscanWeapon()
 
 void CGenericHitscanWeapon::WeaponIdle()
 {
-	if ( m_pPrimaryAttackMode && m_pPrimaryAttackMode->Classify() == WeaponAtts::WABaseAttack::Classification::Hitscan )
+	const WeaponAtts::WAHitscanAttack* primaryAttack = GetPrimaryAttackMode<const WeaponAtts::WAHitscanAttack>();
+
+	if ( primaryAttack )
 	{
-		m_pPlayer->GetAutoaimVector(static_cast<const WeaponAtts::WAHitscanAttack*>(m_pPrimaryAttackMode)->AutoAim);
+		m_pPlayer->GetAutoaimVector(primaryAttack->AutoAim);
 	}
 
 	CGenericWeapon::WeaponIdle();
@@ -87,8 +90,9 @@ bool CGenericHitscanWeapon::InvokeWithAttackMode(const CGenericWeapon::WeaponAtt
 	}
 
 	Vector vecDir = FireBulletsPlayer(*hitscanAttack, vecSrc, vecAiming);
+	const int eventID = GetEventIDForAttackMode(hitscanAttack);
 
-	if ( m_AttackModeEvents[hitscanAttack->Signature()->Index] )
+	if ( eventID >= 0 )
 	{
 		using namespace EventConstructor;
 		CEventConstructor event;
@@ -96,9 +100,10 @@ bool CGenericHitscanWeapon::InvokeWithAttackMode(const CGenericWeapon::WeaponAtt
 		event
 			<< Flags(DefaultEventFlags())
 			<< Invoker(m_pPlayer->edict())
-			<< EventIndex(m_AttackModeEvents[hitscanAttack->Signature()->Index])
+			<< EventIndex(eventID)
 			<< IntParam1(m_pPlayer->random_seed)
 			<< BoolParam1(m_iClip == 0)
+			<< FloatParam1(GetInaccuracy())
 			;
 
 		event.Send();
@@ -131,6 +136,15 @@ Vector CGenericHitscanWeapon::FireBulletsPlayer(const WeaponAtts::WAHitscanAttac
 	float x = 0.0f;
 	float y = 0.0f;
 
+	WeaponAtts::AccuracyParameters accuracyParams(hitscanAttack.Accuracy);
+
+	if ( InaccuracyModifiers::IsInaccuracyDebuggingEnabled() )
+	{
+		InaccuracyModifiers::GetInaccuracyValuesFromDebugCvars(accuracyParams);
+	}
+
+	const Vector2D spread = InaccuracyModifiers::GetInterpolatedSpread(accuracyParams, GetInaccuracy());
+
 	entvars_t* const pevAttacker = m_pPlayer->pev;
 	const int shared_rand = m_pPlayer->random_seed;
 
@@ -149,10 +163,7 @@ Vector CGenericHitscanWeapon::FireBulletsPlayer(const WeaponAtts::WAHitscanAttac
 
 		GetSharedCircularGaussianSpread(shot, shared_rand, x, y);
 
-		Vector vecDir = vecDirShooting +
-						(x * hitscanAttack.SpreadX * vecRight) +
-						(y * hitscanAttack.SpreadY * vecUp);
-
+		Vector vecDir = vecDirShooting + (x * spread.x * vecRight) + (y * spread.y * vecUp);
 		Vector vecEnd = vecSrc + (vecDir * DEFAULT_BULLET_TRACE_DISTANCE);
 		UTIL_TraceLine(vecSrc, vecEnd, dont_ignore_monsters, ENT(pev), &tr);
 
@@ -175,7 +186,7 @@ Vector CGenericHitscanWeapon::FireBulletsPlayer(const WeaponAtts::WAHitscanAttac
 	Debug_FinaliseHitscanEvent();
 	ApplyMultiDamage(pev, pevAttacker);
 
-	return Vector(x * hitscanAttack.SpreadX, y * hitscanAttack.SpreadY, 0.0);
+	return Vector(x * spread.x, y * spread.y, 0.0);
 #endif
 }
 
@@ -231,8 +242,17 @@ Vector CGenericHitscanWeapon::FireBulletsPlayer_Client(const WeaponAtts::WAHitsc
 	float x = 0.0f;
 	float y = 0.0f;
 
+	WeaponAtts::AccuracyParameters accuracyParams(hitscanAttack.Accuracy);
+
+	if ( InaccuracyModifiers::IsInaccuracyDebuggingEnabled() )
+	{
+		InaccuracyModifiers::GetInaccuracyValuesFromDebugCvars(accuracyParams);
+	}
+
+	const Vector2D spread = InaccuracyModifiers::GetInterpolatedSpread(accuracyParams, GetInaccuracy());
+
 	// Just return the last vector we would have generated.
 	GetSharedCircularGaussianSpread(hitscanAttack.BulletsPerShot - 1, m_pPlayer->random_seed, x, y);
-	return Vector(x * hitscanAttack.SpreadX, y * hitscanAttack.SpreadY, 0.0);
+	return Vector(x * spread.x, y * spread.y, 0.0);
 }
 #endif

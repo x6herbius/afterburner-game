@@ -76,8 +76,11 @@ static char *ScanForwardUntil( char *string, const char scan )
 static char *VOX_GetDirectory( char *szpath, char *psz )
 {
 	char	c;
-	int	cb = 0;
-	char	*p = psz + Q_strlen( psz ) - 1;
+	int	cb = 0, len;
+	char	*p;
+
+	len = Q_strlen( psz );
+	p = psz + len - 1;
 
 	// scan backwards until first '/' or start of string
 	c = *p;
@@ -94,7 +97,7 @@ static char *VOX_GetDirectory( char *szpath, char *psz )
 		return psz;
 	}
 
-	cb = Q_strlen( psz ) - cb;
+	cb = len - cb;
 	memcpy( szpath, psz, cb );
 	szpath[cb] = 0;
 
@@ -466,7 +469,10 @@ void VOX_LoadSound( channel_t *pchan, const char *pszin )
 
 	// lookup actual string in g_Sentences,
 	// set pointer to string data
-	psz = VOX_LookupString( pszin, NULL );
+	if( pszin[0] == '#' )
+		psz = (char *)pszin + 1;
+	else
+		psz = VOX_LookupString( pszin, NULL );
 
 	if( !psz )
 	{

@@ -13,7 +13,10 @@ CWeaponL96A1::CWeaponL96A1() :
 	CGenericHitscanWeapon(),
 	m_iZoomLevel(0)
 {
-	m_pPrimaryAttackMode = GetAttackModeFromAttributes<WeaponAtts::WAHitscanAttack>(ATTACKMODE_NORMAL);
+	m_pAttackUnscoped = GetAttackModeFromAttributes<WeaponAtts::WAHitscanAttack>(ATTACKMODE_UNSCOPED);
+	m_pAttackScoped = GetAttackModeFromAttributes<WeaponAtts::WAHitscanAttack>(ATTACKMODE_SCOPED);
+
+	SetPrimaryAttackMode(m_pAttackUnscoped);
 }
 
 const WeaponAtts::WACollection& CWeaponL96A1::WeaponAttributes() const
@@ -75,12 +78,14 @@ void CWeaponL96A1::SetZoomLevel(uint32_t level)
 			m_pPlayer->SetScreenOverlay(ScreenOverlays::OverlayId::Overlay_SniperScope);
 			m_pPlayer->pev->fov = m_pPlayer->m_iFOV = L96A1_ZOOM_LEVELS[m_iZoomLevel];
 			m_pPlayer->pev->effects |= EF_HIDEVIEWMODEL;
+			SetPrimaryAttackMode(m_pAttackScoped);
 		}
 		else
 		{
 			m_pPlayer->SetScreenOverlay(ScreenOverlays::OverlayId::Overlay_None);
 			m_pPlayer->pev->fov = m_pPlayer->m_iFOV = 0.0f;
 			m_pPlayer->pev->effects &= ~EF_HIDEVIEWMODEL;
+			SetPrimaryAttackMode(m_pAttackUnscoped);
 		}
 	}
 }

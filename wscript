@@ -3,8 +3,16 @@
 # a1batross, mittorn, 2018
 
 from __future__ import print_function
-from waflib import Logs, Context, Configure
 import sys
+
+if not sys.version_info.major >= 3:
+	print("Python 3 is required, but Python " +
+		  str(sys.version_info.major) + "." +
+		  str(sys.version_info.minor) + " was used.",
+		  file=sys.stderr)
+	sys.exit(1)
+
+from waflib import Logs, Context, Configure
 import os
 
 VERSION = '0.99'
@@ -20,11 +28,12 @@ class Subproject:
 	ignore    = False # if true will be ignored, set by user request
 	mandatory  = False
 
-	def __init__(self, name, dedicated=True, singlebin=False, mandatory = False):
+	def __init__(self, name, dedicated=True, singlebin=False, mandatory = False, utility = False):
 		self.name = name
 		self.dedicated = dedicated
 		self.singlebin = singlebin
 		self.mandatory = mandatory
+		self.utility = utility
 
 	def is_enabled(self, ctx):
 		if not self.mandatory:
@@ -43,6 +52,9 @@ class Subproject:
 		if ctx.env.DEDICATED and self.dedicated:
 			return False
 
+		if self.utility and not ctx.env.ENABLE_UTILS:
+			return False
+
 		return True
 
 SUBDIRS = [
@@ -59,6 +71,7 @@ SUBDIRS = [
 	Subproject('game_content', dedicated=False),
 	Subproject('game_libs/cl_dll',   dedicated=False),
 	Subproject('game_libs/dlls',   dedicated=False),
+	Subproject('utils/mdldec', utility=True)
 ]
 
 @Configure.conf
@@ -72,9 +85,6 @@ def subdirs():
 
 def options(opt):
 	grp = opt.add_option_group('Common options')
-
-	grp.add_option('-T', '--build-type', action='store', dest='BUILD_TYPE', default = None,
-		help = 'build type: debug, release or none(custom flags)')
 
 	grp.add_option('-d', '--dedicated', action = 'store_true', dest = 'DEDICATED', default = False,
 		help = 'build Xash Dedicated Server [default: %default]')
@@ -91,22 +101,18 @@ def options(opt):
 	grp.add_option('--enable-bsp2', action = 'store_true', dest = 'SUPPORT_BSP2_FORMAT', default = False,
 		help = 'build engine and renderers with BSP2 map support(recommended for Quake, breaks compatibility!) [default: %default]')
 
-	grp.add_option('--enable-lto', action = 'store_true', dest = 'LTO', default = False,
-		help = 'enable Link Time Optimization if possible [default: %default]')
-
-	grp.add_option('--enable-poly-opt', action = 'store_true', dest = 'POLLY', default = False,
-		help = 'enable polyhedral optimization if possible [default: %default]')
-
 	grp.add_option('--low-memory-mode', action = 'store', dest = 'LOW_MEMORY', default = 0, type = 'int',
 		help = 'enable low memory mode (only for devices have <128 ram)')
-
-	grp.add_option('--enable-magx', action = 'store_true', dest = 'MAGX', default = False,
-		help = 'enable targetting for MotoMAGX phones [default: %default]')
 
 	grp.add_option('--ignore-projects', action = 'store', dest = 'IGNORE_PROJECTS', default = None,
 		help = 'disable selected projects from build [default: %default]')
 
-	opt.load('subproject')
+	grp = opt.add_option_group('Utilities options')
+
+	grp.add_option('--enable-utils', action = 'store_true', dest = 'ENABLE_UTILS', default = False,
+		help = 'enable building various development utilities [default: %default]')
+
+	opt.load('compiler_optimizations subproject')
 
 	for i in SUBDIRS:
 		if not i.mandatory and not opt.path.find_node(i.name+'/wscript'):
@@ -115,48 +121,43 @@ def options(opt):
 
 		opt.add_subproject(i.name)
 
-
-	opt.load('xshlib xcompile compiler_cxx compiler_c sdl2 clang_compilation_database strip_on_install waf_unit_test')
+	opt.load('xshlib xcompile compiler_cxx compiler_c sdl2 clang_compilation_database strip_on_install waf_unit_test msdev msvs')
 	if sys.platform == 'win32':
-		opt.load('msvc msdev msvs')
+		opt.load('msvc')
 	opt.load('reconfigure')
 
 def configure(conf):
 	conf.env.GAMEDIR = "afterburner"
 	conf.env.append_unique("DEFINES", "PLAYER_MODEL_PATH=\"models/player/fallback/fallback.mdl\"")
+	conf.env.append_unique("DEFINES", "DEFAULT_GAME_DIR=\"" + conf.env.GAMEDIR + "\"")
 
-	enforce_pic = True # modern defaults
-	valid_build_types = ['fastnative', 'fast', 'release', 'debug', 'nooptimize', 'sanitize', 'none']
-	conf.load('fwgslib reconfigure')
+	conf.load('fwgslib reconfigure compiler_optimizations')
 	if conf.options.IGNORE_PROJECTS:
 		conf.env.IGNORE_PROJECTS = conf.options.IGNORE_PROJECTS.split(',')
 
-	conf.start_msg('Build type')
-	if conf.options.BUILD_TYPE == None:
-		conf.end_msg('not set', color='RED')
-		conf.fatal('Please set a build type, for example "-T release"')
-	elif not conf.options.BUILD_TYPE in valid_build_types:
-		conf.end_msg(conf.options.BUILD_TYPE, color='RED')
-		conf.fatal('Invalid build type. Valid are: %s' % ', '.join(valid_build_types))
-	conf.end_msg(conf.options.BUILD_TYPE)
+	conf.env.MSVC_TARGETS = ['x86' if not conf.options.ALLOW64 else 'x64']
 
-	# -march=native should not be used
-	if conf.options.BUILD_TYPE.startswith('fast'):
-		Logs.warn('WARNING: \'%s\' build type should not be used in release builds', conf.options.BUILD_TYPE)
+	# Load compilers early
+	conf.load('xshlib xcompile compiler_c compiler_cxx')
 
-	# Force XP compability, all build targets should add
-	# subsystem=bld.env.MSVC_SUBSYSTEM
-	# TODO: wrapper around bld.stlib, bld.shlib and so on?
-	conf.env.MSVC_SUBSYSTEM = 'WINDOWS,5.01'
-	conf.env.MSVC_TARGETS = ['x86'] # explicitly request x86 target for MSVC
-	if sys.platform == 'win32':
-		conf.load('msvc msvc_pdb msdev msvs')
-	conf.load('xshlib subproject xcompile compiler_c compiler_cxx gitversion clang_compilation_database strip_on_install waf_unit_test')
+	# HACKHACK: override msvc DEST_CPU value by something that we understand
+	if conf.env.DEST_CPU == 'amd64':
+		conf.env.DEST_CPU = 'x86_64'
 
-	try:
-		conf.env.CC_VERSION[0]
-	except IndexError:
-		conf.env.CC_VERSION = (0,)
+	if conf.env.COMPILER_CC == 'msvc':
+		conf.load('msvc_pdb')
+
+	conf.load('msvs msdev subproject gitversion clang_compilation_database strip_on_install waf_unit_test enforce_pic')
+
+	# Force XP compatibility, all build targets should add subsystem=bld.env.MSVC_SUBSYSTEM
+	if conf.env.MSVC_TARGETS[0] == 'x86':
+		conf.env.MSVC_SUBSYSTEM = 'WINDOWS,5.01'
+		conf.env.CONSOLE_SUBSYSTEM = 'CONSOLE,5.01'
+	else:
+		conf.env.MSVC_SUBSYSTEM = 'WINDOWS'
+		conf.env.CONSOLE_SUBSYSTEM = 'CONSOLE'
+
+	enforce_pic = True # modern defaults
 
 	# modify options dictionary early
 	if conf.env.DEST_OS == 'android':
@@ -164,113 +165,32 @@ def configure(conf):
 		conf.options.NANOGL = True
 		conf.options.GLWES  = True
 		conf.options.GL     = False
-
-	if conf.env.STATIC_LINKING:
-		enforce_pic = False # PIC may break static linking
-
-	conf.env.MAGX = conf.options.MAGX
-	if conf.options.MAGX:
-		conf.options.USE_SELECT = True
-		conf.options.SDL12 = True
-		conf.options.NO_VGUI = True
-		conf.options.GL = False
-		conf.options.LOW_MEMORY = 1
-		conf.options.SINGLE_BINARY = True
+	elif conf.env.MAGX:
+		conf.options.USE_SELECT       = True
+		conf.options.SDL12            = True
+		conf.options.NO_VGUI          = True
+		conf.options.GL               = False
+		conf.options.LOW_MEMORY       = 1
+		conf.options.SINGLE_BINARY    = True
 		conf.options.NO_ASYNC_RESOLVE = True
 		conf.define('XASH_SDLMAIN', 1)
 		enforce_pic = False
 
-		# useless to change toolchain path, as toolchain meant to be placed in this path
-		toolchain_path = '/opt/toolchains/motomagx/arm-eabi2/lib/'
-		conf.env.INCLUDES_MAGX = [toolchain_path + i for i in ['ezx-z6/include', 'qt-2.3.8/include']]
-		conf.env.LIBPATH_MAGX  = [toolchain_path + i for i in ['ezx-z6/lib', 'qt-2.3.8/lib']]
-		conf.env.LINKFLAGS_MAGX = ['-Wl,-rpath-link=' + i for i in conf.env.LIBPATH_MAGX]
-		for lib in ['qte-mt', 'ezxappbase', 'ezxpm', 'log_util']:
-			conf.check_cc(lib=lib, use='MAGX', uselib_store='MAGX')
+	if conf.env.STATIC_LINKING:
+		enforce_pic = False # PIC may break full static builds
 
-	if enforce_pic:
-		# Every static library must have fPIC
-		if conf.env.DEST_OS != 'win32' and '-fPIC' in conf.env.CFLAGS_cshlib:
-			conf.env.append_unique('CFLAGS_cstlib', '-fPIC')
-			conf.env.append_unique('CXXFLAGS_cxxstlib', '-fPIC')
-	else:
-		if '-fPIC' in conf.env.CFLAGS_cshlib:
-			conf.env.CFLAGS_cshlib.remove('-fPIC')
-		if '-fPIC' in conf.env.CXXFLAGS_cshlib:
-			conf.env.CXXFLAGS_cxxshlib.remove('-fPIC')
-		if '-fPIC' in conf.env.CFLAGS_MACBUNDLE:
-			conf.env.CFLAGS_MACBUNDLE.remove('-fPIC')
-		if '-fPIC' in conf.env.CXXFLAGS_MACBUNDLE:
-			conf.env.CXXFLAGS_MACBUNDLE.remove('-fPIC')
+	conf.check_pic(enforce_pic)
 
 	# We restrict 64-bit builds ONLY for Win/Linux/OSX running on Intel architecture
 	# Because compatibility with original GoldSrc
 	if conf.env.DEST_OS in ['win32', 'linux', 'darwin'] and conf.env.DEST_CPU == 'x86_64':
 		conf.env.BIT32_MANDATORY = not conf.options.ALLOW64
-		if not conf.env.BIT32_MANDATORY:
+		if conf.env.BIT32_MANDATORY:
 			Logs.info('WARNING: will build engine for 32-bit target')
 	else:
 		conf.env.BIT32_MANDATORY = False
 
 	conf.load('force_32bit')
-
-	linker_flags = {
-		'common': {
-			'msvc':  ['/DEBUG', '/WX'], # always create PDB, doesn't affect result binaries
-			'gcc':   ['-Wl,--no-undefined'],
-			'owcc':  ['-Wl,option stack=512k']
-		},
-		'sanitize': {
-			'clang': ['-fsanitize=undefined', '-fsanitize=address'],
-			'gcc':   ['-fsanitize=undefined', '-fsanitize=address'],
-		}
-	}
-
-	compiler_c_cxx_flags = {
-		'common': {
-			# disable thread-safe local static initialization for C++11 code, as it cause crashes on Windows XP
-			'msvc':    ['/D_USING_V110_SDK71_', '/Zi', '/FS', '/Zc:threadSafeInit-', '/EHsc', '/WX'],
-			'clang':   ['-g', '-gdwarf-2', '-fvisibility=hidden', '-Werror', '-Wno-format-truncation'],
-			'gcc':     ['-g', '-fvisibility=hidden', '-fdiagnostics-color=always', '-Werror', '-Wno-format-truncation'],
-			'owcc':	   ['-fno-short-enum', '-ffloat-store', '-g3']
-		},
-		'fast': {
-			'msvc':    ['/O2', '/Oy', '/DNDEBUG', '/MT'],
-			'gcc': {
-				'3':       ['-O3', '-fomit-frame-pointer', '/DNDEBUG'],
-				'default': ['-Ofast', '-funsafe-math-optimizations', '-funsafe-loop-optimizations', '-fomit-frame-pointer', '/DNDEBUG']
-			},
-			'clang':   ['-Ofast', '/DNDEBUG'],
-			'default': ['-O3', '/DNDEBUG']
-		},
-		'fastnative': {
-			'msvc':    ['/O2', '/Oy', '/MT', '/DNDEBUG'],
-			'gcc':     ['-Ofast', '-march=native', '-funsafe-math-optimizations', '-funsafe-loop-optimizations', '-fomit-frame-pointer', '-DNDEBUG'],
-			'clang':   ['-Ofast', '-march=native', '-DNDEBUG'],
-			'default': ['-O3', '-DNDEBUG']
-		},
-		'release': {
-			'msvc':    ['/O2', '/DNDEBUG', '/MT'],
-			'owcc':    ['-O3', '-foptimize-sibling-calls', '-fomit-leaf-frame-pointer', '-fomit-frame-pointer', '-fschedule-insns', '-funsafe-math-optimizations', '-funroll-loops', '-frerun-optimizer', '-finline-functions', '-finline-limit=512', '-fguess-branch-probability', '-fno-strict-aliasing', '-floop-optimize'],
-			'default': ['-O3', '-DNDEBUG']
-		},
-		'debug': {
-			'msvc':    ['/O1', '/D_DEBUG', '/MTd'],
-			'gcc':     ['-Og', '-D_DEBUG'],
-			'owcc':    ['-O0', '-fno-omit-frame-pointer', '-funwind-tables', '-fno-omit-leaf-frame-pointer'],
-			'default': ['-O1', '-D_DEBUG']
-		},
-		'sanitize': {
-			'msvc':    ['/Od', '/RTC1', '/MT', '/DNDEBUG'],
-			'gcc':     ['-Og', '-fsanitize=undefined', '-fsanitize=address', '-DNDEBUG'],
-			'clang':   ['-O0', '-fsanitize=undefined', '-fsanitize=address', '-DNDEBUG'],
-			'default': ['-O0', '-DNDEBUG']
-		},
-		'nooptimize': {
-			'msvc':    ['/Od', '/D_DEBUG', '/MTd'],
-			'default': ['-O0', '-DNDEBUG']
-		}
-	}
 
 	compiler_optional_flags = [
 #		'-Wall', '-Wextra', '-Wpedantic',
@@ -283,10 +203,15 @@ def configure(conf):
 		#'-Werror=duplicated-branches', # BEWARE: buggy (also breaks stb_image.h)
 		'-Werror=bool-compare',
 		'-Werror=bool-operation',
-		'-Werror=uninitialized',
-		'-Winit-self',
+		'-Werror=cast-align',
+		'-Werror=cast-align=strict', # =strict is for GCC >=8
+		'-Werror=packed',
+		'-Werror=packed-not-aligned',
+		'-Werror=uninitialized', # older GCC versions have -Wmaybe-uninitialized enabled by this switch, which is not accurate
+                                   # so just warn, not error
+		'-Werror=init-self',
 		'-Werror=implicit-fallthrough=2', # clang incompatible without "=2"
-#		'-Wdouble-promotion', # disable warning flood, causes super irritating warnings with variadic functions
+		#'-Wdouble-promotion', # disable warning flood, causes super irritating warnings with variadic functions
 		#'-Wstrict-aliasing', # Certain C code casts pointers around and causes these warnings
 	]
 
@@ -303,39 +228,76 @@ def configure(conf):
 		'-fnonconst-initializers' # owcc
 	]
 
-	linkflags = conf.get_flags_by_type(linker_flags, conf.options.BUILD_TYPE, conf.env.COMPILER_CC, conf.env.CC_VERSION[0])
-	cflags    = conf.get_flags_by_type(compiler_c_cxx_flags, conf.options.BUILD_TYPE, conf.env.COMPILER_CC, conf.env.CC_VERSION[0])
+	cflags, linkflags = conf.get_optimization_flags()
 
-	# Here we don't differentiate C or C++ flags
-	if conf.options.LTO:
-		lto_cflags = {
-			'msvc':  ['/GL'],
-			'gcc':   ['-flto'],
-			'clang': ['-flto']
-		}
+	# Afterburner edits: we want to be more strict with the compiler flags!
+	# To avoid having to fork Waifulib in addition to everything else we've
+	# already had to fork, just edit the cflags and linkflags that get passed back.
+	ab_cflags = []
+	ab_linkflags = []
 
-		lto_linkflags = {
-			'msvc':  ['/LTCG'],
-			'gcc':   ['-flto'],
-			'clang': ['-flto']
-		}
-		cflags    += conf.get_flags_by_compiler(lto_cflags, conf.env.COMPILER_CC)
-		linkflags += conf.get_flags_by_compiler(lto_linkflags, conf.env.COMPILER_CC)
+	if conf.env.COMPILER_CC == 'msvc':
+		ab_cflags += \
+		[
+			"/WX",	# Treat all warnings as errors
+			"/EHsc"	# Specify exception unwind semantics
+		]
 
-	if conf.options.POLLY:
-		polly_cflags = {
-			'gcc':   ['-fgraphite-identity'],
-			'clang': ['-mllvm', '-polly']
-			# msvc sosat :(
-		}
+		ab_linkflags += \
+		[
+			"/WX"	# Treat all warnings as errors
+		]
 
-		cflags   += conf.get_flags_by_compiler(polly_cflags, conf.env.COMPILER_CC)
+		if conf.options.BUILD_TYPE == "debug":
+			ab_cflags += \
+			[
+				"/D_DEBUG",	# Include debugging define
+				"/MTd"		# Use debugging runtime
+			]
+
+			# Because we're using the debug runtime, remove the non-debug one
+			cflags.remove("/MT")
+		else:
+			ab_cflags += \
+			[
+				"/DNDEBUG"	# Include NDEBUG define
+			]
+	else:
+		ab_cflags += \
+		[
+			"-Werror",					# Treat all warnings as errors
+			"-Wno-format-truncation",	# Remove format truncation warnings, there are just too many of them
+			"-Wno-stringop-overflow"	# Removes warnings regarding unistd read function (no idea what they are or how to fix them)
+		]
+
+		if conf.env.COMPILER_CC == "gcc":
+			ab_cflags += \
+			[
+				"-fdiagnostics-color=always"	# Use helpful diagnostic colours
+			]
+
+		if conf.options.BUILD_TYPE == "debug":
+			ab_cflags += \
+			[
+				"-D_DEBUG"	# Include debugging define
+			]
+		else:
+			ab_cflags += \
+			[
+				"-DNDEBUG"	# Include NDEBUG define
+			]
+
+	conf.msg("Afterburner extra cflags", str(ab_cflags))
+	conf.msg("Afterburner extra linkflags", str(ab_linkflags))
+
+	cflags += ab_cflags
+	linkflags += ab_linkflags
 
 	# And here C++ flags starts to be treated separately
 	cxxflags = list(cflags)
 	if conf.env.COMPILER_CC != 'msvc':
-		conf.check_cc(cflags=cflags, linkflags=linkflags, msg= 'Checking for required C flags')
-		conf.check_cxx(cxxflags=cflags, linkflags=linkflags, msg= 'Checking for required C++ flags')
+		conf.check_cc(cflags=cflags, linkflags=linkflags, msg='Checking for required C flags')
+		conf.check_cxx(cxxflags=cflags, linkflags=linkflags, msg='Checking for required C++ flags')
 
 		conf.env.append_unique('CFLAGS', cflags)
 		conf.env.append_unique('CXXFLAGS', cxxflags)
@@ -348,17 +310,6 @@ def configure(conf):
 	conf.env.append_unique('CXXFLAGS', cxxflags)
 	conf.env.append_unique('LINKFLAGS', linkflags)
 
-	# check if we can use C99 tgmath
-	if conf.check_cc(header_name='tgmath.h', mandatory=False):
-		if conf.env.COMPILER_CC == 'msvc':
-			conf.define('_CRT_SILENCE_NONCONFORMING_TGMATH_H', 1)
-		tgmath_usable = conf.check_cc(fragment='''#include<tgmath.h>
-			int main(void){ return (int)sin(2.0f); }''',
-			msg='Checking if tgmath.h is usable', mandatory=False)
-		conf.define_cond('HAVE_TGMATH_H', tgmath_usable)
-	else:
-		conf.undefine('HAVE_TGMATH_H')
-
 	# check if we can use C99 stdint
 	if conf.check_cc(header_name='stdint.h', mandatory=False):
 		# use system
@@ -367,6 +318,7 @@ def configure(conf):
 		# include portable stdint by Paul Hsich
 		conf.define('STDINT_H', 'pstdint.h')
 
+	conf.env.ENABLE_UTILS  = conf.options.ENABLE_UTILS
 	conf.env.DEDICATED     = conf.options.DEDICATED
 	conf.env.SINGLE_BINARY = conf.options.SINGLE_BINARY or conf.env.DEDICATED
 	if conf.env.DEST_OS == 'dos':
@@ -403,16 +355,27 @@ def configure(conf):
 
 		# conf.multicheck(*a, run_all_tests = True, mandatory = True)
 
+	# check if we can use C99 tgmath
+	if conf.check_cc(header_name='tgmath.h', mandatory=False):
+		if conf.env.COMPILER_CC == 'msvc':
+			conf.define('_CRT_SILENCE_NONCONFORMING_TGMATH_H', 1)
+		tgmath_usable = conf.check_cc(fragment='''#include<tgmath.h>
+			const float val = 2, val2 = 3;
+			int main(void){ return (int)(-asin(val) + cos(val2)); }''',
+			msg='Checking if tgmath.h is usable', mandatory=False, use='M')
+		conf.define_cond('HAVE_TGMATH_H', tgmath_usable)
+	else:
+		conf.undefine('HAVE_TGMATH_H')
+
 	# indicate if we are packaging for Linux/BSD
 	if not conf.options.WIN_INSTALL and conf.env.DEST_OS not in ['win32', 'darwin', 'android']:
 		conf.env.LIBDIR = conf.env.BINDIR = '${PREFIX}/lib/xash3d'
+		conf.env.SHAREDIR = '${PREFIX}/share/xash3d'
 	else:
-		conf.env.LIBDIR = conf.env.BINDIR = conf.env.PREFIX
+		conf.env.SHAREDIR = conf.env.LIBDIR = conf.env.BINDIR = conf.env.PREFIX
 
 	conf.define('XASH_BUILD_COMMIT', conf.env.GIT_VERSION if conf.env.GIT_VERSION else 'notset')
-
-	if conf.options.LOW_MEMORY:
-		conf.define('XASH_LOW_MEMORY', conf.options.LOW_MEMORY)
+	conf.define('XASH_LOW_MEMORY', conf.options.LOW_MEMORY)
 
 	for i in SUBDIRS:
 		if not i.is_enabled(conf):

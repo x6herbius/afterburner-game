@@ -44,7 +44,7 @@ const char *HPAK_TypeFromIndex( int type )
 	case t_decal: return "decal";
 	case t_generic: return "generic";
 	case t_eventscript: return "event";
-	case t_world: return "map";	
+	case t_world: return "map";
 	}
 	return "?";
 }
@@ -376,7 +376,7 @@ static qboolean HPAK_Validate( const char *filename, qboolean quiet )
 	if( quiet ) HPAK_FlushHostQueue();
 
 	// not an error - just flush queue
-	if( !filename || !*filename )
+	if( !COM_CheckString( filename ) )
 		return true;
 
 	Q_strncpy( pakname, filename, sizeof( pakname ));
@@ -439,7 +439,7 @@ static qboolean HPAK_Validate( const char *filename, qboolean quiet )
 		pRes = &dataDir[i].resource;
 
 		Con_Printf( "%i:      %s %s %s:   ", i, HPAK_TypeFromIndex( pRes->type ),
-		Q_pretifymem( pRes->nDownloadSize, 2 ), pRes->szFileName );  
+		Q_pretifymem( pRes->nDownloadSize, 2 ), pRes->szFileName );
 
 		if( memcmp( md5, pRes->rgucMD5_hash, 0x10 ))
 		{
@@ -476,7 +476,7 @@ void HPAK_CheckIntegrity( const char *filename )
 {
 	string	pakname;
 
-	if( !filename || !filename[0] )
+	if( !COM_CheckString( filename ) )
 		return;
 
 	Q_strncpy( pakname, filename, sizeof( pakname ));
@@ -493,7 +493,7 @@ void HPAK_CheckSize( const char *filename )
 	maxsize = hpk_maxsize->value;
 	if( maxsize <= 0 ) return;
 
-	if( !filename || !filename[0] )
+	if( !COM_CheckString( filename ) )
 		return;
 
 	Q_strncpy( pakname, filename, sizeof( pakname ));
@@ -518,7 +518,7 @@ qboolean HPAK_ResourceForHash( const char *filename, byte *hash, resource_t *pRe
 
 	if( !COM_CheckString( filename ))
 		return false;
-	
+
 	for( p = gp_hpak_queue; p != NULL; p = p->next )
 	{
 		if( !Q_stricmp( p->name, filename ) && !memcmp( p->resource.rgucMD5_hash, hash, 16 ))
@@ -574,7 +574,7 @@ static qboolean HPAK_ResourceForIndex( const char *filename, int index, resource
 	string		pakname;
 	file_t		*f;
 
-	if( !filename || !filename[0] )
+	if( !COM_CheckString( filename ) )
 		return false;
 
 	Q_strncpy( pakname, filename, sizeof( pakname ));

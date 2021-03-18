@@ -1,16 +1,17 @@
 #pragma once
 
-#include <memory>
 #include "standard_includes.h"
 #include "utlvector.h"
 #include "customGeometry/sharedDefs.h"
+#include "customGeometry/geometryItemPtr.h"
 
 namespace CustomGeometry
 {
 	class CGeometryItem
 	{
 	public:
-		void Clear();
+		void Reset();
+		void ClearGeometry();
 		bool IsEmpty() const;
 
 		DrawType GetDrawType() const;
@@ -18,6 +19,9 @@ namespace CustomGeometry
 
 		uint32_t GetColour() const;
 		void SetColour(uint32_t col);
+
+		float GetScale() const;
+		void SetScale(float scale);
 
 		// These add points only.
 		bool AddPoint(const Vector& p0);
@@ -40,6 +44,12 @@ namespace CustomGeometry
 		const CUtlVector<Vector>& GetPoints() const;
 		const CUtlVector<uint8_t>& GetIndices() const;
 
+		Vector& GetPoint(uint8_t index);
+		const Vector& GetPoint(uint8_t index) const;
+
+		uint8_t& GetIndex(uint8_t i);
+		const uint8_t& GetIndex(uint8_t i) const;
+
 	private:
 		uint8_t CurrentBaseIndex() const;
 
@@ -47,7 +57,6 @@ namespace CustomGeometry
 		uint32_t m_Colour = 0xFFFFFFFF;
 		CUtlVector<Vector> m_Points;
 		CUtlVector<uint8_t> m_Indices;
+		float m_Scale = 1.0f;
 	};
-
-	typedef std::shared_ptr<CGeometryItem> GeometryItemPtr_t;
 }
