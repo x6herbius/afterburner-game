@@ -9,6 +9,7 @@ struct AppOptions
 	bool readHeaderOnly = false;
 	bool verbose = false;
 
+	bool dumpAll = false;
 	bool dumpHeader = false;
 	bool dumpBones = false;
 	bool dumpBoneControllers = false;
@@ -35,4 +36,6 @@ struct AppOptions
 	bool dumpAnimationData = false;
 	bool dumpEvents = false;
 	bool dumpFootPivots = false;
+
+	bool dumpingAnyElements = false;
 };

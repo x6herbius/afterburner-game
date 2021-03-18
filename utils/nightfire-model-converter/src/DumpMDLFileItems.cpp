@@ -75,7 +75,7 @@ static inline void DumpItems(const std::string& itemName,
 
 void DumpMDLFileItems(const AppOptions& options, const NFMDL::NightfireModelFile& modelFile)
 {
-	if ( options.dumpHeader )
+	if ( options.dumpAll || options.dumpHeader )
 	{
 		std::stringstream stream;
 		stream << modelFile.Header;
@@ -87,47 +87,47 @@ void DumpMDLFileItems(const AppOptions& options, const NFMDL::NightfireModelFile
 		return;
 	}
 
-	if ( options.dumpBones )
+	if ( options.dumpAll || options.dumpBones )
 	{
 		DumpItems("Bone", "bones", modelFile.Bones, modelFile.Header.bones.offset);
 	}
 
-	if ( options.dumpBoneControllers )
+	if ( options.dumpAll || options.dumpBoneControllers )
 	{
 		DumpItems("Bone controller", "bone controllers", modelFile.BoneControllers, modelFile.Header.boneControllers.offset);
 	}
 
-	if ( options.dumpSequences )
+	if ( options.dumpAll || options.dumpSequences )
 	{
 		DumpItems("Sequence", "sequences", modelFile.Sequences, modelFile.Header.sequences.offset);
 	}
 
-	if ( options.dumpSequenceGroups )
+	if ( options.dumpAll || options.dumpSequenceGroups )
 	{
 		DumpItems("Sequence group", "sequence groups", modelFile.SequenceGroups, modelFile.Header.sequenceGroups.offset);
 	}
 
-	if ( options.dumpHitBoxes )
+	if ( options.dumpAll || options.dumpHitBoxes )
 	{
 		DumpItems("Hitbox", "hitboxes", modelFile.HitBoxes, modelFile.Header.hitBoxes.offset);
 	}
 
-	if ( options.dumpTextures )
+	if ( options.dumpAll || options.dumpTextures )
 	{
 		DumpItems("Texture", "textures", modelFile.Textures, modelFile.Header.textures.offset);
 	}
 
-	if ( options.dumpAttachments )
+	if ( options.dumpAll || options.dumpAttachments )
 	{
 		DumpItems("Attachment", "attachments", modelFile.Attachments, modelFile.Header.attachments.offset);
 	}
 
-	if ( options.dumpSoundGroups )
+	if ( options.dumpAll || options.dumpSoundGroups )
 	{
 		DumpItems("Sound group", "sound groups", modelFile.SoundGroups, modelFile.Header.soundGroups.offset);
 	}
 
-	if ( options.dumpSounds )
+	if ( options.dumpAll || options.dumpSounds )
 	{
 		DumpItems("Sound", "sounds", modelFile.Sounds, [&modelFile](size_t index) -> size_t
 		{
@@ -139,52 +139,52 @@ void DumpMDLFileItems(const AppOptions& options, const NFMDL::NightfireModelFile
 		});
 	}
 
-	if ( options.dumpLevelsOfDetail )
+	if ( options.dumpAll || options.dumpLevelsOfDetail )
 	{
 		DumpItems("Level of detail", "levels of detail", modelFile.LevelsOfDetail, modelFile.LODOffset);
 	}
 
-	if ( options.dumpBodyGroups )
+	if ( options.dumpAll || options.dumpBodyGroups )
 	{
 		DumpItems("Body group", "body groups", modelFile.BodyGroups, modelFile.Header.bodyGroups.offset);
 	}
 
-	if ( options.dumpTriangleMaps )
+	if ( options.dumpAll || options.dumpTriangleMaps )
 	{
 		DumpItems("Triangle map", "triangle maps", modelFile.TriangleMaps, modelFile.Header.triangleMapOffset);
 	}
 
-	if ( options.dumpVertices )
+	if ( options.dumpAll || options.dumpVertices )
 	{
 		DumpItems("Vertex", "vertices", modelFile.Vertices, modelFile.Header.vertexOffset);
 	}
 
-	if ( options.dumpNormals )
+	if ( options.dumpAll || options.dumpNormals )
 	{
 		DumpItems("Normal", "normals", modelFile.Normals, modelFile.Header.normalOffset);
 	}
 
-	if ( options.dumpTextureCoOrdinates )
+	if ( options.dumpAll || options.dumpTextureCoOrdinates )
 	{
 		DumpItems("Texture co-ordinate", "texture co-ordinates", modelFile.TextureCoOrdinates, modelFile.Header.textureCoOrdOffset);
 	}
 
-	if ( options.dumpVertexBlends )
+	if ( options.dumpAll || options.dumpVertexBlends )
 	{
 		DumpItems("Vertex blend", "vertex blends", modelFile.VertexBlends, modelFile.Header.vertexBlendOffset);
 	}
 
-	if ( options.dumpVertexBlendScales )
+	if ( options.dumpAll || options.dumpVertexBlendScales )
 	{
 		DumpItems("Vertex blend scale", "vertex blend scales", modelFile.VertexBlendScales, modelFile.Header.vertexBlendScaleOffset);
 	}
 
-	if ( options.dumpBoneFixUps )
+	if ( options.dumpAll || options.dumpBoneFixUps )
 	{
 		DumpItems("Bone fix-up", "bone fix-ups", modelFile.BoneFixUps, modelFile.Header.boneFixUpOffset);
 	}
 
-	if ( options.dumpSkins )
+	if ( options.dumpAll || options.dumpSkins )
 	{
 		DumpItems("Skin", "skins", modelFile.Skins, [&modelFile](size_t index) -> size_t
 		{
@@ -194,7 +194,7 @@ void DumpMDLFileItems(const AppOptions& options, const NFMDL::NightfireModelFile
 		});
 	}
 
-	if ( options.dumpModels )
+	if ( options.dumpAll || options.dumpModels )
 	{
 		DumpItems("Model", "models", modelFile.Models, [&modelFile](uint32_t index) -> size_t
 		{
@@ -204,7 +204,7 @@ void DumpMDLFileItems(const AppOptions& options, const NFMDL::NightfireModelFile
 		});
 	}
 
-	if ( options.dumpModelInfos )
+	if ( options.dumpAll || options.dumpModelInfos )
 	{
 		DumpItems("Model info", "model infos", modelFile.ModelInfos, [&modelFile](size_t index) -> size_t
 		{
@@ -214,7 +214,7 @@ void DumpMDLFileItems(const AppOptions& options, const NFMDL::NightfireModelFile
 		});
 	}
 
-	if ( options.dumpMeshes )
+	if ( options.dumpAll || options.dumpMeshes )
 	{
 		DumpItems("Mesh", "meshes", modelFile.Meshes, [&modelFile](size_t index) -> size_t
 		{
@@ -224,7 +224,7 @@ void DumpMDLFileItems(const AppOptions& options, const NFMDL::NightfireModelFile
 		});
 	}
 
-	if ( options.dumpAnimationData )
+	if ( options.dumpAll || options.dumpAnimationData )
 	{
 		DumpItems("Animation data", "animation data items", modelFile.AnimationData,
 		[](size_t) -> size_t
@@ -233,7 +233,7 @@ void DumpMDLFileItems(const AppOptions& options, const NFMDL::NightfireModelFile
 		});
 	}
 
-	if ( options.dumpEvents )
+	if ( options.dumpAll || options.dumpEvents )
 	{
 		DumpItems("Event", "events", modelFile.Events, [&modelFile](size_t index) -> size_t
 		{
@@ -255,7 +255,7 @@ void DumpMDLFileItems(const AppOptions& options, const NFMDL::NightfireModelFile
 		});
 	}
 
-	if ( options.dumpFootPivots )
+	if ( options.dumpAll || options.dumpFootPivots )
 	{
 		DumpItems("Foot pivot", "foot pivots", modelFile.FootPivots, [&modelFile](size_t index) -> size_t
 		{

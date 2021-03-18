@@ -27,6 +27,7 @@ static constexpr const char* const ARG_INPUT = "input";
 static constexpr const char* const ARG_OUTPUT = "output";
 static constexpr const char* const ARG_HEADER_ONLY = "header-only";
 static constexpr const char* const ARG_VERBOSE = "verbose";
+static constexpr const char* const ARG_DUMP_ALL = "dump-all";
 
 struct DumpOption
 {
@@ -82,6 +83,7 @@ bool ParseCommandLineOptions(int argc, const char** argv, AppOptions& options)
 	;
 
 	cxxopts::OptionAdder dumpOptionsAdder = launchOptions.add_options("Element dumping");
+	dumpOptionsAdder(ARG_DUMP_ALL, "Dump all MDL file information to stdout");
 
 	for ( uint32_t index = 0; index < ArraySize(DumpOptionsList); ++index )
 	{
@@ -116,11 +118,30 @@ bool ParseCommandLineOptions(int argc, const char** argv, AppOptions& options)
 		options.readHeaderOnly = result[ARG_HEADER_ONLY].as<bool>();
 		options.verbose = result[ARG_VERBOSE].as<bool>();
 
+		options.dumpAll = result[ARG_DUMP_ALL].as<bool>();
+		options.dumpingAnyElements = options.dumpAll;
+
 		for ( uint32_t index = 0; index < ArraySize(DumpOptionsList); ++index )
 		{
 			const DumpOption& dumpOpt = DumpOptionsList[index];
+			const bool dump = result[dumpOpt.FullArgName()].as<bool>();
 
-			options.*(dumpOpt.appOption) = result[dumpOpt.FullArgName()].as<bool>();
+			options.*(dumpOpt.appOption) = dump;
+
+			if ( dump )
+			{
+				options.dumpingAnyElements = true;
+			}
+		}
+
+		if ( !options.dumpingAnyElements && options.outputFile.empty() )
+		{
+			std::cerr
+				<< "Error: an output file must be specified, or at least one "
+				<< "dump option chosen. Run using the --" << ARG_HELP
+				<< " option for more information." << std::endl;
+
+			return false;
 		}
 	}
 	catch ( const cxxopts::OptionException& ex )
@@ -227,7 +248,7 @@ int main(int argc, const char** argv)
 
 		DumpMDLFileItems(options, *inModelFile);
 
-		if ( !ConvertAndWriteModelFile(options, inModelFile) )
+		if ( !options.outputFile.empty() && !ConvertAndWriteModelFile(options, inModelFile) )
 		{
 			return 1;
 		}
