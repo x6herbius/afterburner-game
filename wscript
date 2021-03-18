@@ -71,7 +71,8 @@ SUBDIRS = [
 	Subproject('game_content', dedicated=False),
 	Subproject('game_libs/cl_dll',   dedicated=False),
 	Subproject('game_libs/dlls',   dedicated=False),
-	Subproject('utils/mdldec', utility=True)
+	Subproject('utils/mdldec', utility=True),
+	Subproject('utils/nightfire-model-converter', utility=True)
 ]
 
 @Configure.conf

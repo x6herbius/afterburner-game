@@ -2,11 +2,6 @@
 
 import sys
 
-# NOTE: The NOCLIMB environment variable must be set before running Waf
-# on this script, or the outer build scripts will interfere.
-
-top = '.'
-
 class BasePlatformConfig:
 	def __init__(self):
 		self.defines = []
@@ -131,33 +126,21 @@ CONFIGS = \
 ]
 
 def options(ctx):
-	ctx.load("compiler_cxx")
+	grp = ctx.get_option_group('Utilities options')
 
-	ctx.add_option('--build-type',
-				   action='store',
-				   type='string',
-				   dest='BUILD_TYPE',
-				   default = "release",
-				   help = 'Build type: release (default) or debug.')
+	grp.add_option('--disable-utils-nfmc',
+				   action='store_true',
+				   dest='DISABLE_UTILS_NFMC',
+				   default=False,
+				   help='disable nightfire model converter utility [default: %default]')
 
 def configure(ctx):
-	ctx.load("compiler_cxx")
-
-	ctx.env.BUILD_TYPE = "debug" if ctx.options.BUILD_TYPE == "debug" else "release"
-	ctx.msg("Build type:", ctx.env.BUILD_TYPE, color="GREEN")
-
-	config = BasePlatformConfig()
-
-	for item in CONFIGS:
-		if item.matches(ctx):
-			ctx.msg("Using config:", item.description(), color="BLUE")
-			config.union(item)
-
-	ctx.msg("CXXFLAGS:", config.cxxflags, color="GREEN")
-	ctx.msg("LINKFLAGS:", config.linkflags, color="GREEN")
-	config.export(ctx)
+	ctx.env.DISABLE_UTILS_NFMC = ctx.options.DISABLE_UTILS_NFMC
 
 def build(bld):
+	if bld.env.DISABLE_UTILS_NFMC:
+		return
+
 	bld.program(source=bld.path.ant_glob("src/**/*.cpp"),
 				target="nightfire-model-converter",
 				includes=["src"])
