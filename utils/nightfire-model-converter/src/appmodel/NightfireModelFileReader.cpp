@@ -340,6 +340,8 @@ namespace NFMDL
 			}
 
 			modelUserData->IncrementChildModelInfosCount();
+
+			ReadMeshes(bodyGroupGlobalIndex, modelGlobalIndex, modelInfoElementIndex);
 		}
 	}
 
